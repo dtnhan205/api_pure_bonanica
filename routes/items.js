@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Item = require('../models/Item');
 
-// Lấy tất cả items
 router.get('/', async (req, res) => {
   try {
     const items = await Item.find();
@@ -12,7 +11,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Tạo item mới
 router.post('/', async (req, res) => {
   const item = new Item({
     name: req.body.name,
