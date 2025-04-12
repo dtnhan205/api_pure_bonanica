@@ -58,16 +58,23 @@ app.get('/api/products/:id', async (req, res) => {
       throw new Error("Database connection not established");
     }
     const { id } = req.params;
-    const collection = db.collection('products');
-    
-    // Thử tìm theo ObjectId trước
-    let product = await collection.findOne({ _id: new ObjectId(id) });
-    
-    // Nếu không tìm thấy, thử tìm theo string
+
+    // Kiểm tra id có phải là chuỗi hex 24 ký tự không
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    let product;
+
+    if (isValidObjectId) {
+      // Nếu id hợp lệ, thử tìm theo ObjectId
+      const collection = db.collection('products');
+      product = await collection.findOne({ _id: new ObjectId(id) });
+    }
+
+    // Nếu không tìm thấy hoặc id không hợp lệ, thử tìm theo string
     if (!product) {
+      const collection = db.collection('products');
       product = await collection.findOne({ _id: id });
     }
-    
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
