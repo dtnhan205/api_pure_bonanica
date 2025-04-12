@@ -34,13 +34,19 @@ app.get('/', (req, res) => {
 
 app.get('/api/products', async (req, res) => {
   try {
+    if (!db) {
+      throw new Error("Database connection not established");
+    }
+    console.log("Fetching data from MongoDB...");
     const collection = db.collection('products');
     const data = await collection.find({}).toArray();
+    console.log("Data fetched:", data);
     if (data.length === 0) {
       return res.status(404).json({ message: "No products found" });
     }
     res.json(data);
   } catch (err) {
+    console.error("Error in /api/products:", err);
     res.status(500).json({ error: err.message });
   }
 });
