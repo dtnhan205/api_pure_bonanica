@@ -9,7 +9,7 @@ const app = express();
 
 // Sử dụng middleware cors
 app.use(cors({
-  origin: 'http://localhost:3801', // Cho phép origin từ frontend
+  origin: ['http://localhost:3000', 'http://localhost:3801','http://localhost:3001','http://localhost:3002'], // Cho phép cả 2 origin
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
