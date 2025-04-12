@@ -52,7 +52,7 @@ app.get('/api/products', async (req, res) => {
   }
 });
 // Endpoint mới: Lấy sản phẩm theo id
-app.get('/api/products/:id', async (req, res) => {
+app.get('/api/products/:_id', async (req, res) => {
   try {
     if (!db) {
       throw new Error("Database connection not established");
