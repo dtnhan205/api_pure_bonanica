@@ -1,27 +1,35 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const itemsRouter = require('./routes/items');
+const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors()); // Cho phép tất cả nguồn truy cập
-app.use(express.json());
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri);
 
-// Kết nối MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+async function connectDB() {
+    try {
+        await client.connect();
+        console.log('Connected to MongoDB');
+    } catch (err) {
+        console.error(err);
+    }
+}
 
-// Routes
-const itemsRouter = require('./routes/items');
-app.use('/api/items', itemsRouter);
+connectDB();
 
-// Khởi động server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.get('/products', async (req, res) => {
+    try {
+        const database = client.db('bonanica');
+        const products = database.collection('products');
+        const result = await products.find({}).toArray();
+        res.json(result);
+    } catch (err) {
+        res.status(500).send('Server error');
+    }
+});
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
