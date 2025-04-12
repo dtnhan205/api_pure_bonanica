@@ -52,14 +52,22 @@ app.get('/api/products', async (req, res) => {
   }
 });
 // Endpoint mới: Lấy sản phẩm theo id
-app.get('/api/products/:_id', async (req, res) => {
+app.get('/api/products/:id', async (req, res) => {
   try {
     if (!db) {
       throw new Error("Database connection not established");
     }
-    const { id } = req.params; // Lấy id từ URL
+    const { id } = req.params;
     const collection = db.collection('products');
-    const product = await collection.findOne({ _id: new ObjectId(id) }); // Tìm sản phẩm theo _id
+    
+    // Thử tìm theo ObjectId trước
+    let product = await collection.findOne({ _id: new ObjectId(id) });
+    
+    // Nếu không tìm thấy, thử tìm theo string
+    if (!product) {
+      product = await collection.findOne({ _id: id });
+    }
+    
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
