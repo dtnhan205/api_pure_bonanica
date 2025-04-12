@@ -1,25 +1,39 @@
 const express = require('express');
-const connectDB = require('./config/db');
-const itemRoutes = require('./routes/items');
-// const errorHandler = require('./middleware/errorHandler');
-require('dotenv').config();
+const { MongoClient } = require('mongodb');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Kết nối MongoDB Atlas
-connectDB();
+const uri = process.env.MONGO_URI;
+const dbName = "zeal"; 
 
-// Middleware
+let db;
+
+async function connectToMongo() {
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    console.log("Connected to MongoDB");
+    db = client.db(dbName);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+connectToMongo();
+
 app.use(express.json());
 
-// Routes
-app.use('/products', itemRoutes);
+app.get('/api/products', async (req, res) => {
+  try {
+    const collection = db.collection('products');
+    const data = await collection.find({}).toArray();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// Xử lý lỗi
-// app.use(errorHandler);
-
-// Khởi động server
 app.listen(port, () => {
-  console.log(`Server chạy tại http://localhost:${port}`);
+  console.log(`Server running at port ${port}`);
 });
