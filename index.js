@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 // Thêm cors
@@ -48,6 +48,24 @@ app.get('/api/products', async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error("Error in /api/products:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+// Endpoint mới: Lấy sản phẩm theo id
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    if (!db) {
+      throw new Error("Database connection not established");
+    }
+    const { id } = req.params; // Lấy id từ URL
+    const collection = db.collection('products');
+    const product = await collection.findOne({ _id: new ObjectId(id) }); // Tìm sản phẩm theo _id
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    res.json(product);
+  } catch (err) {
+    console.error("Error in /api/products/:id:", err);
     res.status(500).json({ error: err.message });
   }
 });
