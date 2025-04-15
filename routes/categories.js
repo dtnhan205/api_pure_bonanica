@@ -23,10 +23,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get single category
+// Get single category by id
 router.get('/:id', async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await Category.findOne({ id: req.params.id });
     if (!category) return res.status(404).json({ message: 'Category not found' });
     res.json(category);
   } catch (error) {
@@ -34,11 +34,11 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Update category
+// Update category by id
 router.put('/:id', async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(
-      req.params.id,
+    const category = await Category.findOneAndUpdate(
+      { id: req.params.id },
       req.body,
       { new: true, runValidators: true }
     );
@@ -49,10 +49,10 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete category
+// Delete category by id
 router.delete('/:id', async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id);
+    const category = await Category.findOneAndDelete({ id: req.params.id });
     if (!category) return res.status(404).json({ message: 'Category not found' });
     res.json({ message: 'Category deleted' });
   } catch (error) {
