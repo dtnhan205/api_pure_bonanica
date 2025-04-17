@@ -5,13 +5,12 @@ const jwt = require('jsonwebtoken');
 // Đăng ký
 const register = async (req, res) => {
   try {
-    const { accountId, username, phone, email, password } = req.body;
+    const { username, phone, email, password } = req.body;
     const existingUser = await userModel.findOne({ email });
     if (existingUser) throw new Error('Email đã tồn tại');
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new userModel({
-      accountId,
       username,
       phone,
       email,
