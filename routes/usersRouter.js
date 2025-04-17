@@ -1,31 +1,19 @@
-// routes/usersRouter.js
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController');
-const upload = require('../middlewares/upload');
 
-// Route đăng ký người dùng
-router.post('/register', userController.register);
+const {
+  register,
+  login,
+  getUser,
+  verifyToken,
+  updateUser,
+  changePassword
+} = require('../controllers/userController');
 
-// Route đăng nhập người dùng
-router.post('/login', userController.login);
-
-// Route lấy thông tin người dùng (yêu cầu token)
-router.get('/me', userController.verifyToken, userController.getUser);
-
-// Route cập nhật thông tin người dùng (yêu cầu token)
-router.put('/update', userController.verifyToken, userController.updateUser);
-
-// Route thay đổi mật khẩu (yêu cầu token)
-router.put('/change-password', userController.verifyToken, userController.changePassword);
-
-// Route upload avatar (yêu cầu token và file)
-router.post('/upload-avatar', userController.verifyToken, upload.single('avatar'), userController.uploadAvatar);
-
-// Route lấy tất cả người dùng (yêu cầu admin)
-router.get('/', userController.verifyToken, userController.verifyAdmin, userController.getAllUsers);
-
-// Route lấy danh sách người dùng hạn chế (không yêu cầu admin)
-router.get('/list', userController.getUserList);
+router.post('/register', register);
+router.post('/login', login);
+router.get('/userinfo', verifyToken, getUser);
+router.put('/update', verifyToken, updateUser);
+router.put('/change-password', verifyToken, changePassword);
 
 module.exports = router;
