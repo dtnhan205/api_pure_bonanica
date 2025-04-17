@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const upload = require('../middleware/multerConfig');
+const upload = require('../middlewares/upload');
 
 // Route đăng ký người dùng
 router.post('/register', userController.register);
