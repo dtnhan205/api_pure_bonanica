@@ -1,0 +1,3853 @@
+[
+    {
+        "name": "Kem dưỡng Em Bé",
+        "price": 105000,
+        "discountPrice": 95000,
+        "images": [
+            "baby-kem-em-be-co-mem-1.png",
+            "baby-kem-em-be-co-mem-2.png",
+            "baby-kem-em-be-co-mem-3.png",
+            "baby-kem-em-be-co-mem-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201100"
+            },
+            "name": "Mẹ và bé"
+        },
+        "description": "Kem em bé Cỏ Mềm là sản phẩm chăm sóc bé được nhiều bố mẹ tin tưởng sử dụng với công dụng dưỡng ẩm, làm mềm, làm dịu da, cải thiện tình trạng da mẩn ngứa, nứt nẻ, hăm tã. Phù hợp với làn da nhạy cảm của trẻ nhỏ.",
+        "ingredients": [
+            "Dầu Mù U (Tamanu Oil): Giàu dưỡng chất, nuôi dưỡng và phục hồi da.",
+            "Panthenol (Vitamin B5): Giữ ẩm sâu, làm dịu và phục hồi da.",
+            "Lanolin: Sáp tự nhiên giúp khóa ẩm và làm mềm da.",
+            "Zinc Oxide (và) Triethoxycaprylylsilane: Bảo vệ da khỏi tia UV, tăng cường độ bám dính và phân tán."
+        ],
+        "usage_instructions": [
+            "Bước 1: Làm sạch vùng da cần dưỡng ẩm bằng nước sạch và lau khô nhẹ nhàng.",
+            "Bước 2: Thoa một lượng kem vừa đủ lên da bé từ 2–3 lần mỗi ngày.",
+            "Bước 3: Massage nhẹ nhàng theo chuyển động tròn để kem thẩm thấu hiệu quả.",
+            "Lưu ý: Bảo quản nơi khô ráo, tránh ánh nắng trực tiếp. Tránh tiếp xúc với mắt và miệng bé."
+        ],
+        "special": [
+            "Không chứa Parabens – có thể gây rối loạn nội tiết.",
+            "Không chứa Fragrance (hương liệu nhân tạo) – dễ gây kích ứng.",
+            "Không chứa Phthalates – có thể ảnh hưởng hệ nội tiết.",
+            "Không chứa Sulfates – gây khô và kích ứng da."
+        ],
+        "stock": 123,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Sáp ẩm cho bé",
+        "price": 90000,
+        "discountPrice": 75000,
+        "images": [
+            "baby-sap-am-cho-be-1.png",
+            "baby-sap-am-cho-be-2.png",
+            "baby-sap-am-cho-be-3.png",
+            "baby-sap-am-cho-be-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201100"
+            },
+            "name": "Mẹ và bé"
+        },
+        "description": "Sáp giữ ấm cho bé Cỏ Mềm là sản phẩm được các mẹ tin dùng, là giải pháp hiệu quả bảo vệ bé yêu khỏi bị lạnh, khi thời tiết giao mùa hay khi ngủ phòng điều hòa.",
+        "ingredients": [
+            "Bơ Hạt Mỡ (Shea Butter): Dưỡng ẩm, làm mềm da và tóc.",
+            "Dầu Thầu Dầu (Castor Oil): Làm mềm da, dưỡng tóc, hỗ trợ làm sạch.",
+            "Sáp Ong (Beeswax): Khóa ẩm, làm mềm da.",
+            "Tinh Dầu Khuynh Diệp (Eucalyptus Oil): Làm ấm cơ thể, giảm cảm lạnh.",
+            "Tinh Dầu Long Não (Camphor Oil): Làm ấm, giảm đau nhức xương khớp."
+        ],
+        "usage_instructions": [
+            "Thoa một lượng sáp vừa đủ lên ngực, lưng, bàn chân bé để giữ ấm.",
+            "Massage nhẹ nhàng để sáp thẩm thấu tốt hơn.",
+            "Có thể dùng trước khi ngủ hoặc khi trời lạnh.",
+            "Lưu ý: Tránh thoa vào mắt, miệng và vùng da có vết thương hở."
+        ],
+        "special": [
+            "Không chứa Parabens – ảnh hưởng nội tiết và gây kích ứng.",
+            "Không chứa Phthalates – ảnh hưởng đến hệ nội tiết.",
+            "Không chứa Fragrance – dễ gây dị ứng da nhạy cảm.",
+            "Không chứa SLS/SLES – có thể gây khô và kích ứng da bé."
+        ],
+        "stock": 78,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Sữa tắm gội em bé Pippi Notears (Không cay mắt)",
+        "price": 195000,
+        "discountPrice": 175000,
+        "images": [
+            "baby-sua-tam-goi-em-be-pipi-notears-1.png",
+            "baby-sua-tam-goi-em-be-pipi-notears-2.png",
+            "baby-sua-tam-goi-em-be-pipi-notears-3.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201100"
+            },
+            "name": "Mẹ và bé"
+        },
+        "description": "Sữa tắm gội em bé Pippi Notears nhà Cỏ là sản phẩm giúp làm sạch da và tóc, ngăn ngừa rôm, mụn, mẩn ngứa, giữ ẩm và bảo vệ da. Phù hợp cho trẻ em và làn da nhạy cảm, viêm da cơ địa.",
+        "ingredients": [
+            "Dầu Mù U (Tamanu Oil): Dưỡng ẩm, làm dịu và phục hồi da.",
+            "Acid Citric: Cân bằng độ pH, giúp bảo quản sản phẩm.",
+            "Tinh Dầu Mùi (Coriander Essential Oil): Làm sạch, khử mùi, thư giãn.",
+            "Glycerol (Glycerin): Giữ ẩm, giúp da mềm mịn.",
+            "Muối Biển (Sea Salt): Kháng khuẩn, thải độc cho da."
+        ],
+        "usage_instructions": [
+            "Làm ướt tóc và cơ thể bé.",
+            "Ấn khoảng 1–2 pump sữa tắm gội ra tay rồi xoa lên tóc và cơ thể bé.",
+            "Massage nhẹ nhàng, sau đó tráng lại với nước sạch.",
+            "Bảo quản nơi thoáng mát, tránh nước rơi vào sản phẩm."
+        ],
+        "special": [
+            "Không chứa Alcohol – có thể gây khô và kích ứng da bé.",
+            "Không chứa Petroleum – dễ gây bít tắc lỗ chân lông.",
+            "Không chứa Formaldehyde – tiềm ẩn nguy cơ ảnh hưởng sức khỏe lâu dài.",
+            "Không chứa Artificial Colorants – dễ gây kích ứng, không cần thiết cho trẻ nhỏ."
+        ],
+        "stock": 122,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Tinh dầu Tràm Gió",
+        "price": 200000,
+        "discountPrice": null,
+        "images": [
+            "baby-tinh-dau-tram-gio-1.png",
+            "baby-tinh-dau-tram-gio-2.png",
+            "baby-tinh-dau-tram-gio-3.png",
+            "baby-tinh-dau-tram-gio-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201100"
+            },
+            "name": "Mẹ và bé"
+        },
+        "description": "Tinh dầu tràm gió Cỏ Mềm với cam kết nguyên chất có tác dụng chống cảm lạnh, chống gió và chống ho rất hiệu quả. Mùi hương dễ chịu từ tràm gió mang đến cảm giác dễ chịu khi sử dụng. Phù hợp cho mọi độ tuổi.",
+        "ingredients": [
+            "Tinh dầu Tràm Gió (Cajeput Oil): Chiết xuất từ lá cây tràm, giúp giữ ấm cơ thể, hỗ trợ phòng ngừa cảm lạnh, ho, sổ mũi.",
+            "Tinh dầu Khuynh Diệp (Eucalyptus Oil): Giúp làm thông thoáng đường thở, kháng khuẩn nhẹ và giảm nghẹt mũi.",
+            "Dầu nền thiên nhiên (Dầu Hạnh Nhân, Dầu Jojoba...): Giúp làm dịu da bé, giảm kích ứng và hỗ trợ hấp thụ tinh dầu tốt hơn."
+        ],
+        "usage_instructions": [
+            "Nhỏ vài giọt tinh dầu tràm vào nước ấm để tắm cho bé, phòng cảm lạnh, giảm ho. Tránh dùng quá nhiều để không gây cay mắt.",
+            "Chấm nhẹ vào khăn quàng cổ hoặc quần áo của bé khi ra ngoài để giữ ấm, ngăn ngừa cảm cúm.",
+            "Nhỏ vài giọt vào nước lau nhà để vệ sinh, khử khuẩn không khí.",
+            "Lưu ý: Sử dụng liều lượng hợp lý, tránh thoa lên vùng da nhạy cảm để không gây kích ứng."
+        ],
+        "special": [
+            "Không chứa Parabens – có thể gây kích ứng cho làn da mỏng manh của bé.",
+            "Không chứa Menthol nồng độ cao – dễ gây bỏng rát hoặc ảnh hưởng hô hấp nếu dùng sai liều lượng.",
+            "Không chứa Alcohol – làm khô da, dễ gây kích ứng hoặc mẩn đỏ.",
+            "Không chứa hương liệu và chất tạo màu nhân tạo – không an toàn nếu trẻ hít phải hoặc tiếp xúc lâu dài."
+        ],
+        "stock": 13,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Son Lụa Dưỡng Cho Bé",
+        "price": 160000,
+        "discountPrice": null,
+        "images": [
+            "son-moi-son-lua-bup-be-1.png",
+            "son-moi-son-lua-bup-be-2.png",
+            "son-moi-son-lua-bup-be-3.png",
+            "son-moi-son-lua-bup-be-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201100"
+            },
+            "name": "Mẹ và bé"
+        },
+        "description": "Son Lụa Búp Bê Cỏ Mềm giúp dưỡng môi, ngăn ngừa nứt nẻ và không làm thâm môi. An toàn cho trẻ nhỏ với thành phần thiên nhiên, mang lại đôi môi mềm mịn tự nhiên.",
+        "ingredients": [
+            "Sáp Carnauba: Tạo độ cứng và bóng tự nhiên cho thỏi son, giúp bảo vệ môi khỏi khô nẻ.",
+            "Dầu Hạnh Nhân: Dưỡng ẩm, làm mềm môi, hỗ trợ làm dịu môi khô nứt nẻ.",
+            "Dầu Quả Bơ: Nuôi dưỡng môi sâu từ bên trong, phục hồi môi khô, bong tróc.",
+            "Bơ Hạt Mỡ (Shea Butter): Cung cấp độ ẩm, làm dịu môi bé, ngăn ngừa nứt môi và thâm môi.",
+            "Dầu Cám Gạo: Chống oxy hóa, dưỡng mềm và làm sáng môi tự nhiên."
+        ],
+        "usage_instructions": [
+            "Tô một lớp mỏng lên môi, sau 15-20 phút dưỡng chất sẽ thấm mềm vào da môi.",
+            "Để son bền màu hơn, thoa một lớp, bặm môi bằng giấy ăn, sau đó thoa thêm một lớp nữa.",
+            "Lưu ý: Dùng liên tục sau khi mở, bảo quản nơi khô ráo, tránh ánh nắng trực tiếp."
+        ],
+        "special": [
+            "Không chứa Chì – chất kim loại nặng tuyệt đối không được có trong sản phẩm cho bé.",
+            "Không chứa Hương liệu tổng hợp (Fragrance) – gây kích ứng và không an toàn khi trẻ liếm môi.",
+            "Không chứa Màu tổng hợp (Synthetic Colorants) – không cần thiết và có thể gây hại khi nuốt phải.",
+            "Không chứa Petrolatum (Dầu khoáng) – gốc dầu mỏ, không phù hợp với trẻ nhỏ.",
+            "Không chứa chất bảo quản."
+        ],
+        "stock": 35,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Bột Khử Mùi Thiên Nhiên Wings Up",
+        "price": 115000,
+        "discountPrice": null,
+        "images": [
+            "body-bot-khu-mui-thien-nhien-wing-up-1.png",
+            "body-bot-khu-mui-thien-nhien-wing-up-2.png",
+            "body-bot-khu-mui-thien-nhien-wing-up-3.png",
+            "body-bot-khu-mui-thien-nhien-wing-up-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Bột khử mùi thiên nhiên Wings Up Cỏ Mềm giúp ngăn ngừa mùi hôi hiệu quả, giữ vùng da như nách, bàn chân khô thoáng, sạch sẽ. Sản phẩm an toàn, không gây vàng áo, phù hợp cho mọi loại da.",
+        "ingredients": [
+            "Tinh dầu Tràm Trà: Kháng khuẩn, khử mùi, làm dịu da.",
+            "Bột Phèn Chua: Sát trùng, giảm ngứa, khử mùi hôi.",
+            "Bột Talc: Hút ẩm, làm khô thoáng, mềm mịn da.",
+            "Kẽm Oxide: Kháng khuẩn, chống hăm, làm dịu da.",
+            "Bột Gạo: Hút ẩm nhẹ nhàng, an toàn cho da nhạy cảm."
+        ],
+        "usage_instructions": [
+            "Đổ bột ra đầu ngón tay sạch, thoa vào vùng da có mùi như nách, lòng bàn chân sau khi tắm hoặc rửa sạch.",
+            "Dùng 1-2 lần mỗi ngày để giữ vùng da thoáng mát.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát. Đậy nắp sau khi dùng. Tránh để nước rơi vào sản phẩm."
+        ],
+        "special": [
+            "Không chứa Alcohol – gây khô và kích ứng da.",
+            "Không chứa Hương liệu tổng hợp – dễ gây dị ứng và mẩn đỏ.",
+            "Không chứa Parabens – chất bảo quản có thể ảnh hưởng đến nội tiết.",
+            "Không chứa Muối nhôm (Aluminum salts) – có thể gây bít lỗ chân lông và kích ứng vùng da nhạy cảm."
+        ],
+        "stock": 23,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Kem Dưỡng Da Tay Trái Bơ",
+        "price": 125000,
+        "discountPrice": null,
+        "images": [
+            "body-kem-duong-da-tay-trai-bo-1.png",
+            "body-kem-duong-da-tay-trai-bo-2.png",
+            "body-kem-duong-da-tay-trai-bo-3.png",
+            "body-kem-duong-da-tay-trai-bo-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Kem dưỡng da tay Trái Bơ Cỏ Mềm chiết xuất từ dầu trái bơ, giúp dưỡng ẩm sâu, làm mềm và phục hồi da tay, mang lại đôi tay mịn màng, không khô nứt.",
+        "ingredients": [
+            "Dầu Trái Bơ (Avocado Oil): Giàu vitamin A, D, E và axit béo giúp dưỡng ẩm sâu, làm mềm và phục hồi da tay.",
+            "Bơ Hạt Mỡ (Shea Butter): Nuôi dưỡng, tái tạo da, giúp da mịn màng, chống khô nứt.",
+            "Glycerin: Giữ ẩm, làm mềm da, tạo lớp màng bảo vệ tự nhiên.",
+            "Vitamin E: Chống oxy hóa, làm dịu da, ngăn ngừa lão hóa da tay.",
+            "Chiết xuất Lô Hội (Aloe Vera): Làm dịu, cấp nước, phục hồi da kích ứng."
+        ],
+        "usage_instructions": [
+            "Lấy một lượng kem vừa đủ thoa đều lên tay để kem thẩm thấu vào da.",
+            "Dùng dưỡng da tay và móng sau khi làm sạch hoặc khi da tay bị khô.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Parabens – chất bảo quản dễ gây rối loạn nội tiết tố.",
+            "Không chứa Alcohol Denat – làm khô và gây kích ứng da.",
+            "Không chứa Hương liệu nhân tạo (Synthetic Fragrance) – có thể gây dị ứng và mẩn ngứa.",
+            "Không chứa Phthalates – gây rối loạn nội tiết, không an toàn lâu dài.",
+            "Không chứa Silicone – tạo cảm giác ảo mịn, có thể gây bít tắc lỗ chân lông."
+        ],
+        "stock": 100,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Kem Dưỡng Da Tay Trà Đào",
+        "price": 125000,
+        "discountPrice": 100000,
+        "images": [
+            "body-kem-duong-da-tay-trai-dao-1.png",
+            "body-kem-duong-da-tay-trai-dao-2.png",
+            "body-kem-duong-da-tay-trai-dao-3.png",
+            "body-kem-duong-da-tay-trai-dao-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Kem dưỡng da tay Trà Đào Cỏ Mềm giúp dưỡng ẩm, làm mềm da tay, ngăn ngừa nếp nhăn và cải thiện tình trạng da khô rát, nứt nẻ. Phù hợp với cả làn da nhạy cảm.",
+        "ingredients": [
+            "Chiết xuất Quả Đào (Peach Extract): Giàu vitamin A, C và chất chống oxy hóa, giúp dưỡng sáng, làm mềm và tăng đàn hồi da.",
+            "Dầu Hạnh Nhân (Almond Oil): Làm dịu, dưỡng ẩm và giúp da tay mềm mại.",
+            "Glycerin Thực Vật: Giữ nước cho da, cải thiện độ ẩm tự nhiên.",
+            "Vitamin E: Chống lão hóa, tăng độ đàn hồi và bảo vệ da tay khỏi tác nhân môi trường."
+        ],
+        "usage_instructions": [
+            "Lấy một lượng kem vừa đủ thoa đều lên tay để kem thẩm thấu vào da.",
+            "Dùng dưỡng da tay và móng sau khi làm sạch hoặc khi da tay bị khô.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Parabens – chất bảo quản dễ gây rối loạn nội tiết tố.",
+            "Không chứa Alcohol Denat – làm khô và gây kích ứng da.",
+            "Không chứa Hương liệu nhân tạo (Synthetic Fragrance) – có thể gây dị ứng và mẩn ngứa.",
+            "Không chứa Phthalates – gây rối loạn nội tiết, không an toàn lâu dài.",
+            "Không chứa Silicone – tạo cảm giác ảo mịn, có thể gây bít tắc lỗ chân lông."
+        ],
+        "stock": 126,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Muối Tắm Cà Phê Cốt Dừa",
+        "price": 190000,
+        "discountPrice": 155000,
+        "images": [
+            "body-muoi-tam-caphe-cot-dua-1.png",
+            "body-muoi-tam-caphe-cot-dua-2.png",
+            "body-muoi-tam-caphe-cot-dua-3.png",
+            "body-muoi-tam-caphe-cot-dua-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Muối tắm Cà Phê Cốt Dừa Cỏ Mềm giúp tẩy tế bào chết trên da, ngăn ngừa viêm tắc lỗ chân lông, mang lại làn da mềm mịn, sáng khỏe. Sản phẩm không chứa hóa chất độc hại.",
+        "ingredients": [
+            "Muối Biển: Làm sạch, tẩy tế bào chết nhẹ nhàng.",
+            "Bột Cà Phê: Tẩy tế bào chết, chống oxy hóa, làm sáng da.",
+            "Dầu Dừa: Dưỡng ẩm, làm mềm da.",
+            "Glycerin: Giữ ẩm, giúp da mềm mịn."
+        ],
+        "usage_instructions": [
+            "Làm ướt da toàn thân bằng nước sạch.",
+            "Lấy một lượng muối tắm vừa đủ, nhẹ nhàng massage lên da theo chuyển động tròn, đặc biệt ở các vùng da sần sùi, thâm sạm.",
+            "Thư giãn 3–5 phút để các dưỡng chất thẩm thấu vào da.",
+            "Tắm sạch lại với nước ấm, lau khô và dùng thêm kem dưỡng nếu cần.",
+            "Sử dụng 2–3 lần mỗi tuần để đạt hiệu quả tốt nhất."
+        ],
+        "special": [
+            "Không chứa Paraben – chất bảo quản dễ gây kích ứng và rối loạn nội tiết tố.",
+            "Không chứa SLS/SLES – có thể làm khô và tổn thương da.",
+            "Không chứa Hương liệu tổng hợp – dễ gây kích ứng, đặc biệt với da nhạy cảm.",
+            "Không chứa Chất tạo màu nhân tạo – có thể gây dị ứng, nổi mẩn hoặc kích ứng da."
+        ],
+        "stock": 68,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Nước Súc Miệng Keo Ong 5s",
+        "price": 120000,
+        "discountPrice": null,
+        "images": [
+            "body-nuoc-suc-mieng-keo-ong-5s-1.png",
+            "body-nuoc-suc-mieng-keo-ong-5s-2.png",
+            "body-nuoc-suc-mieng-keo-ong-5s-3.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Nước súc miệng Keo Ong 5s Cỏ Mềm giúp làm sạch răng, miệng, khử mùi hôi, làm dịu mát miệng khi bị viêm lợi, nhiệt miệng, ê buốt răng. Sản phẩm bảo vệ răng trắng sáng, ngăn ngừa vi khuẩn gây sâu răng, hôi miệng, mảng bám.",
+        "ingredients": [
+            "Tinh dầu Cam Ngọt: Tạo hương thơm dễ chịu, giảm căng thẳng.",
+            "Tinh dầu Bạc Hà: Làm mát, kháng khuẩn, tạo mùi thơm tươi mát.",
+            "Acid Citric: Chất bảo quản tự nhiên, cân bằng độ pH.",
+            "Tinh dầu Tràm Trà: Kháng khuẩn, hỗ trợ trị mụn và làm sạch da.",
+            "Sodium Chloride (Muối Biển): Làm sạch, tẩy tế bào chết nhẹ nhàng."
+        ],
+        "usage_instructions": [
+            "Sử dụng 2-3 lần mỗi ngày, mỗi lần dùng 10-20 ml súc miệng trong 5-10 giây hoặc lâu hơn.",
+            "Không súc lại với nước sau khi sử dụng.",
+            "Dùng sau khi đánh răng sáng và tối hoặc sau bữa ăn trưa, khi cảm thấy mùi hôi khó chịu.",
+            "Không ăn uống hay đánh răng trong 30 phút sau khi súc miệng."
+        ],
+        "special": [
+            "Không chứa Sulfate – an toàn cho niêm mạc miệng.",
+            "Không chứa Hương liệu nhân tạo – giảm nguy cơ kích ứng.",
+            "Không chứa Paraben – chất bảo quản có thể ảnh hưởng nội tiết.",
+            "Không chứa Alcohol – không gây khô rát miệng."
+        ],
+        "stock": 35,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Sữa Tắm Sâm 1700 Hương Thơm Dịu Nhẹ",
+        "price": 195000,
+        "discountPrice": null,
+        "images": [
+            "body-sua-tam1700-huong-thom-dieu-nhe-1.png",
+            "body-sua-tam1700-huong-thom-dieu-nhe-2.png",
+            "body-sua-tam1700-huong-thom-dieu-nhe-3.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Sữa tắm Sâm 1700 Cỏ Mềm giúp làm sạch bụi bẩn, dầu nhờn trên da, ngăn ngừa mụn và vi khuẩn, làm sáng da và thư giãn tinh thần sau một ngày dài.",
+        "ingredients": [
+            "Chiết xuất Sâm Lai Châu: Ngăn ngừa lão hóa da, làm sáng da.",
+            "Niacinamide: Hỗ trợ làm sáng da, mờ vết thâm.",
+            "Sorbitol, Glycerin: Dưỡng ẩm tự nhiên, hạn chế tình trạng khô da."
+        ],
+        "usage_instructions": [
+            "Làm ướt cơ thể.",
+            "Cho sữa tắm vào lòng bàn tay hoặc bông tắm, tạo bọt rồi massage nhẹ nhàng khắp cơ thể.",
+            "Tráng lại bằng nước sạch.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Sulfate – an toàn, không gây khô da.",
+            "Không chứa Paraben – không ảnh hưởng nội tiết.",
+            "Không chứa Hương liệu nhân tạo – giảm nguy cơ kích ứng.",
+            "Không chứa Alcohol – không làm mất độ ẩm tự nhiên của da."
+        ],
+        "stock": 53,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Sữa Tắm Mật Ong Cà Phê",
+        "price": 195000,
+        "discountPrice": null,
+        "images": [
+            "body-sua-tam-mat-ong-ca-phe-1.png",
+            "body-sua-tam-mat-ong-ca-phe-2.png",
+            "body-sua-tam-mat-ong-ca-phe-3.png",
+            "body-sua-tam-mat-ong-ca-phe-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Sữa tắm Mật Ong Cà Phê Cỏ Mềm giúp làm sạch da và duy trì độ ẩm tự nhiên, mang lại làn da mềm mịn, khỏe mạnh. Sản phẩm chiết xuất từ thiên nhiên, an toàn và lành tính.",
+        "ingredients": [
+            "Mật Ong Lên Men: Dưỡng ẩm, làm mềm da, kháng khuẩn nhẹ.",
+            "Dầu Cà Phê (Coffea Arabica Oil): Chống oxy hóa, làm sáng da.",
+            "Sorbitol, Glycerin: Giữ ẩm, giúp da mềm mịn.",
+            "Niacinamide: Hỗ trợ làm sáng da, mờ vết thâm."
+        ],
+        "usage_instructions": [
+            "Làm ướt cơ thể bằng nước sạch.",
+            "Cho 1-2 pump sữa tắm vào lòng bàn tay hoặc bông tắm.",
+            "Xoa nhẹ để tạo bọt, massage nhẹ nhàng khắp cơ thể.",
+            "Tắm lại bằng nước sạch.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Paraben – chất bảo quản có thể gây rối loạn nội tiết và kích ứng da.",
+            "Không chứa SLS/SLES – chất tạo bọt mạnh, dễ làm khô và kích ứng da.",
+            "Không chứa Alcohol khô – gây mất độ ẩm tự nhiên của da.",
+            "Không chứa Formaldehyde hoặc dẫn xuất – có thể gây dị ứng, không an toàn với da nhạy cảm."
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Tẩy Da Chết Body Mật Ong Cà Phê",
+        "price": 165000,
+        "discountPrice": null,
+        "images": [
+            "body-tay-da-chet-body-mat-ong-ca-phe-1.png",
+            "body-tay-da-chet-body-mat-ong-ca-phe-2.png",
+            "body-tay-da-chet-body-mat-ong-ca-phe-3.png",
+            "body-tay-da-chet-body-mat-ong-ca-phe-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Tẩy da chết Mật Ong Cà Phê Cỏ Mềm chiết xuất từ bột cà phê và mật ong lên men, giúp làm sạch da, mang lại làn da sáng khỏe, mịn màng.",
+        "ingredients": [
+            "Bột Cà Phê Robusta: Tẩy tế bào chết, chống oxy hóa.",
+            "Mật Ong Lên Men: Dưỡng ẩm, làm mềm da.",
+            "Dầu Dừa: Dưỡng ẩm, làm mềm da.",
+            "Bơ Hạt Mỡ (Shea Butter): Nuôi dưỡng, tái tạo da.",
+            "Dầu Ô Liu: Dưỡng ẩm, làm dịu da."
+        ],
+        "usage_instructions": [
+            "Làm ướt cơ thể bằng nước sạch.",
+            "Lấy một lượng vừa đủ ra bàn tay.",
+            "Massage nhẹ nhàng toàn thân rồi tắm tráng lại với nước sạch.",
+            "Sử dụng 2-3 lần mỗi tuần.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Paraben – chất bảo quản có thể gây rối loạn nội tiết và kích ứng da.",
+            "Không chứa Sulfate (SLS/SLES) – tác nhân tạo bọt mạnh thường gây khô căng và kích ứng da.",
+            "Không chứa Alcohol khô – gây mất cân bằng độ ẩm tự nhiên.",
+            "Không chứa Silicone – có thể gây bí da, dễ nổi mụn."
+        ],
+        "stock": 100,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Xà Bông Hữu Cơ Hạt Mùi",
+        "price": 180000,
+        "discountPrice": null,
+        "images": [
+            "body-xa-phong-huu-co-hat-mui-1.png",
+            "body-xa-phong-huu-co-hat-mui-2.png",
+            "body-xa-phong-huu-co-hat-mui-3.png",
+            "body-xa-phong-huu-co-hat-mui-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Xà bông Hữu Cơ Hạt Mùi Cỏ Mềm mang hương thơm thư giãn, làm sạch dịu nhẹ, không gây khô da. Sản phẩm thân thiện với môi trường, an toàn cho sức khỏe.",
+        "ingredients": [
+            "Tinh dầu Hạt Mùi (Coriandrum Sativum Essential Oil): Mang hương thơm thư giãn, làm sạch da.",
+            "Dầu Mù U (Calophyllum Inophyllum Seed Oil): Dưỡng ẩm, làm dịu da.",
+            "Phôi Xà Phòng Hữu Cơ: Làm sạch dịu nhẹ, an toàn.",
+            "Xơ Mướp (Luffa Cylindrica Fruit): Tẩy tế bào chết nhẹ nhàng."
+        ],
+        "usage_instructions": [
+            "Dùng để tắm: Cho xà bông vào túi lưới, làm ướt người và túi lưới, xoa đều khắp cơ thể tạo bọt, tắm tráng sạch.",
+            "Dùng rửa mặt: Làm ướt mặt, xoa tay vào bánh xà bông tạo bọt, massage đều quanh mặt, rửa sạch bằng nước mát.",
+            "Bảo quản: Treo túi xà bông lên móc để khô sạch, tránh ngấm nước."
+        ],
+        "special": [
+            "Không chứa Paraben – chất bảo quản dễ gây kích ứng và ảnh hưởng nội tiết.",
+            "Không chứa Sulfate (SLS/SLES) – chất tạo bọt mạnh, có thể làm khô và bào mòn da.",
+            "Không chứa Alcohol khô – làm mất độ ẩm tự nhiên và gây rát da.",
+            "Không chứa Hương liệu tổng hợp – dễ gây dị ứng, đặc biệt với da nhạy cảm."
+        ],
+        "stock": 45,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Xịt Thơm Miệng Keo Ong Bạc Hà",
+        "price": 80000,
+        "discountPrice": null,
+        "images": [
+            "body-xit-thom-mieng-vi-bac-ha-hoi-tho-thom-mat-1.png",
+            "body-xit-thom-mieng-vi-bac-ha-hoi-tho-thom-mat-2.png",
+            "body-xit-thom-mieng-vi-bac-ha-hoi-tho-thom-mat-3.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Xịt thơm miệng Keo Ong Bạc Hà Cỏ Mềm giúp khử mùi hôi, làm thơm miệng, mang lại hơi thở thơm mát. Sản phẩm ngăn ngừa vi khuẩn gây sâu răng, hôi miệng, mảng bám trên răng.",
+        "ingredients": [
+            "Chiết xuất Keo Ong (Propolis Extract): Kháng khuẩn, làm sạch miệng.",
+            "Tinh dầu Bạc Hà (Mentha Arvensis Essential Oil): Làm mát, tạo hơi thở thơm.",
+            "Tinh dầu Vỏ Chanh (Citrus Aurantifolia Peel Essential Oil): Kháng khuẩn, thơm dễ chịu.",
+            "Sorbitol, Glycerin: Giữ ẩm, làm dịu niêm mạc miệng.",
+            "Menthol: Tạo cảm giác mát lạnh."
+        ],
+        "usage_instructions": [
+            "Xịt 2-3 lần quanh khoang miệng để làm sạch và tạo hơi thở thơm mát.",
+            "Dùng khi cần thiết, đặc biệt sau bữa ăn hoặc khi cảm thấy hơi thở có mùi.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp."
+        ],
+        "special": [
+            "Không chứa Alcohol khô – có thể gây khô rát niêm mạc và làm hỏng men răng.",
+            "Không chứa Paraben – chất bảo quản có thể ảnh hưởng đến hệ nội tiết.",
+            "Không chứa Hương liệu tổng hợp – dễ gây kích ứng hoặc phản ứng dị ứng.",
+            "Không chứa Chất tạo màu nhân tạo – có thể gây mẫn cảm hoặc không an toàn nếu nuốt phải."
+        ],
+        "stock": 23,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 3 Chai Body Mist Xịt Thơm Toàn Thân",
+        "price": 210000,
+        "discountPrice": null,
+        "images": [
+            "comb0-body-mist-xit-thom-toan-than-quan-ao-huong-nuoc-hoa-ngot-1.png",
+            "comb0-body-mist-xit-thom-toan-than-quan-ao-huong-nuoc-hoa-ngot-2.png",
+            "comb0-body-mist-xit-thom-toan-than-quan-ao-huong-nuoc-hoa-ngot-3.png",
+            "comb0-body-mist-xit-thom-toan-than-quan-ao-huong-nuoc-hoa-ngot-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Body Mist Cỏ Mềm xịt thơm toàn thân, khử mùi hôi, lưu hương nhẹ nhàng, tinh tế, đồng thời dưỡng ẩm cho da. Có 3 mùi chính: Lê và Hoa Mơ, Hoa Trắng, Gỗ Ngọt và Hoắc Hương. An toàn cho da nhạy cảm.",
+        "ingredients": [
+            "Ethanol: Làm dung môi, giúp phân tán hương liệu.",
+            "Nước Tinh Khiết: Làm nền cho sản phẩm.",
+            "Glycerin: Dưỡng ẩm, làm mềm da.",
+            "Chiết xuất Lô Hội (Aloe Vera Extract): Làm dịu, cấp nước cho da."
+        ],
+        "usage_instructions": [
+            "Lắc nhẹ chai trước khi dùng để hương liệu phân tán đều.",
+            "Giữ khoảng cách 20–30cm từ quần áo khi xịt để tránh ướt vải.",
+            "Xịt nhẹ lên bề mặt vải: áo, váy, khăn, cổ áo. Đợi vài giây để khô tự nhiên.",
+            "Lưu ý: Không xịt vào lụa, da thật, vải nhung hoặc quần áo sáng màu nếu chưa thử. Tránh xịt gần lửa hoặc nơi có nhiệt độ cao. Bảo quản nơi mát mẻ."
+        ],
+        "special": [
+            "Không chứa Paraben – chất bảo quản có thể gây kích ứng và rối loạn nội tiết.",
+            "Không chứa Phthalates – thành phần thường có trong hương liệu tổng hợp, có thể gây hại lâu dài.",
+            "Không chứa Sulfate (SLS/SLES) – không cần thiết trong body mist và dễ gây khô da.",
+            "Không chứa Dầu khoáng (Mineral Oil) – có thể gây bí da, dễ gây mụn hoặc kích ứng."
+        ],
+        "stock": 34,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Bộ Đôi Dưỡng Ẩm Sâm 1700",
+        "price": 1100000,
+        "discountPrice": null,
+        "images": [
+            "combo-2-bo-doi-duong-am-sam-1.png",
+            "combo-2-bo-doi-duong-am-sam-2.png",
+            "combo-2-bo-doi-duong-am-sam-3.png",
+            "combo-2-bo-doi-duong-am-sam-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo Bộ Đôi Dưỡng Ẩm Sâm 1700 Cỏ Mềm với serum và kem dưỡng giúp dưỡng ẩm, làm mờ đốm nâu, nếp nhăn, mang lại làn da căng mịn, ngăn ngừa lão hóa hiệu quả.",
+        "ingredients": [
+            "Chiết xuất Sâm Lai Châu: Làm sáng da, chống lão hóa sớm.",
+            "Niacinamide (Vitamin B3): Làm sáng da, mờ vết thâm, cải thiện độ đàn hồi.",
+            "Panthenol (Vitamin B5): Giữ ẩm, làm dịu da.",
+            "Hyaluronic Acid: Dưỡng ẩm sâu, giảm khô sần, cải thiện độ đàn hồi da.",
+            "Chiết xuất Hạt Mộc Qua (Pyrus Cydonia Seed Extract): Cải thiện da nứt nẻ, ngừa lão hóa da."
+        ],
+        "usage_instructions": [
+            "Serum: Nhỏ vài giọt serum, thoa đều lên mặt, massage nhẹ để thẩm thấu.",
+            "Kem dưỡng: Lấy lượng kem vừa đủ, chấm lên 5 điểm trên khuôn mặt (trán, mũi, hai má, cằm).",
+            "Thoa đều kem theo chiều xoắn ốc hoặc từ dưới lên trên, vỗ nhẹ để thẩm thấu.",
+            "Dùng sáng và tối mỗi ngày để đạt hiệu quả tối ưu."
+        ],
+        "special": [
+            "Không chứa Paraben – chất bảo quản dễ gây kích ứng hoặc ảnh hưởng nội tiết tố.",
+            "Không chứa Alcohol Denat – có thể gây khô da, kích ứng.",
+            "Không chứa Hương liệu tổng hợp nồng – hạn chế nguy cơ kích ứng với da nhạy cảm."
+        ],
+        "stock": 100,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Bọt Vệ Sinh Mây Hồng Trầu Không và Lô Hội",
+        "price": 340000,
+        "discountPrice": 300000,
+        "images": [
+            "combo-2-bot-ve-sinh-may-hong-trau-khong-va-bot-ve-sinh-may-trau-khong-1.png",
+            "combo-2-bot-ve-sinh-may-hong-trau-khong-va-bot-ve-sinh-may-trau-khong-2.png",
+            "combo-2-bot-ve-sinh-may-hong-trau-khong-va-bot-ve-sinh-may-trau-khong-3.png",
+            "combo-2-bot-ve-sinh-may-hong-trau-khong-va-bot-ve-sinh-may-trau-khong-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo Bọt Vệ Sinh Mây Hồng Trầu Không và Lô Hội Cỏ Mềm giúp làm sạch sâu, nuôi dưỡng và bảo vệ vùng kín, mang lại cảm giác thoải mái, phòng ngừa viêm nhiễm.",
+        "ingredients": [
+            "Tinh dầu Trầu Không: Kháng khuẩn, khử mùi, ngăn ngừa viêm nhiễm.",
+            "Tinh chất Nghệ: Làm dịu và phục hồi da.",
+            "Chiết xuất Lô Hội: Làm dịu, dưỡng ẩm, kháng viêm.",
+            "Chiết xuất Hoa Hồng: Làm mềm da, mang lại cảm giác dễ chịu.",
+            "Lactic Acid: Giúp cân bằng độ pH vùng kín."
+        ],
+        "usage_instructions": [
+            "Làm ướt vùng kín.",
+            "Lấy một lượng bọt vừa đủ thoa đều lên vùng kín.",
+            "Massage nhẹ nhàng trong khoảng 1 phút.",
+            "Rửa lại bằng nước sạch.",
+            "Sử dụng hàng ngày. Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Paraben – không gây hại cho sức khỏe và hệ nội tiết.",
+            "Không chứa Hương liệu tổng hợp – tránh kích ứng cho da nhạy cảm.",
+            "Không chứa Hóa chất độc hại – bảo vệ sức khỏe vùng kín."
+        ],
+        "stock": 78,
+        "createdAt": {
+            "$date": "2025-04-16T15:30:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 2 Nước Rửa Tay Thiên Nhiên",
+        "price": 210000,
+        "discountPrice": null,
+        "images": [
+            "combo-2-nuoc-rua-tay-thien-nhien-bao-ve-duong-am-da-tay-1.png",
+            "combo-2-nuoc-rua-tay-thien-nhien-bao-ve-duong-am-da-tay-2.png",
+            "combo-2-nuoc-rua-tay-thien-nhien-bao-ve-duong-am-da-tay-3.png",
+            "combo-2-nuoc-rua-tay-thien-nhien-bao-ve-duong-am-da-tay-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo 2 Nước Rửa Tay Thiên Nhiên Cỏ Mềm giúp làm sạch da tay, dưỡng ẩm, không gây khô ráp. Thành phần thiên nhiên an toàn, phù hợp cho cả gia đình.",
+        "ingredients": [
+            "Dịch chiết Bồ Hòn Men Gạo: Làm sạch sâu, phân giải dầu mỡ hiệu quả.",
+            "Cocamidopropyl Betaine: Hoạt chất tạo bọt dịu nhẹ.",
+            "Muối Biển: Tăng độ đậm đặc, bảo quản tự nhiên.",
+            "Sorbitol: Dưỡng ẩm da tay, không làm khô da.",
+            "Tinh dầu Gừng – Chanh: Mang lại hương thơm dịu nhẹ."
+        ],
+        "usage_instructions": [
+            "Làm ướt tay.",
+            "Lấy một lượng vừa đủ, tạo bọt và massage nhẹ nhàng.",
+            "Rửa sạch lại bằng nước.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Sulfate – không gây khô ráp, kích ứng da.",
+            "Không chứa Paraben – không ảnh hưởng đến nội tiết tố.",
+            "Không chứa Chất tạo màu hóa học – không để lại tồn dư độc hại.",
+            "Không chứa Hương liệu tổng hợp – giảm nguy cơ dị ứng."
+        ],
+        "stock": 23,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 2 Bước Tẩy Trang và Tẩy Da Chết Sơ-ri Vitamin C",
+        "price": 345000,
+        "discountPrice": null,
+        "images": [
+            "combo-2-nuoc-tay-trang-so-ri-1.png",
+            "combo-2-nuoc-tay-trang-so-ri-2.png",
+            "combo-2-nuoc-tay-trang-so-ri-3.png",
+            "combo-2-nuoc-tay-trang-so-ri-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo Tẩy Trang và Tẩy Da Chết Sơ-ri Vitamin C Cỏ Mềm giúp làm sạch sâu, làm sáng da, mang lại làn da mịn màng, tươi sáng nhờ hàm lượng Vitamin C dồi dào.",
+        "ingredients": [
+            "Chiết xuất Quả Sơ-ri: Giàu Vitamin C, làm sáng da, chống oxy hóa.",
+            "Niosome Vitamin C: Tăng cường thẩm thấu, làm sáng và chống lão hóa.",
+            "Glycerin: Dưỡng ẩm, làm mềm da."
+        ],
+        "usage_instructions": [
+            "Tẩy trang: Thấm sản phẩm vào bông, lau nhẹ khắp mặt để loại bỏ bụi bẩn và lớp trang điểm.",
+            "Tẩy da chết: Làm ẩm da mặt, lấy lượng sản phẩm vừa đủ, massage nhẹ nhàng theo chuyển động tròn, tránh vùng mắt và môi, rửa sạch bằng nước ấm.",
+            "Sử dụng tẩy da chết 2–3 lần mỗi tuần.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Alcohol Denat – không gây khô căng hay châm chích.",
+            "Không chứa Paraben – chất bảo quản có thể gây kích ứng.",
+            "Không chứa Hương liệu tổng hợp – giảm nguy cơ dị ứng.",
+            "Không chứa Sulfate (SLS, SLES) – không làm khô da.",
+            "Không chứa Dầu khoáng – tránh bít tắc lỗ chân lông."
+        ],
+        "stock": 45,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 2 Sản Phẩm Chăm Sóc Tóc Suôn Mượt",
+        "price": 515000,
+        "discountPrice": 480000,
+        "images": [
+            "combo-2-san-pham-cham-soc-toc-suon-muot-an-toan-tu-thien-nhien-1.png",
+            "combo-2-san-pham-cham-soc-toc-suon-muot-an-toan-tu-thien-nhien-2.png",
+            "combo-2-san-pham-cham-soc-toc-suon-muot-an-toan-tu-thien-nhien-3.png",
+            "combo-2-san-pham-cham-soc-toc-suon-muot-an-toan-tu-thien-nhien-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo 2 sản phẩm chăm sóc tóc Cỏ Mềm gồm dầu gội và dầu xả thiên nhiên, giúp làm sạch, nuôi dưỡng tóc suôn mượt, chắc khỏe, giảm gãy rụng và gàu.",
+        "ingredients": [
+            "Bồ Kết: Giàu saponin, làm sạch nhẹ nhàng, kích thích mọc tóc.",
+            "Hương Nhu, Vỏ Bưởi, Sả Chanh: Kháng khuẩn, làm sạch da đầu, giảm gàu.",
+            "Dầu Dừa Nguyên Chất: Làm mềm, dưỡng tóc bóng mượt.",
+            "Dầu Argan, Dầu Hạt Nho: Chống oxy hóa, phục hồi tóc hư tổn.",
+            "Chiết xuất Nha Đam, Vitamin E: Dưỡng ẩm sâu, phục hồi tóc khô xơ."
+        ],
+        "usage_instructions": [
+            "Dầu gội: Gội ướt tóc, lấy 2-4 pump dầu gội, tạo bọt, massage da đầu 3-5 phút, xả sạch bằng nước mát.",
+            "Dầu xả: Sau khi gội, để tóc ráo nước, thoa dầu xả lên thân và ngọn tóc, massage 5 phút, xả sạch bằng nước mát.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Sulfate (SLS/SLES) – giữ da đầu và tóc không bị khô.",
+            "Không chứa Paraben – không ảnh hưởng đến hệ nội tiết.",
+            "Không chứa Silicone – không gây bí da đầu.",
+            "Không chứa Hương liệu nhân tạo – an toàn cho da đầu nhạy cảm."
+        ],
+        "stock": 56,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 2 Sản Phẩm Dưỡng Thể Kem Dưỡng Da Tay",
+        "price": 290000,
+        "discountPrice": null,
+        "images": [
+            "combo-2-san-pham-duong-the-kem-duong-da-tay-tu-tu-thien-nhien-1.png",
+            "combo-2-san-pham-duong-the-kem-duong-da-tay-tu-tu-thien-nhien-2.png",
+            "combo-2-san-pham-duong-the-kem-duong-da-tay-tu-tu-thien-nhien-3.png",
+            "combo-2-san-pham-duong-the-kem-duong-da-tay-tu-tu-thien-nhien-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo chăm sóc da Cỏ Mềm gồm sữa dưỡng thể và kem dưỡng da tay, giúp dưỡng ẩm, làm sáng và mịn da toàn thân, đặc biệt phù hợp với da nhạy cảm.",
+        "ingredients": [
+            "Dầu Marula, Bơ Shea: Dưỡng ẩm sâu, giúp da mềm mịn.",
+            "Niacinamide (Vitamin B3): Làm sáng da, mờ thâm, đều màu.",
+            "Chiết xuất Sâm Lai Châu: Dưỡng sáng, ngăn ngừa lão hóa.",
+            "Dầu Trái Bơ, Dầu Cám Gạo: Dưỡng ẩm sâu, làm dịu da.",
+            "Vitamin E: Chống lão hóa, bảo vệ da tay."
+        ],
+        "usage_instructions": [
+            "Sữa dưỡng thể: Thoa sau khi tắm, khi da còn hơi ẩm, massage nhẹ nhàng để thẩm thấu.",
+            "Kem dưỡng da tay: Rửa sạch tay, thoa kem khi tay còn ẩm, massage đều.",
+            "Lưu ý: Kết hợp tẩy da chết 1-2 lần mỗi tuần để da sáng mịn."
+        ],
+        "special": [
+            "Không chứa Paraben – không gây ảnh hưởng đến nội tiết.",
+            "Không chứa Alcohol công nghiệp – không làm khô da.",
+            "Không chứa Silicone – không gây bí tắc lỗ chân lông.",
+            "Không chứa Hương liệu tổng hợp – giảm nguy cơ dị ứng."
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 2 Sản Phẩm Muối Tắm và Xà Bông Thiên Nhiên",
+        "price": 320000,
+        "discountPrice": null,
+        "images": [
+            "combo-2-san-pham-muoi-tam-va-sa-phong-thien-nhien-co-mem-1.png",
+            "combo-2-san-pham-muoi-tam-va-sa-phong-thien-nhien-co-mem-2.png",
+            "combo-2-san-pham-muoi-tam-va-sa-phong-thien-nhien-co-mem-3.png",
+            "combo-2-san-pham-muoi-tam-va-sa-phong-thien-nhien-co-mem-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo Muối Tắm và Xà Bông Thiên Nhiên Cỏ Mềm giúp làm sạch sâu, nuôi dưỡng da, mang lại cảm giác thư thái, sảng khoái với thành phần thiên nhiên lành tính.",
+        "ingredients": [
+            "Dầu Dừa, Dầu Cám Gạo, Dầu Thầu Dầu: Làm sạch dịu nhẹ, dưỡng ẩm tự nhiên.",
+            "Tinh dầu Thiên Nhiên: Mang hương thơm thư giãn, dễ chịu.",
+            "Muối Biển: Tẩy tế bào chết, làm sạch da.",
+            "Bột Thảo Mộc Tự Nhiên: Hỗ trợ làm sạch sâu, thông thoáng lỗ chân lông."
+        ],
+        "usage_instructions": [
+            "Xà bông: Làm ướt da, tạo bọt xà bông, massage nhẹ nhàng, rửa sạch bằng nước.",
+            "Muối tắm: Lấy lượng nhỏ, massage nhẹ nhàng để loại bỏ bụi bẩn, rửa sạch bằng nước.",
+            "Sử dụng xà bông hàng ngày, muối tắm 2-3 lần mỗi tuần.",
+            "Lưu ý: Tránh tiếp xúc với mắt, không dùng muối tắm trên vết thương hở."
+        ],
+        "special": [
+            "Không chứa Paraben – không ảnh hưởng nội tiết.",
+            "Không chứa Sulfate (SLS/SLES) – không gây khô, kích ứng da.",
+            "Không chứa Silicone – không gây bí lỗ chân lông.",
+            "Không chứa Hương liệu nhân tạo – không gây dị ứng."
+        ],
+        "stock": 34,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 2 Sản Phẩm Sữa Tắm và Sữa Dưỡng Thể Sáng Da",
+        "price": 380000,
+        "discountPrice": null,
+        "images": [
+            "combo-2-san-pham-sua-tam-sua-duong-the-sang-da-toan-than-1.png",
+            "combo-2-san-pham-sua-tam-sua-duong-the-sang-da-toan-than-2.png",
+            "combo-2-san-pham-sua-tam-sua-duong-the-sang-da-toan-than-3.png",
+            "combo-2-san-pham-sua-tam-sua-duong-the-sang-da-toan-than-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo Sữa Tắm và Sữa Dưỡng Thể Sáng Da Cỏ Mềm giúp làm sạch, dưỡng ẩm và làm sáng da toàn thân, mang lại làn da mịn màng, trắng sáng không tì vết.",
+        "ingredients": [
+            "Chiết xuất Sâm Lai Châu: Làm sáng da, ngăn ngừa nám sạm.",
+            "Niacinamide (Vitamin B3): Dưỡng sáng, làm mờ thâm.",
+            "Dầu Marula, Bơ Shea: Dưỡng ẩm, làm mềm và phục hồi da.",
+            "Glycerin, Sorbitol: Cấp ẩm, giúp da mềm mại."
+        ],
+        "usage_instructions": [
+            "Sữa tắm: Làm ướt cơ thể, cho sữa tắm vào lòng bàn tay hoặc bông tắm, tạo bọt, massage nhẹ nhàng, tráng sạch bằng nước.",
+            "Sữa dưỡng thể: Thoa sau khi tắm, khi da còn hơi ẩm, massage nhẹ nhàng để thẩm thấu.",
+            "Lưu ý: Kết hợp tẩy da chết 1-2 lần mỗi tuần để da sáng mịn."
+        ],
+        "special": [
+            "Không chứa Sulfate – không gây khô da, kích ứng.",
+            "Không chứa Paraben – không ảnh hưởng đến nội tiết tố.",
+            "Không chứa Silicone – không gây bít tắc lỗ chân lông.",
+            "Không chứa Hương liệu tổng hợp – không gây dị ứng."
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 3 Bột Khử Mùi Wings Up",
+        "price": 345000,
+        "discountPrice": null,
+        "images": [
+            "combo-3-bot-khu-mui-wings-up-khu-mui-hoi-chan-hoi-nach-giay-1.png",
+            "combo-3-bot-khu-mui-wings-up-khu-mui-hoi-chan-hoi-nach-giay-2.png",
+            "combo-3-bot-khu-mui-wings-up-khu-mui-hoi-chan-hoi-nach-giay-3.png",
+            "combo-3-bot-khu-mui-wings-up-khu-mui-hoi-chan-hoi-nach-giay-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo 3 Bột Khử Mùi Wings Up Cỏ Mềm giúp ngăn ngừa mùi hôi chân, nách, giày, giữ vùng da khô thoáng, sạch sẽ, an toàn và không gây vàng áo.",
+        "ingredients": [
+            "Tinh dầu Tràm Trà: Kháng khuẩn, khử mùi, làm dịu da.",
+            "Bột Phèn Chua: Sát trùng, giảm ngứa, khử mùi hôi.",
+            "Bột Talc: Hút ẩm, làm khô thoáng, mềm mịn da.",
+            "Kẽm Oxide: Kháng khuẩn, chống hăm, làm dịu da.",
+            "Bột Gạo: Hút ẩm nhẹ nhàng, an toàn cho da nhạy cảm."
+        ],
+        "usage_instructions": [
+            "Đổ bột ra đầu ngón tay sạch, thoa vào vùng da có mùi như nách, lòng bàn chân sau khi tắm hoặc rửa sạch.",
+            "Dùng 1-2 lần mỗi ngày để giữ vùng da thoáng mát.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát. Đậy nắp sau khi dùng."
+        ],
+        "special": [
+            "Không chứa Alcohol – gây khô và kích ứng da.",
+            "Không chứa Hương liệu tổng hợp – dễ gây dị ứng và mẩn đỏ.",
+            "Không chứa Parabens – chất bảo quản có thể ảnh hưởng đến nội tiết.",
+            "Không chứa Muối nhôm (Aluminum salts) – có thể gây bít lỗ chân lông."
+        ],
+        "stock": 100,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 3 Hộp Bột Uống Dâu Tằm Biotin",
+        "price": 960000,
+        "discountPrice": null,
+        "images": [
+            "combo-3-hop-uong-dau-tam-biotin-giup-bao-ve-bao-ve-toc-chac-khoe-1.png",
+            "combo-3-hop-uong-dau-tam-biotin-giup-bao-ve-bao-ve-toc-chac-khoe-2.png",
+            "combo-3-hop-uong-dau-tam-biotin-giup-bao-ve-bao-ve-toc-chac-khoe-3.png",
+            "combo-3-hop-uong-dau-tam-biotin-giup-bao-ve-bao-ve-toc-chac-khoe-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo 3 Hộp Bột Uống Dâu Tằm Biotin và Serum Tóc Mây Cỏ Mềm giúp nuôi dưỡng tóc từ trong ra ngoài, giảm rụng tóc, kích thích mọc tóc chắc khỏe, suôn mượt.",
+        "ingredients": [
+            "Chiết xuất Dâu Tằm (Morus Alba): Chứa Vitamin C, Flavonoid, chống oxy hóa, nuôi dưỡng chân tóc.",
+            "Biotin (Vitamin B7): Kích thích mọc tóc, giúp tóc dày và khỏe.",
+            "Kẽm Gluconate: Điều hòa hormone DHT, hỗ trợ mọc tóc.",
+            "Tinh dầu Vỏ Bưởi: Kích thích mọc tóc, giảm rụng tóc.",
+            "Keratin Thủy Phân từ Lông Cừu: Phục hồi tóc hư tổn, làm tóc mềm mại."
+        ],
+        "usage_instructions": [
+            "Bột uống: Pha với 200ml nước ấm, uống 1–2 lần mỗi ngày sau bữa ăn, dùng đều 4–6 tuần.",
+            "Serum: Nhỏ vài giọt vào chân tóc khi tóc còn ẩm, massage 3–5 phút, dùng 1–2 lần mỗi ngày.",
+            "Lưu ý: Bảo quản nơi khô ráo, thoáng mát."
+        ],
+        "special": [
+            "Không chứa Paraben – tránh ảnh hưởng đến nội tiết tố.",
+            "Không chứa Sulfate (SLS/SLES) – không làm khô da đầu và tóc.",
+            "Không chứa Silicone – không gây bí nang tóc.",
+            "Không chứa Hương liệu tổng hợp – tránh nguy cơ dị ứng."
+        ],
+        "stock": 56,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Chăm Sóc Da Ban Ngày Tơ Tằm",
+        "price": 860000,
+        "discountPrice": 75000,
+        "images": [
+            "combo-cham-soc-da-ban-ngay-bot-rua-mat-toner-kem-duong-da-kem-chong-nang-1.png",
+            "combo-cham-soc-da-ban-ngay-bot-rua-mat-toner-kem-duong-da-kem-chong-nang-2.png",
+            "combo-cham-soc-da-ban-ngay-bot-rua-mat-toner-kem-duong-da-kem-chong-nang-3.png",
+            "combo-cham-soc-da-ban-ngay-bot-rua-mat-toner-kem-duong-da-kem-chong-nang-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo Chăm Sóc Da Ban Ngày Tơ Tằm Cỏ Mềm gồm sữa rửa mặt, toner, kem dưỡng ẩm và kem chống nắng, giúp làm sạch, dưỡng ẩm và bảo vệ da khỏi tia UV.",
+        "ingredients": [
+            "Tơ Tằm, Hyaluronic Acid: Dưỡng ẩm, phục hồi da.",
+            "Niacinamide (Vitamin B3): Làm sáng da, se lỗ chân lông.",
+            "Vitamin B5: Giữ nước, làm dịu da.",
+            "Ubiquinone (Q10): Chống oxy hóa, ngừa lão hóa.",
+            "Protein Sữa Ong Chúa: Căng bóng, mờ nếp nhăn."
+        ],
+        "usage_instructions": [
+            "Sữa rửa mặt: Làm ướt mặt, lấy lượng nhỏ, tạo bọt, massage, rửa sạch.",
+            "Toner: Thoa vài giọt ra bông hoặc tay, vỗ nhẹ lên mặt.",
+            "Kem dưỡng: Chấm lên 5 điểm trên mặt, massage đến khi thấm.",
+            "Kem chống nắng: Thoa đều trước khi ra ngoài 15–20 phút, dùng lại sau 2–3 tiếng nếu ở ngoài lâu."
+        ],
+        "special": [
+            "Không chứa Paraben – không gây ảnh hưởng nội tiết.",
+            "Không chứa Sulfate (SLS/SLES) – không làm mất lớp dầu tự nhiên.",
+            "Không chứa Alcohol Denat – không gây khô rát, kích ứng.",
+            "Không chứa Hương liệu tổng hợp – giảm nguy cơ dị ứng da."
+        ],
+        "stock": 56,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Bộ Chăm Sóc Da Chiết Xuất Sâm Ngừa Lão Hóa",
+        "price": 1810000,
+        "discountPrice": 155000,
+        "images": [
+            "combo-cham-soc-da-chiet-xuat-sam-ngua-lao-hoa-1.png",
+            "combo-cham-soc-da-chiet-xuat-sam-ngua-lao-hoa-2.png",
+            "combo-cham-soc-da-chiet-xuat-sam-ngua-lao-hoa-3.png",
+            "combo-cham-soc-da-chiet-xuat-sam-ngua-lao-hoa-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Bộ Chăm Sóc Da Sâm Lai Châu Cỏ Mềm gồm tẩy trang, sữa rửa mặt, toner, serum, kem dưỡng và kem chống nắng, giúp làm sạch, dưỡng ẩm, làm sáng và ngăn ngừa lão hóa da hiệu quả.",
+        "ingredients": [
+            "Chiết xuất Sâm Lai Châu: Làm sáng, chống lão hóa.",
+            "Hyaluronic Acid: Dưỡng ẩm sâu, cải thiện độ đàn hồi.",
+            "Niacinamide: Làm sáng da, mờ đốm nâu.",
+            "Vitamin B5: Làm dịu, giữ ẩm da."
+        ],
+        "usage_instructions": [
+            "Tẩy trang: Thấm bông, lau nhẹ khắp mặt, mắt, môi.",
+            "Sữa rửa mặt: Làm ướt mặt, tạo bọt, massage, rửa sạch.",
+            "Toner: Vỗ nhẹ lên mặt để cân bằng và làm mềm da.",
+            "Serum: Thoa vài giọt, massage nhẹ để thẩm thấu.",
+            "Kem dưỡng: Thoa đều, massage để khóa ẩm.",
+            "Kem chống nắng: Thoa buổi sáng, dùng lại sau 2–3 giờ nếu ra nắng nhiều."
+        ],
+        "special": [
+            "Không chứa Paraben – tránh ảnh hưởng đến nội tiết.",
+            "Không chứa Sulfate (SLS/SLES) – dịu nhẹ, không làm khô da.",
+            "Không chứa Alcohol Denat – không gây kích ứng.",
+            "Không chứa Hương liệu tổng hợp – giảm nguy cơ dị ứng."
+        ],
+        "stock": 67,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Bộ chăm sóc da chiết xuất Rau má dành cho da dầu mụn",
+        "price": 830000,
+        "discountPrice": null,
+        "images": [
+            "combo-cham-soc-da-rau-ma-cho-da-dau-mun-1.png",
+            "combo-cham-soc-da-rau-ma-cho-da-dau-mun-2.png",
+            "combo-cham-soc-da-rau-ma-cho-da-dau-mun-3.png",
+            "combo-cham-soc-da-rau-ma-cho-da-dau-mun-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Bộ chăm sóc da chiết xuất Rau má nhà Cỏ gồm 5 bước đầy đủ là combo bạn không nên bỏ qua, đặc biệt cho làn da dầu mụn. Giúp giảm mụn, làm dịu da, thu nhỏ lỗ chân lông và kiểm soát dầu hiệu quả.",
+        "ingredients": [
+            "Centella Asiatica (Rau Má): Làm dịu da, kháng viêm, hỗ trợ phục hồi.",
+            "Hyaluronic Acid: Cấp nước và giữ ẩm sâu.",
+            "Chiết xuất Nha Đam: Làm dịu, dưỡng ẩm.",
+            "Tinh dầu Tràm Trà: Kháng khuẩn, giảm mụn.",
+            "Tinh dầu Nghệ (Curcuma Longa): Chống oxy hóa, làm sáng da.",
+            "Niacinamide (Vitamin B3): Làm sáng, se khít lỗ chân lông.",
+            "Betaine & Glycerin: Dưỡng ẩm, làm mềm da.",
+            "Witch Hazel Extract: Làm se da tự nhiên, giảm dầu.",
+            "IPMP (o-Cymen-5-ol): Kháng khuẩn ngừa mụn.",
+            "Vitamin B5 (Panthenol): Làm dịu và phục hồi da.",
+            "Zinc PCA: Kiểm soát dầu nhờn.",
+            "Squalane: Dưỡng ẩm, bảo vệ hàng rào da.",
+            "Coco Betaine: Chất tạo bọt dịu nhẹ trong sữa rửa mặt."
+        ],
+        "usage_instructions": [
+            "Sáng:",
+            "1. Sữa rửa mặt Rau Má → Rửa sạch dầu nhờn sau khi ngủ.",
+            "2. Toner Rau Má → Cân bằng và cấp ẩm.",
+            "3. Kem dưỡng Rau Má → Dưỡng ẩm, kiểm soát dầu.",
+            "4. Kem chống nắng (bổ sung riêng).",
+            "Tối:",
+            "1. Tẩy trang Rau Má → Làm sạch lớp trang điểm, bụi bẩn.",
+            "2. Sữa rửa mặt Rau Má → Làm sạch sâu.",
+            "3. Toner Rau Má.",
+            "4. Mặt nạ Rau Má (2–3 lần/tuần).",
+            "5. Kem dưỡng Rau Má."
+        ],
+        "special": [
+            "Không chứa Paraben – Không ảnh hưởng đến nội tiết tố.",
+            "Không chứa Cồn công nghiệp (Alcohol Denat) – Không gây khô rát, kích ứng.",
+            "Không chứa Sulfate (SLS/SLES) – Dịu nhẹ, không gây khô da.",
+            "Không chứa Silicone – Không gây bít tắc lỗ chân lông.",
+            "Không chứa Hương liệu tổng hợp – Phù hợp cho da mụn, da nhạy cảm.",
+            "Không chứa Chất tạo màu hóa học – Lành tính, an toàn cho da."
+        ],
+        "stock": 56,
+        "createdAt": {
+            "$date": "2025-04-16T15:40:00.000Z"
+        }
+    },
+    {
+        "name": "Nước Tẩy Trang Tơ Tằm",
+        "price": 120000,
+        "discountPrice": 95000,
+        "images": [
+            "da-nuoc-tay-trang-to-tam-1.png",
+            "da-nuoc-tay-trang-to-tam-2.png",
+            "da-nuoc-tay-trang-to-tam-3.png",
+            "da-nuoc-tay-trang-to-tam-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Nước tẩy trang Tơ Tằm nhà Cỏ được các tín đồ làm đẹp tin tưởng lựa chọn bởi công dụng làm sạch da, loại bỏ lớp trang điểm, bụi bẩn, dầu thừa trên da, làm thông thoáng lỗ chân lông, duy trì độ ẩm tự nhiên, cho làn da mềm mại, sáng sạch. Sản phẩm thích hợp cho mọi loại da, dùng được cho cả vùng mắt và môi.",
+        "ingredients": [
+            "Hydrolyzed Silk (Tơ Tằm thủy phân)",
+            "Propanediol",
+            "Hyaluronic acid",
+            "Gluconolactone",
+            "Peg 8 Caprylic/Capric Glycerides",
+            "Babassu Oil Glycereth-8 Esters",
+            "Sorbitol",
+            "Allantoin",
+            "Citric acid",
+            "Tinh dầu Oải Hương (Lavandula Angustifolia Essential Oil)"
+        ],
+        "usage_instructions": [
+            "Lắc nhẹ chai trước khi dùng",
+            "Cho lượng vừa đủ nước tẩy trang ra bông cotton",
+            "Lau nhẹ toàn bộ khuôn mặt, đặc biệt vùng có lớp trang điểm",
+            "Đối với mắt và môi: đặt bông tẩy trang lên vùng da 5–10 giây, sau đó lau nhẹ",
+            "Tiếp tục các bước rửa mặt và skincare như bình thường",
+            "Dùng hàng ngày vào buổi tối hoặc bất cứ khi nào cần làm sạch da nhẹ nhàng"
+        ],
+        "special": [
+            "Không Paraben",
+            "Không Sulfate",
+            "Không Cồn khô",
+            "Không Silicone",
+            "Không hương liệu tổng hợp",
+            "Không chất tạo màu hóa học"
+        ],
+        "stock": 100,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Serum Hoàng Lan",
+        "price": 180000,
+        "discountPrice": 155000,
+        "images": [
+            "da-serum-hoang-lang-1.png",
+            "da-serum-hoang-lang-2.png",
+            "da-serum-hoang-lang-3.png",
+            "da-serum-hoang-lang-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Serum Hoàng Lan là sản phẩm dưỡng da, giúp làn da mềm mịn, tươi sáng, góp phần ngăn ngừa lão hóa cho da. Sản phẩm giúp làm mờ các vết nhăn, thâm do mụn, nám trên da.",
+        "ingredients": [
+            "Dầu Hạt nho",
+            "Dầu Hạnh nhân",
+            "Dầu Quả bơ",
+            "Dầu Cám gạo",
+            "Dầu Nụ tầm xuân",
+            "Dầu Argan",
+            "Dầu Gấc",
+            "Tinh dầu Nghệ",
+            "Tinh dầu Ngọc lan tây",
+            "Vitamin E (Tocopherol)"
+        ],
+        "usage_instructions": [
+            "Làm sạch da bằng sữa rửa mặt và dùng toner để cân bằng da",
+            "Lấy 2–4 giọt serum, nhỏ lên lòng bàn tay hoặc trực tiếp lên da mặt",
+            "Dùng đầu ngón tay massage nhẹ nhàng theo chiều nâng cơ",
+            "Dùng tay áp nhẹ toàn mặt để dưỡng chất thẩm thấu sâu",
+            "Sử dụng buổi tối trước bước khóa ẩm bằng kem dưỡng (nếu có)",
+            "Tip: Có thể mix 1–2 giọt serum vào kem dưỡng để tăng hiệu quả phục hồi da"
+        ],
+        "special": [
+            "Không Paraben",
+            "Không Sulfate",
+            "Không Cồn khô",
+            "Không Silicone",
+            "Không hương liệu tổng hợp"
+        ],
+        "stock": 64,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Serum Sâm 1700",
+        "price": 580000,
+        "discountPrice": 555000,
+        "images": [
+            "da-serum-sam-ngua-lao-hoa-da-1.png",
+            "da-serum-sam-ngua-lao-hoa-da-2.png",
+            "da-serum-sam-ngua-lao-hoa-da-3.png",
+            "da-serum-sam-ngua-lao-hoa-da-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Serum Sâm 1700 ngừa lão hóa da giúp dưỡng ẩm, làm mờ các đốm nâu, nếp nhăn trên da, cung cấp dưỡng chất cho làn da căng mịn. Sản phẩm chứa thành phần từ Sâm Lai Châu có công dụng giúp ngăn ngừa lão hóa da hiệu quả.",
+        "ingredients": [
+            "Chiết xuất Sâm Lai Châu",
+            "Niacinamide (Vitamin B3)",
+            "Hyaluronic Acid (Sodium Hyaluronate)",
+            "Inositol",
+            "Ectoin",
+            "Bakuchiol",
+            "Chiết xuất hạt Mộc qua (Pyrus Cydonia)",
+            "Squalane",
+            "Glycerin",
+            "Canola Oil",
+            "Argan Oil"
+        ],
+        "usage_instructions": [
+            "Làm sạch da bằng sữa rửa mặt và sử dụng toner",
+            "Lấy 2–3 giọt serum, nhỏ trực tiếp lên da hoặc lòng bàn tay",
+            "Thoa đều khắp mặt và cổ, vỗ nhẹ để dưỡng chất thấm sâu",
+            "Sử dụng 2 lần/ngày: sáng và tối, trước bước kem dưỡng",
+            "Nên dùng đều đặn trong 3–4 tuần để thấy hiệu quả rõ rệt"
+        ],
+        "special": [
+            "Không cồn",
+            "Không paraben",
+            "Không silicone",
+            "Không dầu khoáng",
+            "Không hương liệu tổng hợp",
+            "Không chất tạo màu nhân tạo"
+        ],
+        "stock": 75,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Serum Sáng Da Mờ Nám Sơ-ri Vitamin C",
+        "price": 465000,
+        "discountPrice": null,
+        "images": [
+            "da-serum-sang-da-mo-nam-so-ri-1.png",
+            "da-serum-sang-da-mo-nam-so-ri-2.png",
+            "da-serum-sang-da-mo-nam-so-ri-3.png",
+            "da-serum-sang-da-mo-nam-so-ri-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Sạm nám, tàn nhang, da không đều màu… từ lâu đã trở thành vấn đề đau đầu của nhiều cô gái, khiến bạn mất tự tin. Serum sáng da mờ nám Sơ-ri vitamin C là dòng sản phẩm mới nhà Cỏ với chiết xuất từ quả Sơ-ri có công dụng hiệu quả trong việc cải thiện các tình trạng da trên, cho làn da căng mịn.",
+        "ingredients": [
+            "Chiết xuất quả Sơ-ri",
+            "Dẫn xuất Vitamin C (3-o-Ethyl Ascorbic Acid)",
+            "Tảo cầu vồng (Porphyridium cruentum extract)",
+            "4-n-Butylresorcinol",
+            "Mật ong lên men",
+            "Biosaccharide Gum-1",
+            "Glycerin",
+            "Pentylene Glycol",
+            "Palmitoyl Tripeptide-1",
+            "Allantoin",
+            "Vitamin E (Tocopherol)"
+        ],
+        "usage_instructions": [
+            "Sử dụng sau bước làm sạch và toner",
+            "Lấy 1–2 pump serum, thoa đều lên mặt và cổ",
+            "Vỗ nhẹ để tinh chất thẩm thấu sâu vào da",
+            "Dùng 2 lần/ngày – sáng và tối",
+            "Nên kết hợp với kem dưỡng sáng da mờ nám Sơ-ri để tối ưu hiệu quả"
+        ],
+        "special": [
+            "Không cồn",
+            "Không paraben",
+            "Không hương liệu tổng hợp",
+            "Không silicone",
+            "Không chất tạo màu nhân tạo"
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Sữa Rửa Mặt Tạo Bọt Sơ-ri Vitamin C",
+        "price": 180000,
+        "discountPrice": 155000,
+        "images": [
+            "da-sua-rua-mat-so-ri-1.png",
+            "da-sua-rua-mat-so-ri-2.png",
+            "da-sua-rua-mat-so-ri-3.png",
+            "da-sua-rua-mat-so-ri-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Nằm trong bộ chăm sóc da Sơ-ri Vitamin C chiết xuất từ quả Sơ-ri hàm lượng vitamin C cao, sữa rửa mặt tạo bọt Sơ-ri có khả năng làm sạch hiệu quả da mặt, làm thông thoáng lỗ chân lông, bên cạnh đó em sữa rửa mặt còn giúp duy trì độ ẩm tự nhiên, mang lại làn da sáng mịn, tươi trẻ.",
+        "ingredients": [
+            "Chiết xuất quả Sơ-ri (Malpighia Emarginata Fruit Extract)",
+            "Dẫn xuất Vitamin C: 3-O-Ethyl Ascorbic Acid",
+            "Sorbitol",
+            "Glycerin",
+            "Niacinamide (Vitamin B3)",
+            "Panthenol (Vitamin B5)",
+            "Betaine",
+            "Disodium Cocoyl Glutamate (Chất làm sạch từ dừa và dầu cọ)",
+            "Citric Acid (cân bằng pH)"
+        ],
+        "usage_instructions": [
+            "Làm ướt da mặt bằng nước sạch",
+            "Lấy 2–4 pump sản phẩm ra tay",
+            "Tạo bọt nhẹ rồi massage lên mặt trong 30–60 giây",
+            "Rửa lại bằng nước sạch",
+            "Dùng sáng và tối mỗi ngày",
+            "Lưu ý: Nên dùng sau bước tẩy trang để phát huy tối đa hiệu quả làm sạch"
+        ],
+        "special": [
+            "Không cồn",
+            "Không Paraben",
+            "Không Sulfate",
+            "Không dầu khoáng",
+            "Không hương liệu tổng hợp"
+        ],
+        "stock": 100,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Toner Rau Má",
+        "price": 220000,
+        "discountPrice": 199000,
+        "images": [
+            "da-toner-rau-ma-1.png",
+            "da-toner-rau-ma-2.png",
+            "da-toner-rau-ma-3.png",
+            "da-toner-rau-ma-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Toner Rau Má nhà Cỏ là sản phẩm toner giúp dưỡng ẩm cho da, duy trì độ pH tự nhiên, góp phần làm dịu da, làm sạch da, thu mờ lỗ chân lông, cho làn da mềm mại, mịn màng, ngăn ngừa mụn trên da hiệu quả. Sản phẩm phù hợp với da dầu, mụn, da nhạy cảm.",
+        "ingredients": [
+            "Centella Asiatica Extract (Chiết xuất Rau Má)",
+            "Niacinamide (Vitamin B3)",
+            "Succinic acid",
+            "Gluconolactone",
+            "Glycerin",
+            "Betaine",
+            "Cyclodextrin",
+            "Lactobionic Acid (Mật Ong lên men – Apibreeze)",
+            "Melaleuca Alternifolia Essential Oil (Tinh dầu Tràm Trà)",
+            "Curcuma Longa Essential Oil (Tinh dầu Nghệ)",
+            "Purified Water"
+        ],
+        "usage_instructions": [
+            "Sau bước làm sạch da (tẩy trang + sữa rửa mặt), lấy một lượng toner vừa đủ ra bông tẩy trang hoặc lòng bàn tay",
+            "Thoa đều lên mặt và cổ, vỗ nhẹ để sản phẩm thẩm thấu",
+            "Có thể dùng 2 lần/ngày vào sáng và tối",
+            "Kết hợp với kem dưỡng hoặc serum để tăng hiệu quả chăm sóc da"
+        ],
+        "special": [
+            "Không cồn khô",
+            "Không paraben",
+            "Không dầu khoáng",
+            "Không hương liệu tổng hợp",
+            "Không chất tẩy mạnh"
+        ],
+        "stock": 56,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Toner Sâm 1700 Ngừa Lão Hóa Da",
+        "price": 270000,
+        "discountPrice": 245000,
+        "images": [
+            "da-toner-sam-ngua-lao-hoa-da-1.png",
+            "da-toner-sam-ngua-lao-hoa-da-2.png",
+            "da-toner-sam-ngua-lao-hoa-da-3.png",
+            "da-toner-sam-ngua-lao-hoa-da-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Toner Sâm 1700 là sản phẩm toner ngừa lão hóa nằm trong bộ chăm sóc da Sâm nhà Cỏ Mềm. Sản phẩm giúp cấp ẩm và bổ sung dưỡng chất cho da, cải thiện tình trạng da khô sần, giúp làm mềm mịn da, ngăn ngừa lão hóa cho da.",
+        "ingredients": [
+            "Chiết xuất Sâm Lai Châu (Panax Vietnamensis extract)",
+            "Niacinamide (Vitamin B3)",
+            "Betaine",
+            "Sodium Hyaluronate (HA)",
+            "Xylitylglucoside",
+            "Anhydroxylitol",
+            "Xylitol",
+            "Glycerin từ thực vật",
+            "Dầu Hạt Meadowfoam",
+            "Argan",
+            "Hướng Dương",
+            "Cải dầu",
+            "1,2-Hexanediol",
+            "Nước tinh khiết (Purified Water)"
+        ],
+        "usage_instructions": [
+            "Sau khi rửa mặt, lắc nhẹ chai và xịt toner trực tiếp lên da hoặc ra bông tẩy trang",
+            "Nhẹ nhàng lau hoặc vỗ đều khắp mặt để sản phẩm thẩm thấu",
+            "Sử dụng 2 lần/ngày vào buổi sáng và tối",
+            "Kết hợp với serum Sâm 1700 và kem dưỡng Sâm 1700 để tăng hiệu quả chăm sóc, phục hồi và ngừa lão hóa da toàn diện"
+        ],
+        "special": [
+            "Không cồn khô",
+            "Không paraben",
+            "Không silicone",
+            "Không dầu khoáng",
+            "Không hương liệu tổng hợp"
+        ],
+        "stock": 43,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Active Toner Tơ Tằm - Thu Mờ Lỗ Chân Lông và Cân Bằng pH",
+        "price": 190000,
+        "discountPrice": 170000,
+        "images": [
+            "da-toner-to-tam-cang-bang-ph-1.png",
+            "da-toner-to-tam-cang-bang-ph-2.png",
+            "da-toner-to-tam-cang-bang-ph-3.png",
+            "da-toner-to-tam-cang-bang-ph-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Active Toner Tơ Tằm là sản phẩm toner giúp cấp ẩm và cân bằng độ pH cho da, giúp giảm khô sần da, thu mờ lỗ chân lông, cho làn da căng mịn và khỏe mạnh. Active Toner Tơ Tằm phù hợp với mọi loại da, kể cả da nhạy cảm.",
+        "ingredients": [
+            "Chiết xuất Tơ Tằm thủy phân",
+            "Chiết xuất Nha Đam",
+            "Panthenol (Vitamin B5)",
+            "Niacinamide 2% (Vitamin B3)",
+            "Hydrolyzed Sodium Hyaluronate (HA phân tử nhỏ)",
+            "Betaine",
+            "Chiết xuất rễ Cam Thảo",
+            "Tinh dầu Oải Hương",
+            "Sodium PCA",
+            "PEG-40 Hydrogenated Castor Oil"
+        ],
+        "usage_instructions": [
+            "Dùng ngay sau bước rửa mặt để cân bằng da và cấp ẩm",
+            "Lấy một lượng vừa đủ ra bông tẩy trang hoặc lòng bàn tay",
+            "Thoa đều lên mặt, vỗ nhẹ để toner thẩm thấu tốt hơn",
+            "Sử dụng 2 lần/ngày – sáng và tối",
+            "Kết hợp với serum Tơ Tằm và kem dưỡng ẩm Tơ Tằm để đạt hiệu quả chăm sóc tối ưu"
+        ],
+        "special": [
+            "Không cồn khô",
+            "Không paraben",
+            "Không dầu khoáng",
+            "Không silicone",
+            "Không chất tạo màu tổng hợp"
+        ],
+        "stock": 78,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Xịt Khoáng Hoa Hồng",
+        "price": 165000,
+        "discountPrice": null,
+        "images": [
+            "da-xit-khoang-hoa-hong-1.png",
+            "da-xit-khoang-hoa-hong-2.png",
+            "da-xit-khoang-hoa-hong-3.png",
+            "da-xit-khoang-hoa-hong-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Xịt khoáng Hoa Hồng là sản phẩm giúp cấp ẩm cho da, làm dịu mát và duy trì độ pH tự nhiên cho da. Sử dụng xịt khoáng Hoa Hồng giúp da mềm mại, khỏe mạnh. Sản phẩm còn góp phần làm sáng da và hạn chế quá trình lão hóa da sớm.",
+        "ingredients": [
+            "Rosa Damascena Flower Water – Nước chưng cất hoa hồng, làm dịu và sáng da",
+            "Nano bạc (Silver) – Kháng khuẩn, hỗ trợ da bị mụn hoặc kích ứng",
+            "Hydrolyzed Sodium Hyaluronate – HA phân tử nhỏ giúp cấp ẩm sâu",
+            "Propanediol – Dưỡng ẩm và làm mềm da",
+            "Allantoin – Làm dịu và phục hồi da",
+            "Khoáng chất (Magnesium, Zinc, Copper Gluconate) – Cân bằng, làm khỏe da",
+            "Fragrance tự nhiên",
+            "Glycerin",
+            "PEG-40 Hydrogenated Castor Oil – Giữ ẩm và làm mềm da"
+        ],
+        "usage_instructions": [
+            "Dùng sau khi rửa mặt, hoặc bất kỳ lúc nào trong ngày khi da cần cấp ẩm",
+            "Để chai cách mặt khoảng 15–20cm, xịt đều một lớp mỏng lên toàn mặt",
+            "Có thể dùng trước và sau khi makeup để tăng độ ẩm, giúp nền mịn mượt",
+            "Dùng 2–4 lần/ngày tùy nhu cầu và môi trường (máy lạnh, nắng nóng…)"
+        ],
+        "special": [
+            "Không cồn khô",
+            "Không paraben",
+            "Không dầu khoáng",
+            "Không màu tổng hợp",
+            "Không silicon"
+        ],
+        "stock": 13,
+        "createdAt": {
+            "$date": "2025-04-16T15:50:00.000Z"
+        }
+    },
+    {
+        "name": "Kem Chống Nắng Vật Lý Tone-up SPF 50+",
+        "price": 350000,
+        "discountPrice": null,
+        "images": [
+            "kem-chong-nang-vat-ly-cho-ba-bau-tre-nho-1.png",
+            "kem-chong-nang-vat-ly-cho-ba-bau-tre-nho-2.png",
+            "kem-chong-nang-vat-ly-cho-ba-bau-tre-nho-3.png",
+            "kem-chong-nang-vat-ly-cho-ba-bau-tre-nho-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Kem chống nắng Vật Lý Tone-up SPF 50+ là sản phẩm giúp chống nắng, bảo vệ da trước tác hại xấu của các tia UVA, UVB và ô nhiễm môi trường đồng thời góp phần dưỡng ẩm, làm sáng da, cho làn da mềm mịn.",
+        "ingredients": [
+            "Titanium dioxide, Zinc oxide – bảo vệ da khỏi tia UV",
+            "Hyaluronic Acid",
+            "Tocopherol (Vitamin E)",
+            "Biosaccharide Gum-1 – dưỡng ẩm, làm dịu da",
+            "Silica – hấp thụ dầu thừa, mang lại cảm giác khô thoáng",
+            "Purified water",
+            "Caprylic/Capric Triglyceride",
+            "Sorbitan sesquiisostearate"
+        ],
+        "usage_instructions": [
+            "Rửa sạch mặt và thực hiện đầy đủ bước skincare (nếu có)",
+            "Lấy một lượng kem vừa đủ, chấm đều 5 điểm trên mặt (trán, mũi, cằm, hai má) và thoa đều",
+            "Dùng tay vỗ nhẹ để kem thẩm thấu hoàn toàn vào da",
+            "Thoa trước khi ra ngoài 20–30 phút",
+            "Nếu hoạt động ngoài trời nhiều, nên thoa lại sau mỗi 2–3 giờ để duy trì hiệu quả",
+            "Lưu ý: Dùng được cho cả cổ và các vùng da cần bảo vệ khác"
+        ],
+        "special": [
+            "Không cồn khô",
+            "Không paraben",
+            "Không hương liệu tổng hợp",
+            "Không silicone",
+            "Không dầu khoáng"
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        } 
+    },
+    {
+        "name": "Kem Má Hồng Hây Hây Quả Đào",
+        "price": 140000,
+        "discountPrice": null,
+        "images": [
+            "kem-ma-hong-hay-hay-qua-dao-1.png",
+            "kem-ma-hong-hay-hay-qua-dao-2.png",
+            "kem-ma-hong-hay-hay-qua-dao-3.png",
+            "kem-ma-hong-hay-hay-qua-dao-4.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Kem má hồng Hây Hây là dòng kem trang điểm giúp gương mặt trở nên tươi tắn và rạng rỡ, cho bạn một makeup look hoàn hảo nhất. Với kết cấu kem mỏng nhẹ, hiệu ứng bắt sáng tốt, kem má hồng chinh phục được nhiều tín đồ làm đẹp.",
+        "ingredients": [
+            "Dầu Hạnh nhân (Prunus dulcis oil)",
+            "Dầu Cám gạo (Oryza sativa bran oil)",
+            "Bơ Hạt mỡ (Butyrospermum parkii butter)",
+            "Sáp Ong (Bees wax)",
+            "Sáp Đậu nành (Hydrogenated soybean oil)",
+            "Sáp Candelilla (Euphorbia cerifera wax)",
+            "Màu khoáng thiên nhiên, màu ngọc trai",
+            "Bột Gạo (Oryza sativa powder)",
+            "Tocopherol (Vitamin E) – Chống oxy hóa và dưỡng da"
+        ],
+        "usage_instructions": [
+            "Làm sạch và dưỡng ẩm da như bình thường",
+            "Sau bước nền, dùng ngón tay/cọ tán đều một lượng nhỏ kem má lên vùng gò má theo chuyển động tròn",
+            "Có thể chồng thêm lớp để tăng độ đậm theo sở thích",
+            "Kết hợp với kem nền Hây Hây để có makeup look tự nhiên và đồng điệu"
+        ],
+        "special": [
+            "Không paraben",
+            "Không silicone",
+            "Không hương liệu tổng hợp",
+            "Không chất bảo quản độc hại",
+            "Không dầu khoáng"
+        ],
+        "stock": 11,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        }
+    },
+    {
+        "name": "Kem Má Hồng Hây Hây Quả Hồng",
+        "price": 140000,
+        "discountPrice": null,
+        "images": [
+            "kem-ma-hong-hay-hay-qua-hong-1.png",
+            "kem-ma-hong-hay-hay-qua-hong-2.png",
+            "kem-ma-hong-hay-hay-qua-hong-3.png",
+            "kem-ma-hong-hay-hay-qua-hong-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c200ff8"
+            },
+            "name": "Trang điểm"
+        },
+        "description": "Kem má hồng Hây Hây là dòng kem trang điểm giúp gương mặt trở nên tươi tắn và rạng rỡ, cho bạn một makeup look hoàn hảo nhất. Với kết cấu kem mỏng nhẹ, hiệu ứng bắt sáng tốt, kem má hồng chinh phục được nhiều tín đồ làm đẹp.",
+        "ingredients": [
+            "Dầu Hạnh nhân (Prunus dulcis oil)",
+            "Dầu Cám gạo (Oryza sativa bran oil)",
+            "Bơ Hạt mỡ (Butyrospermum parkii butter)",
+            "Sáp Ong (Bees wax)",
+            "Sáp Đậu nành (Hydrogenated soybean oil)",
+            "Sáp Candelilla (Euphorbia cerifera wax)",
+            "Màu khoáng thiên nhiên, màu ngọc trai",
+            "Bột Gạo (Oryza sativa powder)",
+            "Tocopherol (Vitamin E) – Chống oxy hóa và dưỡng da"
+        ],
+        "usage_instructions": [
+            "Làm sạch và dưỡng ẩm da như bình thường",
+            "Sau bước nền, dùng ngón tay/cọ tán đều một lượng nhỏ kem má lên vùng gò má theo chuyển động tròn",
+            "Có thể chồng thêm lớp để tăng độ đậm theo sở thích",
+            "Kết hợp với kem nền Hây Hây để có makeup look tự nhiên và đồng điệu"
+        ],
+        "special": [
+            "Không paraben",
+            "Không silicone",
+            "Không hương liệu tổng hợp",
+            "Không chất bảo quản độc hại",
+            "Không dầu khoáng"
+        ],
+        "stock": 42,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        }
+    },
+    {
+        "name": "Cushion Phấn Nước Che Khuyết Điểm Trang Điểm Nền Mỏng Mịn Thủy Tinh",
+        "price": 290000,
+        "discountPrice": 250000,
+        "images": [
+            "kem-nen-cushion-phan-nuoc-che-khuyet-diem-1.png",
+            "kem-nen-cushion-phan-nuoc-che-khuyet-diem-2.png",
+            "kem-nen-cushion-phan-nuoc-che-khuyet-diem-3.png",
+            "kem-nen-cushion-phan-nuoc-che-khuyet-diem-4.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Phấn nước Thủy Tinh là sản phẩm mới ra mắt của nhà Cỏ. Đúng như tên gọi, em phấn nước này sẽ là sự lựa chọn hoàn hảo cho các nàng thích trang điểm mà lo lắng về các vấn đề về da bởi lớp nền mỏng nhẹ, tạo độ bóng cho da thêm căng bóng.",
+        "ingredients": [
+            "Squalane (dưỡng ẩm, phục hồi da)",
+            "Polyglyceryl-2 Triisostearate (chất nhũ hóa dịu nhẹ)",
+            "Titanium Dioxide, Zinc Oxide (chống nắng vật lý)",
+            "Glycerin (dưỡng ẩm, làm mềm da)",
+            "Biosaccharide Gum-1 (làm dịu, dưỡng ẩm lâu dài)",
+            "Hyaluronic Acid (Sodium Hyaluronate) (giữ ẩm mạnh)",
+            "Ricinus Communis Seed Oil (dầu thầu dầu dưỡng da)",
+            "Sorbitan Olivate (dưỡng mềm và chống oxy hóa)",
+            "Dihydroxypropyl Arginine HCl (cấp nước tức thì)"
+        ],
+        "usage_instructions": [
+            "Sau bước dưỡng da, sử dụng bông mút đi kèm ấn nhẹ vào lớp phấn nước trong hộp",
+            "Chấm đều lên các vùng da mặt: trán, mũi, má, cằm",
+            "Tán đều bằng bông mút theo chiều từ trong ra ngoài",
+            "Có thể dặm thêm một lớp nhẹ ở những vùng cần che phủ cao hơn"
+        ],
+        "special": [
+            "Không paraben",
+            "Không cồn khô",
+            "Không dầu khoáng",
+            "Không hương liệu tổng hợp",
+            "Không gây bí da, không gây mụn"
+        ],
+        "stock": 86,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        }
+    },
+    {
+        "name": "Kem Trang Điểm Thủy Tinh 3in1 Tích Hợp Phấn Má Phấn Mắt Son Môi",
+        "price": 140000,
+        "discountPrice": 120000,
+        "images": [
+            "kem-nen-kem-thuy-tinh-3in1-1.png",
+            "kem-nen-kem-thuy-tinh-3in1-2.png",
+            "kem-nen-kem-thuy-tinh-3in1-3.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Kem trang điểm Thủy Tinh là sản phẩm trang điểm cho da và môi của nhà Cỏ, giúp nàng có một tone makeup thật ngọt ngào và tự tin trước mọi ánh nhìn. Đây hứa hẹn sẽ là một “item” không thể thiếu trong túi đồ của các chị em đó nha",
+        "ingredients": [
+            "Caprylic/Capric Triglyceride",
+            "Isoamyl Laurate",
+            "Squalane",
+            "Astrocaryum Murumuru Seed Butter",
+            "Tocopherol",
+            "Ricinus Communis Seed Oil",
+            "Sorbitan Olivate",
+            "Sodium Hyaluronate",
+            "Caproic Acid"
+        ],
+        "usage_instructions": [
+            "Sau bước dưỡng da, sử dụng bông mút đi kèm ấn nhẹ vào lớp phấn nước trong hộp",
+            "Chấm đều lên các vùng da mặt: trán, mũi, má, cằm",
+            "Tán đều bằng bông mút theo chiều từ trong ra ngoài",
+            "Có thể dặm thêm một lớp nhẹ ở những vùng cần che phủ cao hơn"
+        ],
+        "special": [
+            "Không chứa chì",
+            "Không chất tạo màu hóa học",
+            "Không hương liệu tổng hợp",
+            "Không paraben, không cồn",
+            "Không gây kích ứng – dùng được cả với môi nhạy cảm"
+        ],
+        "stock": 65,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        }
+    },
+    {
+        "name": "Nước Hoa Bí Mật",
+        "price": 310000,
+        "discountPrice": 290000,
+        "images": [
+            "scent-nuoc-hoa-bi-mat-1.png",
+            "scent-nuoc-hoa-bi-mat-2.png",
+            "scent-nuoc-hoa-bi-mat-3.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Nước Hoa Bí Mật mang đến hương thơm quyến rũ, nhẹ nhàng, phù hợp cho mọi dịp. Sản phẩm giúp bạn tự tin với mùi hương lưu lâu, không gây kích ứng da.",
+        "ingredients": [
+            "Ethanol tinh khiết: Hòa tan hương liệu, bay hơi nhanh, không gây bết dính",
+            "Fragrance: Tinh dầu mùi hương từ thiên nhiên",
+            "Isopropyl Methylphenol: Hạn chế sự phát triển của vi khuẩn, giảm mùi cơ thể"
+        ],
+        "usage_instructions": [
+            "Xịt cách da khoảng 10–15cm tại các vị trí giữ mùi tốt: cổ tay, sau tai, gáy, xương quai xanh",
+            "Có thể dùng cho vùng da nhạy cảm như vùng chữ V – sau khi tắm sạch và lau khô",
+            "Dùng 2–3 lần mỗi ngày hoặc khi cần refresh mùi hương",
+            "Lưu ý: Không xịt trực tiếp lên vùng da bị tổn thương"
+        ],
+        "special": [
+            "Không cồn công nghiệp",
+            "Không hương liệu tổng hợp gây kích ứng",
+            "Không paraben",
+            "Không chứa kim loại nặng",
+            "Không gây khô da – phù hợp với cả vùng chữ V, vùng cổ, vai, gáy"
+        ],
+        "stock": 45,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        }
+    },
+    {
+        "name": "Solid Perfume (Nước Hoa Khô Cỏ Mềm)",
+        "price": 200000,
+        "discountPrice": null,
+        "images": [
+            "scent-nuoc-hoa-kho-co-mem-1.png",
+            "scent-nuoc-hoa-kho-co-mem-2.png",
+            "scent-nuoc-hoa-kho-co-mem-3.png",
+            "scent-nuoc-hoa-kho-co-mem-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Nước hoa khô Cỏ Mềm là “vũ khí” bí mật không thể thiếu đối với mỗi cô gái để mang theo bên mình. Vật dụng tuy nhỏ này mang theo hương thơm nhẹ nhàng, tinh tế và còn giúp dưỡng da mềm mịn. Cùng chọn một mùi hương riêng cho mình với nước hoa khô của nhà Cỏ nhé!",
+        "ingredients": [
+            "Sáp ong: Giữ kết cấu và dưỡng ẩm tự nhiên cho da",
+            "Dầu Hạnh nhân & Bơ Hạt mỡ: Làm mềm và dưỡng vùng da thoa nước hoa",
+            "Octyldodecanol & Sáp đậu nành: Giữ mùi hương ổn định, mềm mịn",
+            "Fragrance (hương tinh dầu thiên nhiên): Tạo mùi thơm nhẹ nhàng, dễ chịu"
+        ],
+        "usage_instructions": [
+            "Dùng đầu ngón tay sạch, nhẹ nhàng lấy một lượng sáp nhỏ",
+            "Thoa lên các điểm mạch: cổ tay, sau tai, xương quai xanh, gáy, vùng ngực",
+            "Có thể thoa lại sau mỗi 3–4 giờ để giữ mùi hương suốt ngày dài",
+            "Đậy nắp kỹ sau khi dùng để tránh bay mùi và bảo vệ sáp"
+        ],
+        "special": [
+            "Không cồn",
+            "Không paraben",
+            "Không silicon",
+            "Không hương liệu tổng hợp độc hại",
+            "Không gây kích ứng da"
+        ],
+        "stock": 31,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        }
+    },
+    {
+        "name": "Nước Hoa Unisex Dreamer In The Forest",
+        "price": 350000,
+        "discountPrice": null,
+        "images": [
+            "scent-nuoc-hoa-unisex-dreamer-1.png",
+            "scent-nuoc-hoa-unisex-dreamer-2.png",
+            "scent-nuoc-hoa-unisex-dreamer-3.png",
+            "scent-nuoc-hoa-unisex-dreamer-4.png",
+            "scent-nuoc-hoa-unisex-dreamer-5.png",
+            "scent-nuoc-hoa-unisex-dreamer-6.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Hương thơm buổi sớm thức dậy trong ngôi nhà tuổi thơ sau một chuyến đi dài. Là tách trà sen toả khói, mùi thơm được nắng của tấm chăn vải mềm, hương len lỏi của mấy nụ hoa hồng cùng trái cam căng mọng đang chín ngoài sân. Dreamer AT HOME cho ta cảm giác luôn có một nơi để trở về, ấm áp và thân thuộc.",
+        "ingredients": [
+            "Hương đầu: Vỏ quýt, cam đắng",
+            "Hương giữa: Hoa lan chuông, hoa nhài",
+            "Hương cuối: Gỗ đàn hương, rêu sồi"
+        ],
+        "usage_instructions": [
+            "Lắc nhẹ chai trước khi sử dụng",
+            "Xịt vào các vùng mạch đập như cổ tay, sau tai, gáy, xương quai xanh – nơi giúp khuếch tán mùi hương tốt nhất",
+            "Không xịt trực tiếp lên quần áo trắng để tránh ố màu",
+            "Bảo quản sản phẩm nơi thoáng mát, tránh ánh nắng và nhiệt cao"
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Phthalates",
+            "Không cồn công nghiệp",
+            "Không hương liệu tổng hợp độc hại"
+        ],
+        "stock": 5,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        }
+    },
+    {
+        "name": "Tinh Dầu Nguyên Chất (Lọ to 20ml)",
+        "price": 200000,
+        "discountPrice": null,
+        "images": [
+            "scent-tinh-dau-nguyen-chat-20ml-1.png",
+            "scent-tinh-dau-nguyen-chat-20ml-2.png",
+            "scent-tinh-dau-nguyen-chat-20ml-3.png",
+            "scent-tinh-dau-nguyen-chat-20ml-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Tinh dầu thiên nhiên Cỏ Mềm dạng nhỏ giọt có thể sử dụng vào đèn xông tinh dầu hoặc máy khuếch tán tinh dầu để xông phòng. Ngoài ra, nếu bạn ưa thích việc sử dụng tinh dầu treo thì việc sử dụng lọ tinh dầu dạng nhỏ giọt 20ml để tiếp cho tinh dầu treo khi hết sẽ tiết kiệm hơn rất nhiều.",
+        "ingredients": [
+            "Hoa oải hương & phong lữ (Hương Hoa Tím)",
+            "Tinh dầu cam ngọt & chanh sần (Hương Quả Mọng)"
+        ],
+        "usage_instructions": [
+            "Nhỏ 3–5 giọt vào nước trong đèn xông hoặc máy khuếch tán, bật máy và tận hưởng không gian thơm mát",
+            "Mở nắp lọ treo, nhỏ thêm vài giọt tinh dầu từ chai nhỏ giọt 20ml để sử dụng tiếp",
+            "Lưu ý: Không thoa trực tiếp lên da nếu chưa pha loãng. Tránh xa tầm tay trẻ em. Không uống"
+        ],
+        "special": [
+            "Không paraben",
+            "Không hương liệu tổng hợp",
+            "Không hóa chất độc hại",
+            "Không gây kích ứng khi sử dụng đúng cách"
+        ],
+        "stock": 11,
+        "createdAt": {
+            "$date": "2025-04-16T16:00:00.000Z"
+        }
+    },
+    {
+        "name": "Tinh Dầu Treo Thông Minh",
+        "price": 180000,
+        "discountPrice": null,
+        "images": [
+            "scent-tinh-dau-treo-thong-minh-20ml-1.png",
+            "scent-tinh-dau-treo-thong-minh-20ml-2.png",
+            "scent-tinh-dau-treo-thong-minh-20ml-3.png",
+            "scent-tinh-dau-treo-thong-minh-20ml-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Tinh dầu treo nguyên chất Cỏ Mềm ngày càng được nhiều người tin dùng và ứng dụng trong đời sống bởi công dụng hữu hiệu mà nó đem lại. Tinh dầu treo nhà Cỏ giúp khử mùi, làm sạch không gian và đem đến cảm giác thư giãn cho người dùng.",
+        "ingredients": [
+            "Cymbopogon Citratus Leaf Oil (Tinh dầu Sả chanh): Kháng khuẩn, đuổi muỗi, làm sạch không khí",
+            "Eucalyptus Globulus Leaf Oil (Tinh dầu Bạch đàn): Tạo mùi hương dễ chịu, thanh lọc không khí, hỗ trợ hô hấp",
+            "Coconut Oil (dầu dừa tinh luyện): Làm dung môi tự nhiên, giúp tinh dầu khuếch tán đều và an toàn hơn"
+        ],
+        "usage_instructions": [
+            "Treo xe: Khử mùi xe, chống say, thư giãn khi lái",
+            "Treo phòng: Làm thơm không khí, đuổi muỗi, giúp thư giãn",
+            "Treo tủ quần áo: Lưu lại hương thơm dịu nhẹ, hạn chế ẩm mốc",
+            "Treo nhà vệ sinh, văn phòng: Làm sạch và tạo cảm giác dễ chịu"
+        ],
+        "special": [
+            "Không chứa cồn độc hại",
+            "Không paraben",
+            "Không chất bảo quản mạnh",
+            "Không hóa chất tổng hợp"
+        ],
+        "stock": 31,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Tinh Dầu Trị Liệu - Chữa Lành Bằng Mùi Hương",
+        "price": 180000,
+        "discountPrice": 150000,
+        "images": [
+            "scent-tinh-dau-tri-lieu-20ml-1.png",
+            "scent-tinh-dau-tri-lieu-20ml-2.png",
+            "scent-tinh-dau-tri-lieu-20ml-3.png",
+            "scent-tinh-dau-tri-lieu-20ml-4.png",
+            "scent-tinh-dau-tri-lieu-20ml-5.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Tinh dầu trị liệu nhà Cỏ Mềm là liệu pháp giúp giải quyết các vấn đề về tinh thần mà nhiều người thường xuyên gặp phải trong cuộc sống hiện nay như căng thẳng, lo âu, kém tập trung, ngủ không sâu, mất cân bằng tâm trí…",
+        "ingredients": [
+            "Tinh dầu Hương thảo (Rosemary Essential Oil)",
+            "Tinh dầu Thông đỏ (Pinus Sylvestris Oil)",
+            "Tinh dầu Phong lữ (Pelargonium Graveolens Oil)",
+            "Tinh dầu Hoàng đàn (Cedrus Atlantica Bark Oil)",
+            "Tinh dầu Oải hương (Lavandula Angustifolia Oil)",
+            "Tinh dầu Hoắc hương (Pogostemon Cablin Oil)",
+            "Dầu dừa tinh luyện (Cocos Nucifera Oil)"
+        ],
+        "usage_instructions": [
+            "Xoa lên các điểm mạch đập như cổ tay, sau gáy, thái dương hoặc huyệt đạo để thư giãn",
+            "Hít sâu trực tiếp từ chai hoặc nhỏ 1 giọt vào khăn giấy để mang theo",
+            "Sử dụng trước khi làm việc, học tập, thi cử hoặc trước khi đi ngủ",
+            "Lưu ý: Không dùng cho phụ nữ có thai trong 3 tháng đầu",
+            "Không để tinh dầu tiếp xúc trực tiếp với mắt, miệng hoặc vùng da tổn thương",
+            "Bảo quản nơi khô mát, tránh ánh nắng trực tiếp và nguồn nhiệt"
+        ],
+        "special": [
+            "Không Cồn công nghiệp",
+            "Không Paraben",
+            "Không Hương liệu tổng hợp",
+            "Không Dầu khoáng",
+            "Không Silicone",
+            "Không Màu nhân tạo"
+        ],
+        "stock": 33,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Bộ Chăm Sóc Tóc Ngăn Ngừa Rụng Tóc Kích Thích Mọc Tóc Dâu Tằm",
+        "price": 970000,
+        "discountPrice": 850000,
+        "images": [
+            "combo-cham-soc-toc-ngan-ngua-rung-toc-kich-thich-moc-toc-dau-tam-1.png",
+            "combo-cham-soc-toc-ngan-ngua-rung-toc-kich-thich-moc-toc-dau-tam-2.png",
+            "combo-cham-soc-toc-ngan-ngua-rung-toc-kich-thich-moc-toc-dau-tam-3.png",
+            "combo-cham-soc-toc-ngan-ngua-rung-toc-kich-thich-moc-toc-dau-tam-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Combo 3 bước chăm sóc tóc Dâu tằm đến từ nhà Cỏ Mềm bao gồm Dầu gội Dâu tằm ngăn ngừa rụng tóc, Dầu xả Dâu tằm ngăn ngừa rụng tóc và serum Dâu tằm ngăn ngừa rụng tóc giúp đánh bay tình trạng gãy rụng tóc, tóc khô rối, đem lại mái tóc mềm mượt, óng ả đến cho bạn.",
+        "ingredients": [
+            "Dầu gội Dâu Tằm: Chiết xuất Dâu tằm (Morus alba extract)",
+            "Dầu gội Dâu Tằm: Dầu dừa",
+            "Dầu gội Dâu Tằm: PCA Glyceryl Oleate (từ củ cải đường & hoa hướng dương)",
+            "Dầu xả Dâu Tằm: Chiết xuất Dâu tằm",
+            "Dầu xả Dâu Tằm: Vitamin B3",
+            "Dầu xả Dâu Tằm: Dẫn xuất hạt cải dầu",
+            "Serum Dâu Tằm: Chiết xuất Dâu tằm",
+            "Serum Dâu Tằm: Vitamin B3",
+            "Serum Dâu Tằm: Vitamin B5",
+            "Serum Dâu Tằm: Capixyl",
+            "Serum Dâu Tằm: Aminexil",
+            "Serum Dâu Tằm: Procapil"
+        ],
+        "usage_instructions": [
+            "Bước 1: Dầu gội Dâu tằm – Làm ướt tóc, lấy một lượng dầu gội vừa đủ, massage nhẹ da đầu 2–3 phút, sau đó xả sạch với nước.",
+            "Bước 2: Dầu xả Dâu tằm – Thoa dầu xả từ thân đến ngọn tóc (tránh chân tóc), để khoảng 2–3 phút, xả sạch bằng nước mát.",
+            "Bước 3: Serum Dâu tằm – Sau khi lau tóc khô, nhỏ vài giọt serum lên da đầu, massage nhẹ để dưỡng chất thấm đều. Có thể dùng mỗi ngày, đặc biệt trước khi sấy tóc."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 56,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Gội Xả Ủ Suôn Mượt Phục Hồi Trái Bơ",
+        "price": 515000,
+        "discountPrice": null,
+        "images": [
+            "combo-dau-goi-dau-xa-phuc-hoi-hu-ton-trai-bo-1.png",
+            "combo-dau-goi-dau-xa-phuc-hoi-hu-ton-trai-bo-2.png",
+            "combo-dau-goi-dau-xa-phuc-hoi-hu-ton-trai-bo-3.png",
+            "combo-dau-goi-dau-xa-phuc-hoi-hu-ton-trai-bo-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Combo Gội Xả Ủ Suôn Mượt Phục Hồi Trái Bơ là combo gồm có dầu gội, dầu xả, kem ủ tóc, giúp mái tóc chắc khoẻ, cải thiện tình trạng tóc khô xơ, gãy rụng, hoá chất.",
+        "ingredients": [
+            "Dầu gội Trái Bơ: Dầu Trái Bơ",
+            "Dầu gội Trái Bơ: PCA Glyceryl Oleate (từ củ cải đường và hướng dương)",
+            "Dầu gội Trái Bơ: Keratin thủy phân",
+            "Dầu xả Trái Bơ: Dầu Trái Bơ",
+            "Dầu xả Trái Bơ: Dầu Dừa",
+            "Dầu xả Trái Bơ: PCA Glyceryl Oleate",
+            "Dầu xả Trái Bơ: Keratin thủy phân",
+            "Dầu xả Trái Bơ: Dẫn xuất hạt cải dầu",
+            "Kem ủ tóc Trái Bơ: Dầu Trái Bơ",
+            "Kem ủ tóc Trái Bơ: Dẫn xuất hạt cải dầu",
+            "Kem ủ tóc Trái Bơ: Keratin thủy phân",
+            "Kem ủ tóc Trái Bơ: Fiberhance",
+            "Kem ủ tóc Trái Bơ: Các acid béo tự nhiên"
+        ],
+        "usage_instructions": [
+            "Bước 1: Dầu gội Trái Bơ – Làm ướt tóc, lấy lượng dầu gội vừa đủ, massage nhẹ nhàng da đầu 2–3 phút rồi xả sạch với nước.",
+            "Bước 2: Dầu xả Trái Bơ – Thoa đều dầu xả từ thân đến ngọn tóc, để 2–3 phút, sau đó xả sạch bằng nước mát. Tránh bôi lên chân tóc.",
+            "Bước 3: Kem ủ tóc Trái Bơ – Sử dụng 1–2 lần/tuần. Sau khi gội sạch, lấy lượng kem vừa đủ thoa đều lên tóc (tập trung thân và ngọn), ủ 10–15 phút rồi xả lại với nước sạch."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 22,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Gội xả thảo dược Tóc Mây - Tóc khỏe từ gốc, giảm gãy rụng",
+        "price": 570000,
+        "discountPrice": null,
+        "images": [
+            "combo-goi-xa-thao-duoc-toc-may-toc-khoe-tu-goc-giam-gay-rung-1.png",
+            "combo-goi-xa-thao-duoc-toc-may-toc-khoe-tu-goc-giam-gay-rung-2.png",
+            "combo-goi-xa-thao-duoc-toc-may-toc-khoe-tu-goc-giam-gay-rung-3.png",
+            "combo-goi-xa-thao-duoc-toc-may-toc-khoe-tu-goc-giam-gay-rung-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Combo gội xả thảo dược Tóc Mây nhà Cỏ là combo chăm sóc tóc toàn diện từ bên trong giúp mái tóc chắc khỏe, mềm mượt, giảm tình trạng gãy rụng, chẻ ngọn vốn là nỗi lo của nhiều người. Combo là sự kết hợp của dầu gội thảo dược Tóc Mây và kem xả ủ Tóc Mây có thể sử dụng cho cả những người có da đầu nhạy cảm.",
+        "ingredients": [
+            "Dầu gội Tóc Mây: Bồ kết",
+            "Dầu gội Tóc Mây: Bồ hòn",
+            "Dầu gội Tóc Mây: Cỏ ngũ sắc",
+            "Dầu gội Tóc Mây: Hương nhu",
+            "Dầu gội Tóc Mây: Cỏ mần trầu",
+            "Dầu gội Tóc Mây: Tinh dầu vỏ bưởi",
+            "Dầu gội Tóc Mây: Tang bạch bì",
+            "Dầu gội Tóc Mây: Tinh dầu sả chanh",
+            "Dầu gội Tóc Mây: Dầu quả bơ",
+            "Dầu gội Tóc Mây: Protein đậu Hà Lan",
+            "Kem xả ủ Tóc Mây: Tinh dầu vỏ bưởi",
+            "Kem xả ủ Tóc Mây: Tinh dầu hương nhu",
+            "Kem xả ủ Tóc Mây: Tinh dầu ngọc lan tây",
+            "Kem xả ủ Tóc Mây: Dầu quả bơ",
+            "Kem xả ủ Tóc Mây: Dầu oliu",
+            "Kem xả ủ Tóc Mây: Vitamin E",
+            "Kem xả ủ Tóc Mây: Propanediol (chiết xuất từ ngô)",
+            "Kem xả ủ Tóc Mây: Protein đậu Hà Lan"
+        ],
+        "usage_instructions": [
+            "Bước 1: Dầu gội Tóc Mây – Làm ướt tóc, lấy lượng dầu gội vừa đủ, tạo bọt và massage nhẹ nhàng da đầu trong 2–3 phút. Xả sạch lại với nước.",
+            "Bước 2: Kem xả ủ Tóc Mây – Sau khi gội, lấy lượng kem vừa đủ, thoa từ thân tóc đến ngọn tóc. Để khoảng 3–5 phút rồi xả sạch với nước mát. Nên sử dụng 2–3 lần/tuần để thấy rõ hiệu quả."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 31,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Trang điểm 3 bước (Kem chống nắng + Kem nền + Kem má)",
+        "price": 610000,
+        "discountPrice": 550000,
+        "images": [
+            "combo-kem-chong-nang-kem-nen-kem-ma-1.png",
+            "combo-kem-chong-nang-kem-nen-kem-ma-2.png",
+            "combo-kem-chong-nang-kem-nen-kem-ma-3.png",
+            "combo-kem-chong-nang-kem-nen-kem-ma-4.png"
+        ],
+      "category": "68002a826e462bfa8c201102",
+        "description": "Combo Trang điểm 3 bước là sự kết hợp của Kem chống nắng Hây Hây, Kem nền Hây Hây và Kem má Hây Hây chính là combo giúp các nàng có một makeup look xinh xắn, rạng ngời và luôn tự tin thể hiện cá tính của mình.",
+        "ingredients": [
+            "Kem chống nắng Hây Hây: Glycerin",
+            "Kem chống nắng Hây Hây: Dưỡng chất thiên nhiên lành tính",
+            "Kem nền Hây Hây: Thành phần mỏng nhẹ, không để lại vệt trắng",
+            "Kem má Hây Hây: Thành phần dạng kem, dễ tán"
+        ],
+        "usage_instructions": [
+            "Bước 1: Sau bước dưỡng da, thoa kem chống nắng Hây Hây đều khắp mặt và cổ trước khi ra ngoài 15–20 phút.",
+            "Bước 2: Dùng kem nền Hây Hây để tạo lớp nền tự nhiên, đều màu da. Tán bằng tay, mút hoặc cọ tùy ý.",
+            "Bước 3: Chấm nhẹ kem má Hây Hây lên gò má, dùng tay hoặc mút tán đều đến khi màu tiệp vào da."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 64,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Kem chống nắng + Sữa rửa mặt tạo bọt lành tính",
+        "price": 530000,
+        "discountPrice": null,
+        "images": [
+            "combo-kem-chong-nang-sua-rua-mat-tao-bot-1.png",
+            "combo-kem-chong-nang-sua-rua-mat-tao-bot-2.png",
+            "combo-kem-chong-nang-sua-rua-mat-tao-bot-3.png",
+            "combo-kem-chong-nang-sua-rua-mat-tao-bot-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Combo Kem chống nắng và Sữa rửa mặt tạo bọt nhà Cỏ Mềm là combo bảo vệ và làm sạch cho da hiệu quả. Sử dụng sữa rửa mặt giúp làm sạch cho da và kem chống nắng là bước vô cùng cần thiết trước khi ra ngoài để bảo vệ làn da khỏi tia cực tím.",
+        "ingredients": [
+            "Kem chống nắng Hây Hây: Glycerin",
+            "Kem chống nắng Hây Hây: Dưỡng chất thiên nhiên lành tính",
+            "Kem chống nắng Vật Lý Tone-up: Zinc Oxide",
+            "Kem chống nắng Vật Lý Tone-up: Titanium Dioxide",
+            "Kem chống nắng Vật Lý Tone-up: Chiết xuất thiên nhiên lành tính",
+            "Kem chống nắng Sâm 1700: Chiết xuất Sâm Lai Châu",
+            "Kem chống nắng Sâm 1700: Vitamin B5",
+            "Kem chống nắng Sâm 1700: Bộ lọc vật lý – hóa học kết hợp",
+            "Sữa rửa mặt Tơ Tằm: Chiết xuất Tơ Tằm",
+            "Sữa rửa mặt Tơ Tằm: Vitamin B5",
+            "Sữa rửa mặt Tơ Tằm: Glycerin",
+            "Sữa rửa mặt Rau Má: Chiết xuất Rau Má",
+            "Sữa rửa mặt Rau Má: Tinh dầu Tràm Trà",
+            "Sữa rửa mặt Rau Má: Tinh dầu Nghệ",
+            "Sữa rửa mặt Sâm 1700: Chiết xuất Sâm Lai Châu",
+            "Sữa rửa mặt Sâm 1700: Vitamin B5",
+            "Sữa rửa mặt Sâm 1700: Hyaluronic Acid"
+        ],
+        "usage_instructions": [
+            "Bước 1: Sữa rửa mặt tạo bọt – Làm ướt mặt, lấy một lượng vừa đủ, tạo bọt và massage nhẹ nhàng, rửa lại bằng nước sạch.",
+            "Bước 2: Kem chống nắng (buổi sáng) – Sau các bước dưỡng da, lấy lượng kem vừa đủ thoa đều lên mặt và cổ, thoa trước khi ra nắng 15–20 phút. Nên dùng lại sau mỗi 2–3 giờ nếu hoạt động ngoài trời."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 21,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Kem Dưỡng Ẩm Tơ Tằm + Serum Cấp Ẩm Phục Hồi Tơ Tằm",
+        "price": 560000,
+        "discountPrice": null,
+        "images": [
+            "combo-kem-duong-am-to-tam-serum-cap-am-phuc-hoi-to-tam-1.png",
+            "combo-kem-duong-am-to-tam-serum-cap-am-phuc-hoi-to-tam-2.png",
+            "combo-kem-duong-am-to-tam-serum-cap-am-phuc-hoi-to-tam-3.png",
+            "combo-kem-duong-am-to-tam-serum-cap-am-phuc-hoi-to-tam-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Combo kem dưỡng ẩm Tơ Tằm và serum HA phục hồi Tơ Tằm là bộ đôi giúp làn da luôn ẩm mịn, căng mọng.",
+        "ingredients": [
+            "Serum Cấp Ẩm Tơ Tằm: Chiết xuất Tơ Tằm thủy phân",
+            "Serum Cấp Ẩm Tơ Tằm: Hyaluronic Acid",
+            "Serum Cấp Ẩm Tơ Tằm: Propanediol",
+            "Serum Cấp Ẩm Tơ Tằm: Chiết xuất Lá Nha Đam",
+            "Serum Cấp Ẩm Tơ Tằm: Vitamin B5 (Panthenol)",
+            "Kem Dưỡng Ẩm Tơ Tằm: Chiết xuất Tơ Tằm thủy phân",
+            "Kem Dưỡng Ẩm Tơ Tằm: Hyaluronic Acid (dạng phân tử nhỏ dưới 130kDa)",
+            "Kem Dưỡng Ẩm Tơ Tằm: Propanediol",
+            "Kem Dưỡng Ẩm Tơ Tằm: Protein Sữa Ong Chúa (Hydrolyzed Royal Jelly Protein)",
+            "Kem Dưỡng Ẩm Tơ Tằm: Niacinamide 5%"
+        ],
+        "usage_instructions": [
+            "Buổi sáng và tối: Làm sạch da bằng sữa rửa mặt.",
+            "Buổi sáng và tối: Sử dụng toner.",
+            "Buổi sáng và tối: Lấy 2–3 giọt serum cấp ẩm Tơ Tằm, thoa đều và vỗ nhẹ để thẩm thấu.",
+            "Buổi sáng và tối: Sau khi serum thấm hoàn toàn, thoa một lớp mỏng kem dưỡng ẩm Tơ Tằm để khóa ẩm và nuôi dưỡng làn da."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 31,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Làm Sạch Da Body Sữa Tắm Và Tẩy Da Chết Mật Ong Cà Phê",
+        "price": 360000,
+        "discountPrice": null,
+        "images": [
+            "combo-lam-sach-da-body-sua-tam-va-tay-da-chet-mat-ong-ca-phe-1.png",
+            "combo-lam-sach-da-body-sua-tam-va-tay-da-chet-mat-ong-ca-phe-2.png",
+            "combo-lam-sach-da-body-sua-tam-va-tay-da-chet-mat-ong-ca-phe-3.png",
+            "combo-lam-sach-da-body-sua-tam-va-tay-da-chet-mat-ong-ca-phe-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo sữa tắm và tẩy da chết Mật ong Cà phê là bộ đôi hoàn hảo giúp các chị em khách hàng nhà Cỏ có một làn da body sáng, sạch, khỏe. Cùng tìm hiểu xem mỗi sản phẩm trong combo này có gì đặc biệt nhé.",
+        "ingredients": [
+            "Sữa tắm Mật ong Cà phê: Chiết xuất mật ong",
+            "Sữa tắm Mật ong Cà phê: Chiết xuất cà phê",
+            "Sữa tắm Mật ong Cà phê: Glycerin",
+            "Sữa tắm Mật ong Cà phê: Dầu dừa",
+            "Sữa tắm Mật ong Cà phê: Vitamin E",
+            "Tẩy da chết Mật ong Cà phê: Hạt cà phê xay nhuyễn",
+            "Tẩy da chết Mật ong Cà phê: Mật ong nguyên chất",
+            "Tẩy da chết Mật ong Cà phê: Dầu dừa",
+            "Tẩy da chết Mật ong Cà phê: Vitamin E",
+            "Tẩy da chết Mật ong Cà phê: Dầu oliu"
+        ],
+        "usage_instructions": [
+            "Bước 1: Tẩy da chết Mật ong Cà phê – Làm ướt cơ thể, lấy một lượng sản phẩm vừa đủ, massage nhẹ nhàng lên da theo chuyển động tròn, tập trung vào vùng da sần như khuỷu tay, đầu gối, xả sạch lại với nước.",
+            "Bước 2: Sữa tắm Mật ong Cà phê – Dùng sau bước tẩy tế bào chết hoặc vào mỗi ngày, tạo bọt sữa tắm bằng tay hoặc bông tắm, thoa đều lên da, massage nhẹ và xả sạch lại bằng nước."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 11,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 3 chai nước hoa unisex Dreamer",
+        "price": 1050000,
+        "discountPrice": 900000,
+        "images": [
+            "combo-nuoc-hoa-unisex-dreamer-1.png",
+            "combo-nuoc-hoa-unisex-dreamer-2.png",
+            "combo-nuoc-hoa-unisex-dreamer-3.png",
+            "combo-nuoc-hoa-unisex-dreamer-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Các cô gái, chàng ơi nhà Cỏ ơi, nếu bạn đang tìm kiếm một mùi hương cho riêng mình, đừng bỏ qua Combo 3 nước hoa Unisex Dreamer nhé. Đây là combo với 3 mùi hương độc đáo, tinh tế, đem đến hương thơm riêng cho bạn đấy!",
+        "ingredients": [
+            "Ethanol",
+            "Fragrance (hương liệu cao cấp)",
+            "Các tinh dầu thiên nhiên được chọn lọc"
+        ],
+        "usage_instructions": [
+            "Xịt lên các điểm mạch đập như: cổ tay, sau tai, sau gáy, xương quai xanh.",
+            "Giữ khoảng cách 10–15cm khi xịt để tỏa hương đều.",
+            "Tránh xịt trực tiếp lên quần áo sáng màu.",
+            "Có thể dùng hằng ngày hoặc theo phong cách bạn muốn thể hiện."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Hương liệu tổng hợp gây kích ứng mạnh",
+            "Không chứa Chất hóa học độc hại cho da"
+        ],
+        "stock": 99,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo da sạch sáng mờ thâm nám chiết xuất Sơ-ri Vitamin C",
+        "price": 430000,
+        "discountPrice": 390000,
+        "images": [
+            "combo-sang-da-mo-nam-chiet-xuat-so-ri-1.png",
+            "combo-sang-da-mo-nam-chiet-xuat-so-ri-2.png",
+            "combo-sang-da-mo-nam-chiet-xuat-so-ri-3.png",
+            "combo-sang-da-mo-nam-chiet-xuat-so-ri-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Combo 2 sản phẩm sữa rửa mặt tạo bọt Sơ-ri Vitamin C và toner sáng da mờ nám Sơ-ri Vitamin C nằm trong bộ chăm sóc da Sơ-ri Vitamin C của nhà Cỏ là hai bước chăm sóc da cơ bản không thể thiếu trong quy trình chăm sóc da hằng ngày. Combo 2 sản phẩm có công dụng làm sạch da hiệu quả làm thông thoáng lỗ chân lông từ đó cung cấp độ ẩm cho da thêm trắng sáng và đều màu.",
+        "ingredients": [
+            "Sữa rửa mặt Sơ-ri Vitamin C: Chiết xuất quả Sơ-ri (giàu Vitamin C)",
+            "Sữa rửa mặt Sơ-ri Vitamin C: Panthenol (Vitamin B5)",
+            "Sữa rửa mặt Sơ-ri Vitamin C: Chất làm sạch nguồn gốc từ dừa",
+            "Toner Sơ-ri Vitamin C: Chiết xuất quả Sơ-ri",
+            "Toner Sơ-ri Vitamin C: Dẫn xuất Vitamin C",
+            "Toner Sơ-ri Vitamin C: Chiết xuất cây Sậy",
+            "Toner Sơ-ri Vitamin C: Chiết xuất nấm Phục Linh",
+            "Toner Sơ-ri Vitamin C: Vitamin B5",
+            "Toner Sơ-ri Vitamin C: Hyaluronic Acid",
+            "Toner Sơ-ri Vitamin C: Mật ong lên men"
+        ],
+        "usage_instructions": [
+            "Bước 1: Sữa rửa mặt tạo bọt Sơ-ri Vitamin C – Làm ướt mặt, lấy 2–4 pump sữa rửa mặt ra tay, tạo bọt, massage nhẹ nhàng khắp mặt theo vòng tròn, rửa sạch lại bằng nước mát, dùng mỗi ngày sáng và tối.",
+            "Bước 2: Toner sáng da mờ nám Sơ-ri Vitamin C – Sau khi rửa mặt, cho toner ra bông tẩy trang hoặc tay sạch, thoa đều khắp mặt và cổ, vỗ nhẹ để toner thẩm thấu, dùng đều đặn sáng và tối."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 85,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Tinh Dầu Treo Thông Minh",
+        "price": 180000,
+        "discountPrice": 150000,
+        "images": [
+            "scent-tinh-dau-treo-thong-minh-20ml-1.png",
+            "scent-tinh-dau-treo-thong-minh-20ml-2.png",
+            "scent-tinh-dau-treo-thong-minh-20ml-3.png",
+            "scent-tinh-dau-treo-thong-minh-20ml-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Tinh dầu treo nguyên chất Cỏ Mềm ngày càng được nhiều người tin dùng và ứng dụng trong đời sống bởi công dụng hữu hiệu mà nó đem lại. Tinh dầu treo nhà Cỏ giúp khử mùi, làm sạch không gian và đem đến cảm giác thư giãn cho người dùng.",
+        "ingredients": [
+            "Cymbopogon Citratus Leaf Oil (Tinh dầu Sả chanh): Kháng khuẩn, đuổi muỗi, làm sạch không khí",
+            "Eucalyptus Globulus Leaf Oil (Tinh dầu Bạch đàn): Tạo mùi hương dễ chịu, thanh lọc không khí, hỗ trợ hô hấp",
+            "Coconut Oil (dầu dừa tinh luyện): Làm dung môi tự nhiên, giúp tinh dầu khuếch tán đều và an toàn hơn"
+        ],
+        "usage_instructions": [
+            "Treo xe: Khử mùi xe, chống say, thư giãn khi lái",
+            "Treo phòng: Làm thơm không khí, đuổi muỗi, giúp thư giãn",
+            "Treo tủ quần áo: Lưu lại hương thơm dịu nhẹ, hạn chế ẩm mốc",
+            "Treo nhà vệ sinh, văn phòng: Làm sạch và tạo cảm giác dễ chịu"
+        ],
+        "special": [
+            "Không chứa cồn độc hại",
+            "Không paraben",
+            "Không chất bảo quản mạnh",
+            "Không hóa chất tổng hợp"
+        ],
+        "stock": 64,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Tinh Dầu Trị Liệu - Chữa Lành Bằng Mùi Hương",
+        "price": 180000,
+        "discountPrice": null,
+        "images": [
+            "scent-tinh-dau-tri-lieu-20ml-1.png",
+            "scent-tinh-dau-tri-lieu-20ml-2.png",
+            "scent-tinh-dau-tri-lieu-20ml-3.png",
+            "scent-tinh-dau-tri-lieu-20ml-4.png",
+            "scent-tinh-dau-tri-lieu-20ml-5.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Tinh dầu trị liệu nhà Cỏ Mềm là liệu pháp giúp giải quyết các vấn đề về tinh thần mà nhiều người thường xuyên gặp phải trong cuộc sống hiện nay như căng thẳng, lo âu, kém tập trung, ngủ không sâu, mất cân bằng tâm trí…",
+        "ingredients": [
+            "Tinh dầu Hương thảo (Rosemary Essential Oil)",
+            "Tinh dầu Thông đỏ (Pinus Sylvestris Oil)",
+            "Tinh dầu Phong lữ (Pelargonium Graveolens Oil)",
+            "Tinh dầu Hoàng đàn (Cedrus Atlantica Bark Oil)",
+            "Tinh dầu Oải hương (Lavandula Angustifolia Oil)",
+            "Tinh dầu Hoắc hương (Pogostemon Cablin Oil)",
+            "Dầu dừa tinh luyện (Cocos Nucifera Oil)"
+        ],
+        "usage_instructions": [
+            "Xoa lên các điểm mạch đập như cổ tay, sau gáy, thái dương hoặc huyệt đạo để thư giãn",
+            "Hít sâu trực tiếp từ chai hoặc nhỏ 1 giọt vào khăn giấy để mang theo",
+            "Sử dụng trước khi làm việc, học tập, thi cử hoặc trước khi đi ngủ",
+            "Lưu ý: Không dùng cho phụ nữ có thai trong 3 tháng đầu",
+            "Không để tinh dầu tiếp xúc trực tiếp với mắt, miệng hoặc vùng da tổn thương",
+            "Bảo quản nơi khô mát, tránh ánh nắng trực tiếp và nguồn nhiệt"
+        ],
+        "special": [
+            "Không Cồn công nghiệp",
+            "Không Paraben",
+            "Không Hương liệu tổng hợp",
+            "Không Dầu khoáng",
+            "Không Silicone",
+            "Không Màu nhân tạo"
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Bộ Chăm Sóc Tóc Ngăn Ngừa Rụng Tóc Kích Thích Mọc Tóc Dâu Tằm",
+        "price": 970000,
+        "discountPrice": null,
+        "images": [
+            "combo-cham-soc-toc-ngan-ngua-rung-toc-kich-thich-moc-toc-dau-tam-1.png",
+            "combo-cham-soc-toc-ngan-ngua-rung-toc-kich-thich-moc-toc-dau-tam-2.png",
+            "combo-cham-soc-toc-ngan-ngua-rung-toc-kich-thich-moc-toc-dau-tam-3.png",
+            "combo-cham-soc-toc-ngan-ngua-rung-toc-kich-thich-moc-toc-dau-tam-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Combo 3 bước chăm sóc tóc Dâu tằm đến từ nhà Cỏ Mềm bao gồm Dầu gội Dâu tằm ngăn ngừa rụng tóc, Dầu xả Dâu tằm ngăn ngừa rụng tóc và serum Dâu tằm ngăn ngừa rụng tóc giúp đánh bay tình trạng gãy rụng tóc, tóc khô rối, đem lại mái tóc mềm mượt, óng ả đến cho bạn.",
+        "ingredients": [
+            "Dầu gội Dâu Tằm: Chiết xuất Dâu tằm (Morus alba extract)",
+            "Dầu gội Dâu Tằm: Dầu dừa",
+            "Dầu gội Dâu Tằm: PCA Glyceryl Oleate (từ củ cải đường & hoa hướng dương)",
+            "Dầu xả Dâu Tằm: Chiết xuất Dâu tằm",
+            "Dầu xả Dâu Tằm: Vitamin B3",
+            "Dầu xả Dâu Tằm: Dẫn xuất hạt cải dầu",
+            "Serum Dâu Tằm: Chiết xuất Dâu tằm",
+            "Serum Dâu Tằm: Vitamin B3",
+            "Serum Dâu Tằm: Vitamin B5",
+            "Serum Dâu Tằm: Capixyl",
+            "Serum Dâu Tằm: Aminexil",
+            "Serum Dâu Tằm: Procapil"
+        ],
+        "usage_instructions": [
+            "Bước 1: Dầu gội Dâu tằm – Làm ướt tóc, lấy một lượng dầu gội vừa đủ, massage nhẹ da đầu 2–3 phút, sau đó xả sạch với nước.",
+            "Bước 2: Dầu xả Dâu tằm – Thoa dầu xả từ thân đến ngọn tóc (tránh chân tóc), để khoảng 2–3 phút, xả sạch bằng nước mát.",
+            "Bước 3: Serum Dâu tằm – Sau khi lau tóc khô, nhỏ vài giọt serum lên da đầu, massage nhẹ để dưỡng chất thấm đều. Có thể dùng mỗi ngày, đặc biệt trước khi sấy tóc."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 31,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Gội Xả Ủ Suôn Mượt Phục Hồi Trái Bơ",
+        "price": 515000,
+        "discountPrice": 490000,
+        "images": [
+            "combo-dau-goi-dau-xa-phuc-hoi-hu-ton-trai-bo-1.png",
+            "combo-dau-goi-dau-xa-phuc-hoi-hu-ton-trai-bo-2.png",
+            "combo-dau-goi-dau-xa-phuc-hoi-hu-ton-trai-bo-3.png",
+            "combo-dau-goi-dau-xa-phuc-hoi-hu-ton-trai-bo-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Combo Gội Xả Ủ Suôn Mượt Phục Hồi Trái Bơ là combo gồm có dầu gội, dầu xả, kem ủ tóc, giúp mái tóc chắc khoẻ, cải thiện tình trạng tóc khô xơ, gãy rụng, hoá chất.",
+        "ingredients": [
+            "Dầu gội Trái Bơ: Dầu Trái Bơ",
+            "Dầu gội Trái Bơ: PCA Glyceryl Oleate (từ củ cải đường và hướng dương)",
+            "Dầu gội Trái Bơ: Keratin thủy phân",
+            "Dầu xả Trái Bơ: Dầu Trái Bơ",
+            "Dầu xả Trái Bơ: Dầu Dừa",
+            "Dầu xả Trái Bơ: PCA Glyceryl Oleate",
+            "Dầu xả Trái Bơ: Keratin thủy phân",
+            "Dầu xả Trái Bơ: Dẫn xuất hạt cải dầu",
+            "Kem ủ tóc Trái Bơ: Dầu Trái Bơ",
+            "Kem ủ tóc Trái Bơ: Dẫn xuất hạt cải dầu",
+            "Kem ủ tóc Trái Bơ: Keratin thủy phân",
+            "Kem ủ tóc Trái Bơ: Fiberhance",
+            "Kem ủ tóc Trái Bơ: Các acid béo tự nhiên"
+        ],
+        "usage_instructions": [
+            "Bước 1: Dầu gội Trái Bơ – Làm ướt tóc, lấy lượng dầu gội vừa đủ, massage nhẹ nhàng da đầu 2–3 phút rồi xả sạch với nước.",
+            "Bước 2: Dầu xả Trái Bơ – Thoa đều dầu xả từ thân đến ngọn tóc, để 2–3 phút, sau đó xả sạch bằng nước mát. Tránh bôi lên chân tóc.",
+            "Bước 3: Kem ủ tóc Trái Bơ – Sử dụng 1–2 lần/tuần. Sau khi gội sạch, lấy lượng kem vừa đủ thoa đều lên tóc (tập trung thân và ngọn), ủ 10–15 phút rồi xả lại với nước sạch."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 74,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Gội xả thảo dược Tóc Mây - Tóc khỏe từ gốc, giảm gãy rụng",
+        "price": 570000,
+        "discountPrice": 490000,
+        "images": [
+            "combo-goi-xa-thao-duoc-toc-may-toc-khoe-tu-goc-giam-gay-rung-1.png",
+            "combo-goi-xa-thao-duoc-toc-may-toc-khoe-tu-goc-giam-gay-rung-2.png",
+            "combo-goi-xa-thao-duoc-toc-may-toc-khoe-tu-goc-giam-gay-rung-3.png",
+            "combo-goi-xa-thao-duoc-toc-may-toc-khoe-tu-goc-giam-gay-rung-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Combo gội xả thảo dược Tóc Mây nhà Cỏ là combo chăm sóc tóc toàn diện từ bên trong giúp mái tóc chắc khỏe, mềm mượt, giảm tình trạng gãy rụng, chẻ ngọn vốn là nỗi lo của nhiều người. Combo là sự kết hợp của dầu gội thảo dược Tóc Mây và kem xả ủ Tóc Mây có thể sử dụng cho cả những người có da đầu nhạy cảm.",
+        "ingredients": [
+            "Dầu gội Tóc Mây: Bồ kết",
+            "Dầu gội Tóc Mây: Bồ hòn",
+            "Dầu gội Tóc Mây: Cỏ ngũ sắc",
+            "Dầu gội Tóc Mây: Hương nhu",
+            "Dầu gội Tóc Mây: Cỏ mần trầu",
+            "Dầu gội Tóc Mây: Tinh dầu vỏ bưởi",
+            "Dầu gội Tóc Mây: Tang bạch bì",
+            "Dầu gội Tóc Mây: Tinh dầu sả chanh",
+            "Dầu gội Tóc Mây: Dầu quả bơ",
+            "Dầu gội Tóc Mây: Protein đậu Hà Lan",
+            "Kem xả ủ Tóc Mây: Tinh dầu vỏ bưởi",
+            "Kem xả ủ Tóc Mây: Tinh dầu hương nhu",
+            "Kem xả ủ Tóc Mây: Tinh dầu ngọc lan tây",
+            "Kem xả ủ Tóc Mây: Dầu quả bơ",
+            "Kem xả ủ Tóc Mây: Dầu oliu",
+            "Kem xả ủ Tóc Mây: Vitamin E",
+            "Kem xả ủ Tóc Mây: Propanediol (chiết xuất từ ngô)",
+            "Kem xả ủ Tóc Mây: Protein đậu Hà Lan"
+        ],
+        "usage_instructions": [
+            "Bước 1: Dầu gội Tóc Mây – Làm ướt tóc, lấy lượng dầu gội vừa đủ, tạo bọt và massage nhẹ nhàng da đầu trong 2–3 phút. Xả sạch lại với nước.",
+            "Bước 2: Kem xả ủ Tóc Mây – Sau khi gội, lấy lượng kem vừa đủ, thoa từ thân tóc đến ngọn tóc. Để khoảng 3–5 phút rồi xả sạch với nước mát. Nên sử dụng 2–3 lần/tuần để thấy rõ hiệu quả."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 74,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Trang điểm 3 bước (Kem chống nắng + Kem nền + Kem má)",
+        "price": 610000,
+        "discountPrice": 550000,
+        "images": [
+            "combo-kem-chong-nang-kem-nen-kem-ma-1.png",
+            "combo-kem-chong-nang-kem-nen-kem-ma-2.png",
+            "combo-kem-chong-nang-kem-nen-kem-ma-3.png",
+            "combo-kem-chong-nang-kem-nen-kem-ma-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c200ff8"
+            },
+            "name": "Trang điểm"
+        },
+        "description": "Combo Trang điểm 3 bước là sự kết hợp của Kem chống nắng Hây Hây, Kem nền Hây Hây và Kem má Hây Hây chính là combo giúp các nàng có một makeup look xinh xắn, rạng ngời và luôn tự tin thể hiện cá tính của mình.",
+        "ingredients": [
+            "Kem chống nắng Hây Hây: Glycerin",
+            "Kem chống nắng Hây Hây: Dưỡng chất thiên nhiên lành tính",
+            "Kem nền Hây Hây: Thành phần mỏng nhẹ, không để lại vệt trắng",
+            "Kem má Hây Hây: Thành phần dạng kem, dễ tán"
+        ],
+        "usage_instructions": [
+            "Bước 1: Sau bước dưỡng da, thoa kem chống nắng Hây Hây đều khắp mặt và cổ trước khi ra ngoài 15–20 phút.",
+            "Bước 2: Dùng kem nền Hây Hây để tạo lớp nền tự nhiên, đều màu da. Tán bằng tay, mút hoặc cọ tùy ý.",
+            "Bước 3: Chấm nhẹ kem má Hây Hây lên gò má, dùng tay hoặc mút tán đều đến khi màu tiệp vào da."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 63,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Kem chống nắng + Sữa rửa mặt tạo bọt lành tính",
+        "price": 530000,
+        "discountPrice": 490000,
+        "images": [
+            "combo-kem-chong-nang-sua-rua-mat-tao-bot-1.png",
+            "combo-kem-chong-nang-sua-rua-mat-tao-bot-2.png",
+            "combo-kem-chong-nang-sua-rua-mat-tao-bot-3.png",
+            "combo-kem-chong-nang-sua-rua-mat-tao-bot-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Combo Kem chống nắng và Sữa rửa mặt tạo bọt nhà Cỏ Mềm là combo bảo vệ và làm sạch cho da hiệu quả. Sử dụng sữa rửa mặt giúp làm sạch cho da và kem chống nắng là bước vô cùng cần thiết trước khi ra ngoài để bảo vệ làn da khỏi tia cực tím.",
+        "ingredients": [
+            "Kem chống nắng Hây Hây: Glycerin",
+            "Kem chống nắng Hây Hây: Dưỡng chất thiên nhiên lành tính",
+            "Kem chống nắng Vật Lý Tone-up: Zinc Oxide",
+            "Kem chống nắng Vật Lý Tone-up: Titanium Dioxide",
+            "Kem chống nắng Vật Lý Tone-up: Chiết xuất thiên nhiên lành tính",
+            "Kem chống nắng Sâm 1700: Chiết xuất Sâm Lai Châu",
+            "Kem chống nắng Sâm 1700: Vitamin B5",
+            "Kem chống nắng Sâm 1700: Bộ lọc vật lý – hóa học kết hợp",
+            "Sữa rửa mặt Tơ Tằm: Chiết xuất Tơ Tằm",
+            "Sữa rửa mặt Tơ Tằm: Vitamin B5",
+            "Sữa rửa mặt Tơ Tằm: Glycerin",
+            "Sữa rửa mặt Rau Má: Chiết xuất Rau Má",
+            "Sữa rửa mặt Rau Má: Tinh dầu Tràm Trà",
+            "Sữa rửa mặt Rau Má: Tinh dầu Nghệ",
+            "Sữa rửa mặt Sâm 1700: Chiết xuất Sâm Lai Châu",
+            "Sữa rửa mặt Sâm 1700: Vitamin B5",
+            "Sữa rửa mặt Sâm 1700: Hyaluronic Acid"
+        ],
+        "usage_instructions": [
+            "Bước 1: Sữa rửa mặt tạo bọt – Làm ướt mặt, lấy một lượng vừa đủ, tạo bọt và massage nhẹ nhàng, rửa lại bằng nước sạch.",
+            "Bước 2: Kem chống nắng (buổi sáng) – Sau các bước dưỡng da, lấy lượng kem vừa đủ thoa đều lên mặt và cổ, thoa trước khi ra nắng 15–20 phút. Nên dùng lại sau mỗi 2–3 giờ nếu hoạt động ngoài trời."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 56,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Kem Dưỡng Ẩm Tơ Tằm + Serum Cấp Ẩm Phục Hồi Tơ Tằm",
+        "price": 560000,
+        "discountPrice": null,
+        "images": [
+            "combo-kem-duong-am-to-tam-serum-cap-am-phuc-hoi-to-tam-1.png",
+            "combo-kem-duong-am-to-tam-serum-cap-am-phuc-hoi-to-tam-2.png",
+            "combo-kem-duong-am-to-tam-serum-cap-am-phuc-hoi-to-tam-3.png",
+            "combo-kem-duong-am-to-tam-serum-cap-am-phuc-hoi-to-tam-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Combo kem dưỡng ẩm Tơ Tằm và serum HA phục hồi Tơ Tằm là bộ đôi giúp làn da luôn ẩm mịn, căng mọng.",
+        "ingredients": [
+            "Serum Cấp Ẩm Tơ Tằm: Chiết xuất Tơ Tằm thủy phân",
+            "Serum Cấp Ẩm Tơ Tằm: Hyaluronic Acid",
+            "Serum Cấp Ẩm Tơ Tằm: Propanediol",
+            "Serum Cấp Ẩm Tơ Tằm: Chiết xuất Lá Nha Đam",
+            "Serum Cấp Ẩm Tơ Tằm: Vitamin B5 (Panthenol)",
+            "Kem Dưỡng Ẩm Tơ Tằm: Chiết xuất Tơ Tằm thủy phân",
+            "Kem Dưỡng Ẩm Tơ Tằm: Hyaluronic Acid (dạng phân tử nhỏ dưới 130kDa)",
+            "Kem Dưỡng Ẩm Tơ Tằm: Propanediol",
+            "Kem Dưỡng Ẩm Tơ Tằm: Protein Sữa Ong Chúa (Hydrolyzed Royal Jelly Protein)",
+            "Kem Dưỡng Ẩm Tơ Tằm: Niacinamide 5%"
+        ],
+        "usage_instructions": [
+            "Buổi sáng và tối: Làm sạch da bằng sữa rửa mặt.",
+            "Buổi sáng và tối: Sử dụng toner.",
+            "Buổi sáng và tối: Lấy 2–3 giọt serum cấp ẩm Tơ Tằm, thoa đều và vỗ nhẹ để thẩm thấu.",
+            "Buổi sáng và tối: Sau khi serum thấm hoàn toàn, thoa một lớp mỏng kem dưỡng ẩm Tơ Tằm để khóa ẩm và nuôi dưỡng làn da."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 22,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Làm Sạch Da Body Sữa Tắm Và Tẩy Da Chết Mật Ong Cà Phê",
+        "price": 360000,
+        "discountPrice": null,
+        "images": [
+            "combo-lam-sach-da-body-sua-tam-va-tay-da-chet-mat-ong-ca-phe-1.png",
+            "combo-lam-sach-da-body-sua-tam-va-tay-da-chet-mat-ong-ca-phe-2.png",
+            "combo-lam-sach-da-body-sua-tam-va-tay-da-chet-mat-ong-ca-phe-3.png",
+            "combo-lam-sach-da-body-sua-tam-va-tay-da-chet-mat-ong-ca-phe-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Combo sữa tắm và tẩy da chết Mật ong Cà phê là bộ đôi hoàn hảo giúp các chị em khách hàng nhà Cỏ có một làn da body sáng, sạch, khỏe. Cùng tìm hiểu xem mỗi sản phẩm trong combo này có gì đặc biệt nhé.",
+        "ingredients": [
+            "Sữa tắm Mật ong Cà phê: Chiết xuất mật ong",
+            "Sữa tắm Mật ong Cà phê: Chiết xuất cà phê",
+            "Sữa tắm Mật ong Cà phê: Glycerin",
+            "Sữa tắm Mật ong Cà phê: Dầu dừa",
+            "Sữa tắm Mật ong Cà phê: Vitamin E",
+            "Tẩy da chết Mật ong Cà phê: Hạt cà phê xay nhuyễn",
+            "Tẩy da chết Mật ong Cà phê: Mật ong nguyên chất",
+            "Tẩy da chết Mật ong Cà phê: Dầu dừa",
+            "Tẩy da chết Mật ong Cà phê: Vitamin E",
+            "Tẩy da chết Mật ong Cà phê: Dầu oliu"
+        ],
+        "usage_instructions": [
+            "Bước 1: Tẩy da chết Mật ong Cà phê – Làm ướt cơ thể, lấy một lượng sản phẩm vừa đủ, massage nhẹ nhàng lên da theo chuyển động tròn, tập trung vào vùng da sần như khuỷu tay, đầu gối, xả sạch lại với nước.",
+            "Bước 2: Sữa tắm Mật ong Cà phê – Dùng sau bước tẩy tế bào chết hoặc vào mỗi ngày, tạo bọt sữa tắm bằng tay hoặc bông tắm, thoa đều lên da, massage nhẹ và xả sạch lại bằng nước."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 24,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo 3 chai nước hoa unisex Dreamer",
+        "price": 1050000,
+        "discountPrice": null,
+        "images": [
+            "combo-nuoc-hoa-unisex-dreamer-1.png",
+            "combo-nuoc-hoa-unisex-dreamer-2.png",
+            "combo-nuoc-hoa-unisex-dreamer-3.png",
+            "combo-nuoc-hoa-unisex-dreamer-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Các cô gái, chàng ơi nhà Cỏ ơi, nếu bạn đang tìm kiếm một mùi hương cho riêng mình, đừng bỏ qua Combo 3 nước hoa Unisex Dreamer nhé. Đây là combo với 3 mùi hương độc đáo, tinh tế, đem đến hương thơm riêng cho bạn đấy!",
+        "ingredients": [
+            "Ethanol",
+            "Fragrance (hương liệu cao cấp)",
+            "Các tinh dầu thiên nhiên được chọn lọc"
+        ],
+        "usage_instructions": [
+            "Xịt lên các điểm mạch đập như: cổ tay, sau tai, sau gáy, xương quai xanh.",
+            "Giữ khoảng cách 10–15cm khi xịt để tỏa hương đều.",
+            "Tránh xịt trực tiếp lên quần áo sáng màu.",
+            "Có thể dùng hằng ngày hoặc theo phong cách bạn muốn thể hiện."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Hương liệu tổng hợp gây kích ứng mạnh",
+            "Không chứa Chất hóa học độc hại cho da"
+        ],
+        "stock": 13,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Combo da sạch sáng mờ thâm nám chiết xuất Sơ-ri Vitamin C",
+        "price": 430000,
+        "discountPrice": null,
+        "images": [
+            "combo-sang-da-mo-nam-chiet-xuat-so-ri-1.png",
+            "combo-sang-da-mo-nam-chiet-xuat-so-ri-2.png",
+            "combo-sang-da-mo-nam-chiet-xuat-so-ri-3.png",
+            "combo-sang-da-mo-nam-chiet-xuat-so-ri-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Combo 2 sản phẩm sữa rửa mặt tạo bọt Sơ-ri Vitamin C và toner sáng da mờ nám Sơ-ri Vitamin C nằm trong bộ chăm sóc da Sơ-ri Vitamin C của nhà Cỏ là hai bước chăm sóc da cơ bản không thể thiếu trong quy trình chăm sóc da hằng ngày. Combo 2 sản phẩm có công dụng làm sạch da hiệu quả làm thông thoáng lỗ chân lông từ đó cung cấp độ ẩm cho da thêm trắng sáng và đều màu.",
+        "ingredients": [
+            "Sữa rửa mặt Sơ-ri Vitamin C: Chiết xuất quả Sơ-ri (giàu Vitamin C)",
+            "Sữa rửa mặt Sơ-ri Vitamin C: Panthenol (Vitamin B5)",
+            "Sữa rửa mặt Sơ-ri Vitamin C: Chất làm sạch nguồn gốc từ dừa",
+            "Toner Sơ-ri Vitamin C: Chiết xuất quả Sơ-ri",
+            "Toner Sơ-ri Vitamin C: Dẫn xuất Vitamin C",
+            "Toner Sơ-ri Vitamin C: Chiết xuất cây Sậy",
+            "Toner Sơ-ri Vitamin C: Chiết xuất nấm Phục Linh",
+            "Toner Sơ-ri Vitamin C: Vitamin B5",
+            "Toner Sơ-ri Vitamin C: Hyaluronic Acid",
+            "Toner Sơ-ri Vitamin C: Mật ong lên men"
+        ],
+        "usage_instructions": [
+            "Bước 1: Sữa rửa mặt tạo bọt Sơ-ri Vitamin C – Làm ướt mặt, lấy 2–4 pump sữa rửa mặt ra tay, tạo bọt, massage nhẹ nhàng khắp mặt theo vòng tròn, rửa sạch lại bằng nước mát, dùng mỗi ngày sáng và tối.",
+            "Bước 2: Toner sáng da mờ nám Sơ-ri Vitamin C – Sau khi rửa mặt, cho toner ra bông tẩy trang hoặc tay sạch, thoa đều khắp mặt và cổ, vỗ nhẹ để toner thẩm thấu, dùng đều đặn sáng và tối."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 41,
+        "createdAt": {
+            "$date": "2025-04-16T16:10:00.000Z"
+        }
+    },
+    {
+        "name": "Kem Dưỡng Ẩm Sâm 1700 Ngừa Lão Hoá Da",
+        "price": 520000,
+        "discountPrice": null,
+        "images": [
+            "da-kem-duong-am-sam-1.png",
+            "da-kem-duong-am-sam-2.png",
+            "da-kem-duong-am-sam-3.png",
+            "da-kem-duong-am-sam-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Kem dưỡng ẩm Sâm 1700 ngừa lão hóa da là sản phẩm giúp dưỡng ẩm da, làm mờ các đốm nâu, nếp nhăn trên da, giúp làn da căng mịn, sáng khỏe. Sản phẩm còn góp phần hạn chế quá trình lão hóa da sớm.",
+        "ingredients": [
+            "Chiết xuất Sâm Lai Châu (Panax Vietnamensis extract)",
+            "Niacinamide (Vitamin B3)",
+            "Panthenol (Vitamin B5)",
+            "Hyaluronic Acid",
+            "Pyrus Cydonia Seed Extract (Chiết xuất hạt Mộc qua)",
+            "Bakuchiol",
+            "Dầu Squalane",
+            "Betaine",
+            "Biosaccharide Gum-1",
+            "Peptide EGF (sh-Oligopeptide-1)"
+        ],
+        "usage_instructions": [
+            "Làm sạch da với sữa rửa mặt.",
+            "Dùng toner và serum nếu có.",
+            "Lấy lượng kem vừa đủ, chấm lên 5 điểm trên mặt (trán, mũi, cằm, 2 má).",
+            "Thoa đều và vỗ nhẹ để kem thẩm thấu.",
+            "Sử dụng 2 lần/ngày: sáng và tối."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 31,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Mặt Nạ Cấp Ẩm Phục Hồi Tơ Tằm",
+        "price": 195000,
+        "discountPrice": null,
+        "images": [
+            "da-mat-na-duong-am-phuc-hoi-to-tam-1.png",
+            "da-mat-na-duong-am-phuc-hoi-to-tam-2.png",
+            "da-mat-na-duong-am-phuc-hoi-to-tam-3.png",
+            "da-mat-na-duong-am-phuc-hoi-to-tam-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Mặt nạ cấp ẩm phục hồi Tơ Tằm là sản phẩm mặt nạ dưỡng da giúp cấp ẩm cho da, thúc đẩy quá trình tái tạo tế bào da mới và ngăn ngừa lão hóa da sớm. Sản phẩm góp phần loại bỏ tế bào da chết, cho làn da mềm mại, sáng mịn hơn.",
+        "ingredients": [
+            "Kaolin",
+            "Xơ mướp",
+            "Tinh bột cám gạo",
+            "Tinh chất Tơ Tằm thủy phân",
+            "Hyaluronic Acid",
+            "Glycerin",
+            "Propanediol",
+            "Bơ hạt mỡ",
+            "Panthenol (Vitamin B5)",
+            "Protein sữa ong chúa"
+        ],
+        "usage_instructions": [
+            "Làm sạch da mặt bằng sữa rửa mặt và lau khô nhẹ nhàng.",
+            "Lấy một lượng mặt nạ vừa đủ, thoa đều lên mặt tránh vùng mắt, môi.",
+            "Thư giãn trong khoảng 10–15 phút.",
+            "Rửa lại bằng nước ấm, vỗ nhẹ khăn mềm để làm khô.",
+            "Tiếp tục chu trình dưỡng da với toner – serum – kem dưỡng."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 22,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Mặt nạ ngừa mụn Rau Má",
+        "price": 195000,
+        "discountPrice": null,
+        "images": [
+            "da-mat-na-ngua-mun-rau-ma-1.png",
+            "da-mat-na-ngua-mun-rau-ma-2.png",
+            "da-mat-na-ngua-mun-rau-ma-3.png",
+            "da-mat-na-ngua-mun-rau-ma-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Mặt nạ ngừa mụn Rau Má là sản phẩm cần thiết trong chu trình chăm sóc da giúp cấp ẩm và dưỡng da, loại bỏ bã nhờn và tế bào chết trên da, làm thông thoáng lỗ chân lông, góp phần ngăn ngừa mụn trên da. Sản phẩm phù hợp cho mọi loại da.",
+        "ingredients": [
+            "Kaolin (Đất sét trắng)",
+            "Gluconolactone",
+            "Chiết xuất Rau Má",
+            "Panthenol (Vitamin B5)",
+            "Niacinamide (Vitamin B3)",
+            "Tinh dầu tràm trà",
+            "Tinh dầu nghệ",
+            "Chiết xuất Hoa Súng",
+            "Bơ hạt mỡ",
+            "Hyaluronic Acid",
+            "Glycerin"
+        ],
+        "usage_instructions": [
+            "Làm sạch da mặt bằng sữa rửa mặt.",
+            "Lấy một lượng mặt nạ vừa đủ, thoa đều khắp mặt, tránh vùng mắt và môi.",
+            "Đắp trong 10–15 phút, thư giãn nhẹ nhàng.",
+            "Rửa sạch lại bằng nước ấm, lau khô bằng khăn mềm.",
+            "Tiếp tục các bước skincare: toner – serum – kem dưỡng.",
+            "Nên sử dụng đều đặn 1–2 lần/tuần để đạt hiệu quả tốt nhất."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 41,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Mặt nạ vitamin C dưỡng sáng mờ thâm nám",
+        "price": 45000,
+        "discountPrice": null,
+        "images": [
+            "da-mat-na-vitaminC-1.png",
+            "da-mat-na-vitaminC-2.png",
+            "da-mat-na-vitaminC-3.png",
+            "da-mat-na-vitaminC-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fe"
+            },
+            "name": "Chăm sóc da"
+        },
+        "description": "Đắp mặt nạ dưỡng da không chỉ giúp chị em cải thiện tình trạng da mà còn đem đến cảm giác thư giãn, thoải mái khi sử dụng. Mặt nạ Vitamin C dưỡng sáng da mờ thâm nám với chiết xuất Sơ-ri nhà Cỏ Mềm giúp đem đến làn da rạng ngời, tươi trẻ với rất nhiều ưu điểm nổi bật.",
+        "ingredients": [
+            "Chiết xuất Sơ-ri",
+            "Dẫn xuất Vitamin C (3-O-Ethyl Ascorbic Acid)",
+            "Niacinamide (Vitamin B3)",
+            "Chiết xuất hoa hồng",
+            "Chiết xuất cúc La Mã",
+            "Chiết xuất dâu tây",
+            "Chiết xuất cà chua",
+            "Collagen",
+            "Caprylyl Glycol",
+            "1,2-Hexanediol"
+        ],
+        "usage_instructions": [
+            "Làm sạch da mặt bằng sữa rửa mặt.",
+            "Lấy mặt nạ ra khỏi túi, đắp lên mặt, căn chỉnh đều các vị trí mắt – mũi – miệng.",
+            "Thư giãn trong 15–20 phút.",
+            "Gỡ mặt nạ, vỗ nhẹ dưỡng chất còn lại cho thẩm thấu.",
+            "Không cần rửa lại mặt.",
+            "Dùng 2–3 lần/tuần hoặc khi da cần phục hồi, làm sáng nhanh chóng.",
+            "Tip: Có thể bỏ mặt nạ vào ngăn mát tủ lạnh 5 phút trước khi đắp để tăng cảm giác thư giãn."
+        ],
+        "special": [
+            "Không chứa Paraben",
+            "Không chứa Silicone",
+            "Không chứa Sulfate",
+            "Không chứa Cồn công nghiệp",
+            "Không chứa Hương liệu tổng hợp",
+            "Không chứa Chất tạo màu hóa học"
+        ],
+        "stock": 35,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Tinh dầu - Tinh dầu trị liệu - Chữa lành bằng mùi hương",
+        "price": 180000,
+        "discountPrice": null,
+        "images": [
+            "scent-tinh-dau-tri-lieu-20ml-1.png",
+            "scent-tinh-dau-tri-lieu-20ml-2.png",
+            "scent-tinh-dau-tri-lieu-20ml-3.png",
+            "scent-tinh-dau-tri-lieu-20ml-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010ff"
+            },
+            "name": "Nước hoa"
+        },
+        "description": "Khám phá Combo Tinh dầu trị liệu nhà Cỏ Mềm, liệu pháp chữa lành bằng mùi hương, giúp giảm căng thẳng, lo âu, cải thiện tập trung và hỗ trợ giấc ngủ sâu, mang lại sự cân bằng và thư giãn cho tâm trí.",
+        "ingredients": [
+            "TĨNH – Focus: Tinh dầu Hương thảo, Thông đỏ, Dầu dừa. Tăng tập trung, cải thiện trí nhớ.",
+            "NHÀN – Balance: Tinh dầu Phong lữ, Hoàng đàn, Dầu dừa. Giảm căng thẳng, cân bằng nội tâm.",
+            "THƯ – Relax: Tinh dầu Oải hương, Hoắc hương, Dầu dừa. Hỗ trợ ngủ ngon, hồi phục thần kinh."
+        ],
+        "usage_instructions": [
+            "Xoa lên cổ tay, sau gáy, thái dương hoặc huyệt đạo để thư giãn.",
+            "Hít sâu từ chai hoặc nhỏ 1 giọt vào khăn giấy để mang theo.",
+            "Dùng trước khi làm việc, học tập, thi cử hoặc đi ngủ.",
+            "Lưu ý: Không dùng cho phụ nữ mang thai 3 tháng đầu. Tránh tiếp xúc mắt, miệng, da tổn thương. Bảo quản nơi khô mát, tránh ánh nắng."
+        ],
+        "special": [
+            "Không cồn công nghiệp",
+            "Không paraben",
+            "Không hương liệu tổng hợp",
+            "Không dầu khoáng",
+            "Không silicone"
+        ],
+        "stock": 45,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Combo chăm sóc môi 3",
+        "price": 250000,
+        "discountPrice": null,
+        "images": [
+            "sonduong-combo-cham-soc-moi-3B-1.png",
+            "sonduong-combo-cham-soc-moi-3B-2.png",
+            "sonduong-combo-cham-soc-moi-3B-3.png",
+            "sonduong-combo-cham-soc-moi-3B-4.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Combo chăm sóc môi giúp đôi môi luôn hồng hào, mọng nước với các sản phẩm chiết xuất thiên nhiên, mang lại vẻ đẹp tự nhiên và khỏe mạnh.",
+        "ingredients": [
+            "Chiết xuất hoa súng: Ức chế melanin, ngăn thâm môi.",
+            "Dầu hạnh nhân, dầu cám gạo: Dưỡng ẩm sâu, làm mềm môi.",
+            "Bơ hạt mỡ, sáp ong: Khóa ẩm, bảo vệ môi.",
+            "Vitamin E: Chống oxy hóa, ngăn lão hóa."
+        ],
+        "usage_instructions": [
+            "Bước 1: Tẩy tế bào chết môi 2-3 lần/tuần, massage nhẹ 1-2 phút, rửa sạch.",
+            "Bước 2: Thoa son dưỡng Môi Hồng sáng và tối để cấp ẩm, giảm thâm.",
+            "Bước 3: Thoa mặt nạ ngủ Môi Hồng ban đêm, để qua đêm, sáng lau sạch."
+        ],
+        "special": [
+            "Không chì",
+            "Không cồn",
+            "Không hương liệu tổng hợp",
+            "Không dầu khoáng",
+            "Không paraben"
+        ],
+        "stock": 42,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Combo Son Nhã và Son dưỡng Nhiên",
+        "price": 510000,
+        "discountPrice": 475000,
+        "images": [
+            "sonduong-combo-son-nha-son-nhien-1.png",
+            "sonduong-combo-son-nha-son-nhien-2.png",
+            "sonduong-combo-son-nha-son-nhien-3.png",
+            "sonduong-combo-son-nha-son-nhien-4.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Combo Son Nhã Nhiên nhà Cỏ Mềm với thành phần an toàn, dưỡng môi mềm mọng, trang điểm nổi bật, ngừa lão hóa, giúp bạn tự tin thể hiện cá tính.",
+        "ingredients": [
+            "Maxi Lip: Kích thích collagen, giảm nếp nhăn môi.",
+            "HA Oil: Cấp ẩm sâu, chống khô nứt.",
+            "Bakuchiol: Giảm thâm, chống oxy hóa.",
+            "Murumuru Butter: Dưỡng ẩm, khóa nước."
+        ],
+        "usage_instructions": [
+            "Thoa Son dưỡng Nhiên để làm mềm và bảo vệ môi.",
+            "Sau 1-2 phút, thoa Son lì Nhã để lên màu đẹp, bền lâu.",
+            "Dùng lại Son dưỡng khi môi khô."
+        ],
+        "special": [
+            "Không cồn",
+            "Không hương liệu tổng hợp",
+            "Không chất tạo màu hóa học",
+            "Không paraben",
+            "Không chì"
+        ],
+        "stock": 75,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Mặt nạ ngủ môi Môi Hồng",
+        "price": 125000,
+        "discountPrice": null,
+        "images": [
+            "sonduong-mat-na-ngu-moi-moi-hong-1.png",
+            "sonduong-mat-na-ngu-moi-moi-hong-2.png",
+            "sonduong-mat-na-ngu-moi-moi-hong-3.png",
+            "sonduong-mat-na-ngu-moi-moi-hong-4.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Mặt nạ ngủ môi Môi Hồng dưỡng ẩm, làm mềm, loại bỏ tế bào chết, ngăn thâm môi, cải thiện khô nẻ, mang lại đôi môi bóng mịn.",
+        "ingredients": [
+            "Dầu hạnh nhân, cám gạo: Dưỡng ẩm, chống oxy hóa.",
+            "Bơ hạt mỡ, dầu dừa: Khóa ẩm, làm mềm môi.",
+            "Sáp đậu nành, sáp ong: Bảo vệ, làm dịu môi.",
+            "Chiết xuất hoa súng, Vitamin E: Ngăn thâm, ngừa lão hóa."
+        ],
+        "usage_instructions": [
+            "Làm sạch môi buổi tối.",
+            "Thoa đều mặt nạ lên môi, để qua đêm.",
+            "Sáng lau nhẹ bằng khăn ẩm nếu cần."
+        ],
+        "special": [
+            "Không chì",
+            "Không paraben",
+            "Không chất bảo quản độc hại",
+            "Không hương liệu tổng hợp",
+            "Không gây kích ứng"
+        ],
+        "stock": 44,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Son Dưỡng Gạo",
+        "price": 90000,
+        "discountPrice": null,
+        "images": [
+            "sonduong-Son-duong-Gao-1.png",
+            "sonduong-Son-duong-Gao-2.png",
+            "sonduong-Son-duong-Gao-3.png",
+            "sonduong-Son-duong-Gao-4.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Son Dưỡng Gạo Cỏ Mềm giúp môi mềm mịn, ngăn nứt nẻ, giảm thâm hiệu quả với thành phần thiên nhiên an toàn.",
+        "ingredients": [
+            "Dầu cám gạo, hạnh nhân: Dưỡng ẩm, làm dịu.",
+            "Bơ hạt mỡ, sáp ong: Khóa ẩm, bảo vệ môi.",
+            "Dầu gấc, mù u: Giảm thâm, tái tạo da.",
+            "Vitamin E, màu khoáng: Chống oxy hóa, tạo màu nhẹ."
+        ],
+        "usage_instructions": [
+            "Thoa 2-3 lần/ngày khi môi khô.",
+            "Dùng trước son màu để môi mềm, lên màu chuẩn.",
+            "Thoa dày ban đêm như mặt nạ dưỡng."
+        ],
+        "special": [
+            "Không chì",
+            "Không paraben",
+            "Không hương liệu tổng hợp",
+            "Không dầu khoáng",
+            "Không silicone"
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Son Nhiên - Dưỡng Mọng Tự Nhiên",
+        "price": 180000,
+        "discountPrice": null,
+        "images": [
+            "sonduong-son-nhien-1.png",
+            "sonduong-son-nhien-2.png",
+            "sonduong-son-nhien-3.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Son Nhiên Cỏ Mềm dưỡng ẩm vượt trội, làm mềm, ngăn thâm, nứt nẻ, ngừa lão hóa, phù hợp cả môi nhạy cảm.",
+        "ingredients": [
+            "Plandool H, Maxi Lip: Dưỡng ẩm, làm đầy môi.",
+            "HA Oil, Murumuru Butter: Cấp ẩm sâu, khóa ẩm.",
+            "Bakuchiol, Squalane: Giảm thâm, chống oxy hóa.",
+            "Vitamin E, màu khoáng: Làm mềm, tạo màu an toàn."
+        ],
+        "usage_instructions": [
+            "Thoa 2-3 lần/ngày khi môi khô.",
+            "Dùng trước son màu hoặc làm son dưỡng ban đêm."
+        ],
+        "special": [
+            "Không chì",
+            "Không paraben",
+            "Không dầu khoáng",
+            "Không hương liệu tổng hợp",
+            "Không silicone"
+        ],
+        "stock": 34,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Son Kem Bóng Thủy Tinh Môi Căng Mọng Mềm Mịn",
+        "price": 185000,
+        "discountPrice": null,
+        "images": [
+            "son-moi-son-kem-bong-1.png",
+            "son-moi-son-kem-bong-2.png",
+            "son-moi-son-kem-bong-3.png",
+            "son-moi-son-kem-bong-4.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Son bóng Thủy Tinh mang lại đôi môi căng bóng, rạng ngời, dưỡng mềm mịn, ngăn thâm, nứt nẻ, an toàn cho môi nhạy cảm.",
+        "ingredients": [
+            "Maxilip: Làm đầy, giảm lão hóa môi.",
+            "Màu khoáng thiên nhiên: An toàn, tạo màu đẹp.",
+            "Dầu thực vật: Dưỡng ẩm, tạo độ bóng.",
+            "Vitamin E: Chống oxy hóa, ngăn thâm."
+        ],
+        "usage_instructions": [
+            "Tô trực tiếp, có thể chồng lớp để tăng độ bóng.",
+            "Dùng son dưỡng trước nếu môi khô.",
+            "Kết hợp sau son lì để làm sáng màu."
+        ],
+        "special": [
+            "Không paraben",
+            "Không chì",
+            "Không dầu khoáng",
+            "Không hương liệu hóa học",
+            "Không silicone"
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T16:20:00.000Z"
+        }
+    },
+    {
+        "name": "Son Lụa Diễm",
+        "price": 198000,
+        "discountPrice": 180000,
+        "images": [
+            "son-moi-son-lua-diem-1.png",
+            "son-moi-son-lua-diem-2.png",
+            "son-moi-son-lua-diem-3.png",
+            "son-moi-son-lua-diem-4.png"
+        ],
+        "category": "68002a826e462bfa8c201102",
+        "description": "Son Lụa Diễm Cỏ Mềm lên màu đẹp, dưỡng môi mềm mịn, không thâm môi với thành phần thiên nhiên an toàn.",
+        "ingredients": [
+            "Dầu hạnh nhân, quả bơ: Dưỡng ẩm, làm mềm.",
+            "Bơ hạt mỡ, sáp ong: Khóa ẩm, bảo vệ.",
+            "Dầu thầu dầu, sáp carnauba: Tạo kết cấu mượt.",
+            "Vitamin E, màu khoáng: Chống oxy hóa, tạo màu."
+        ],
+        "usage_instructions": [
+            "Thoa đều từ trong ra ngoài để màu son đẹp.",
+            "Dùng với son dưỡng lót để tăng độ mượt.",
+            "Dặm lại sau 3-4 tiếng để giữ màu rạng rỡ."
+        ],
+        "special": [
+            "Không paraben",
+            "Không chì",
+            "Không silicone",
+            "Không hương liệu tổng hợp",
+            "Không dầu khoáng"
+        ],
+        "stock": 75,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Dầu Gội Dâu Tằm Ngừa Rụng Tóc",
+        "price": 270000,
+        "discountPrice": 250000,
+        "images": [
+            "toc-dau-goi-dau-tam-ngua-rung-toc-1.png",
+            "toc-dau-goi-dau-tam-ngua-rung-toc-2.png",
+            "toc-dau-goi-dau-tam-ngua-rung-toc-3.png",
+            "toc-dau-goi-dau-tam-ngua-rung-toc-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Dầu gội Dâu Tằm làm sạch tóc, ngăn rụng, cung cấp dưỡng chất cho tóc chắc khỏe với chiết xuất thiên nhiên.",
+        "ingredients": [
+            "Chiết xuất dâu tằm: Ngăn rụng, làm sạch.",
+            "Dầu quả bơ, Vitamin B5: Dưỡng tóc chắc khỏe.",
+            "Tinh dầu bưởi: Thúc đẩy mọc tóc.",
+            "Citric Acid: Cân bằng độ pH."
+        ],
+        "usage_instructions": [
+            "Làm ướt tóc, lấy dầu gội tạo bọt, massage nhẹ.",
+            "Xả sạch với nước.",
+            "Dùng mỗi ngày hoặc cách ngày."
+        ],
+        "special": [
+            "Không paraben",
+            "Không silicone",
+            "Không chất tạo màu tổng hợp"
+        ],
+        "stock": 24,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Dầu gội sạch gàu",
+        "price": 225000,
+        "discountPrice": null,
+        "images": [
+            "toc-dau-goi-sach-gau-co-mem-1.png",
+            "toc-dau-goi-sach-gau-co-mem-2.png",
+            "toc-dau-goi-sach-gau-co-mem-3.png",
+            "toc-dau-goi-sach-gau-co-mem-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Dầu gội sạch gàu Cỏ Mềm với chiết xuất bồ kết, lá neem, làm sạch tóc, ngăn gàu, ngứa, mang lại tóc mềm mượt.",
+        "ingredients": [
+            "Cao bồ kết, lá neem: Làm sạch, ngăn gàu.",
+            "Gừng, núc nác, ngũ sắc: Làm dịu da đầu.",
+            "Tinh dầu bạc hà, gừng: Thư giãn, kích thích.",
+            "Vitamin B5, BHA: Dưỡng tóc, giảm gàu."
+        ],
+        "usage_instructions": [
+            "Làm ướt tóc, lấy dầu gội tạo bọt, massage 1-2 phút.",
+            "Xả sạch với nước.",
+            "Dùng 2-3 lần/tuần."
+        ],
+        "special": [
+            "Không paraben",
+            "Không SLS/SLES",
+            "Không chất tạo màu tổng hợp",
+            "Không hương liệu hóa học",
+            "Không silicone"
+        ],
+        "stock": 31,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Dầu gội thảo dược Tóc Mây",
+        "price": 325000,
+        "discountPrice": null,
+        "images": [
+            "toc-dau-goi-thao-duoc-toc-may-1.png",
+            "toc-dau-goi-thao-duoc-toc-may-2.png",
+            "toc-dau-goi-thao-duoc-toc-may-3.png",
+            "toc-dau-goi-thao-duoc-toc-may-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Dầu gội Tóc Mây làm sạch tóc, ngăn gàu, rụng, chẻ ngọn với bồ kết, thảo dược, an toàn cho da đầu nhạy cảm.",
+        "ingredients": [
+            "Cao bồ kết, dâu tằm: Làm sạch, ngăn rụng.",
+            "Cỏ mần trầu, ngũ sắc: Dưỡng tóc, giảm gàu.",
+            "Tinh dầu bưởi, hương nhu: Thúc đẩy mọc tóc.",
+            "Dầu quả bơ, Vitamin E: Dưỡng mềm mượt."
+        ],
+        "usage_instructions": [
+            "Làm ướt tóc, lấy dầu gội tạo bọt, massage 2-3 phút.",
+            "Xả sạch với nước.",
+            "Kết hợp dầu xả hoặc serum để tối ưu."
+        ],
+        "special": [
+            "Không silicone",
+            "Không sulfate",
+            "Không paraben",
+            "Không chất tạo màu tổng hợp",
+            "Không hương liệu hóa học"
+        ],
+        "stock": 12,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Dầu Gội Trái Bơ Suôn Mượt Phục Hồi",
+        "price": 270000,
+        "discountPrice": 250000,
+        "images": [
+            "toc-dau-goi-trai-bo-suon-muot-phuc-hoi-hu-ton-1.png",
+            "toc-dau-goi-trai-bo-suon-muot-phuc-hoi-hu-ton-2.png",
+            "toc-dau-goi-trai-bo-suon-muot-phuc-hoi-hu-ton-3.png",
+            "toc-dau-goi-trai-bo-suon-muot-phuc-hoi-hu-ton-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Dầu gội Trái Bơ làm sạch tóc, dưỡng suôn mượt, phục hồi xơ rối với dầu bơ và thành phần thiên nhiên.",
+        "ingredients": [
+            "Dầu trái bơ: Dưỡng ẩm, phục hồi tóc.",
+            "Keratin thủy phân: Tái tạo tóc hư tổn.",
+            "Glycerin: Giữ ẩm, làm dịu da đầu.",
+            "Citric Acid: Cân bằng độ pH."
+        ],
+        "usage_instructions": [
+            "Làm ướt tóc, lấy dầu gội tạo bọt, massage 2-3 phút.",
+            "Xả sạch với nước.",
+            "Kết hợp dầu xả hoặc serum để tối ưu."
+        ],
+        "special": [
+            "Không silicone",
+            "Không sulfate",
+            "Không paraben",
+            "Không chất tạo màu tổng hợp",
+            "Không hương liệu hóa học"
+        ],
+        "stock": 43,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Serum tóc",
+        "price": 240000,
+        "discountPrice": null,
+        "images": [
+            "toc-hair-serum-toc-may-1.png",
+            "toc-hair-serum-toc-may-2.png",
+            "toc-hair-serum-toc-may-3.png",
+            "toc-hair-serum-toc-may-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Serum Tóc Mây dưỡng tóc suôn mượt, giảm xơ rối, bảo vệ tóc khỏi hóa chất, nhiệt, bụi bẩn, cho tóc chắc khỏe.",
+        "ingredients": [
+            "Tinh dầu bưởi, hương nhu: Ngăn rụng, kích thích mọc.",
+            "Hydrolyzed Keratin: Phục hồi tóc hư tổn.",
+            "Chiết xuất bạch quả, mâm xôi: Dưỡng tóc bóng mượt.",
+            "Glycerin: Giữ ẩm, làm dịu."
+        ],
+        "usage_instructions": [
+            "Gội sạch tóc, lau khô đến 70%.",
+            "Thoa 5 giọt serum từ thân đến ngọn tóc.",
+            "Để khô tự nhiên, tránh serum dính mắt."
+        ],
+        "special": [
+            "Không silicone",
+            "Không sulfate",
+            "Không paraben",
+            "Không chất tạo màu tổng hợp",
+            "Không hương liệu hóa học"
+        ],
+        "stock": 27,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Kem Ủ Tóc Trái Bơ Suôn Mượt Phục Hồi",
+        "price": 120000,
+        "discountPrice": 110000,
+        "images": [
+            "toc-kem-u-toc-trai-bo-suon-muot-phuc-hoi-hu-ton-1.png",
+            "toc-kem-u-toc-trai-bo-suon-muot-phuc-hoi-hu-ton-2.png",
+            "toc-kem-u-toc-trai-bo-suon-muot-phuc-hoi-hu-ton-3.png",
+            "toc-kem-u-toc-trai-bo-suon-muot-phuc-hoi-hu-ton-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Kem ủ Trái Bơ làm mềm tóc, phục hồi khô xơ, gãy rụng, chẻ ngọn, mang lại tóc suôn mượt hiệu quả.",
+        "ingredients": [
+            "Dầu dừa, trái bơ: Dưỡng ẩm, phục hồi.",
+            "Keratin thủy phân: Tái tạo tóc hư tổn.",
+            "Glycerin, Trehalose: Giữ ẩm, làm dịu.",
+            "Citric Acid: Cân bằng độ pH."
+        ],
+        "usage_instructions": [
+            "Sau gội, thoa kem ủ lên thân và ngọn tóc.",
+            "Ủ với khăn ấm 10-15 phút.",
+            "Xả sạch với nước mát, dùng 1-2 lần/tuần."
+        ],
+        "special": [
+            "Không silicone",
+            "Không sulfate",
+            "Không paraben",
+            "Không chất tạo màu tổng hợp",
+            "Không hương liệu hóa học"
+        ],
+        "stock": 76,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Kem xả ủ Tóc Mây",
+        "price": 250000,
+        "discountPrice": 230000,
+        "images": [
+            "toc-xa-u-toc-may-1.png",
+            "toc-xa-u-toc-may-2.png",
+            "toc-xa-u-toc-may-3.png",
+            "toc-xa-u-toc-may-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c201101"
+            },
+            "name": "Chăm sóc tóc"
+        },
+        "description": "Kem xả ủ Tóc Mây dưỡng tóc mềm mượt, giảm gãy rụng, chẻ ngọn, phục hồi hư tổn, không gây bết tóc.",
+        "ingredients": [
+            "Tinh dầu bưởi, hương nhu: Ngăn rụng, thư giãn.",
+            "Dầu quả bơ, oliu: Dưỡng mềm, chắc khỏe.",
+            "Vitamin E, protein đậu: Ngăn hư tổn, bóng mượt.",
+            "Propanediol: Giữ ẩm."
+        ],
+        "usage_instructions": [
+            "Xả mượt: Thoa kem sau gội, massage 5 phút, xả sạch.",
+            "Ủ phục hồi: Thoa kem, ủ 15 phút với mũ, xả sạch."
+        ],
+        "special": [
+            "Không silicone",
+            "Không sulfate",
+            "Không paraben",
+            "Không chất tạo màu tổng hợp",
+            "Không hương liệu hóa học"
+        ],
+        "stock": 64,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Xà Bông Thiên Nhiên Tràm Trà",
+        "price": 130000,
+        "discountPrice": null,
+        "images": [
+            "xa-bong-thien-nhien-tram-tra-1.png",
+            "xa-bong-thien-nhien-tram-tra-2.png",
+            "xa-bong-thien-nhien-tram-tra-3.png",
+            "xa-bong-thien-nhien-tram-tra-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Xà bông Tràm Trà làm sạch da, kháng khuẩn với tinh dầu tràm trà, không khô da, thân thiện với môi trường.",
+        "ingredients": [
+            "Dầu trái bơ: Dưỡng ẩm, chống oxy hóa.",
+            "Glycerin: Làm dịu, giữ ẩm da.",
+            "Keratin thủy phân: Tái tạo da.",
+            "Chất làm sạch dịu nhẹ: Không gây khô."
+        ],
+        "usage_instructions": [
+            "Tắm: Dùng túi lưới tạo bọt, xoa đều cơ thể, rửa sạch.",
+            "Rửa mặt: Tạo bọt, massage mặt, rửa sạch với nước mát."
+        ],
+        "special": [
+            "Không sulfate",
+            "Không paraben",
+            "Không chất tạo màu tổng hợp",
+            "Không hương liệu hóa học"
+        ],
+        "stock": 21,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    },
+    {
+        "name": "Xà Bông Thiên Nhiên Tràm Nghệ",
+        "price": 130000,
+        "discountPrice": null,
+        "images": [
+            "xa-bong-thien-nhien-tram-nghe-1.png",
+            "xa-bong-thien-nhien-tram-nghe-2.png",
+            "xa-bong-thien-nhien-tram-nghe-3.png",
+            "xa-bong-thien-nhien-tram-nghe-4.png"
+        ],
+        "category": {
+            "_id": {
+                "$oid": "68002a826e462bfa8c2010fd"
+            },
+            "name": "Chăm sóc cơ thể"
+        },
+        "description": "Xà bông Tràm Nghệ làm sạch da, kháng khuẩn, dưỡng ẩm với thành phần thiên nhiên, thân thiện với môi trường.",
+        "ingredients": [
+            "Dầu trái bơ: Dưỡng ẩm, chống oxy hóa.",
+            "Glycerin: Làm dịu, giữ ẩm da.",
+            "Keratin thủy phân: Tái tạo da.",
+            "Chất làm sạch dịu nhẹ: Không gây khô."
+        ],
+        "usage_instructions": [
+            "Tắm: Dùng túi lưới tạo bọt, xoa đều cơ thể, rửa sạch.",
+            "Rửa mặt: Tạo bọt, massage mặt, rửa sạch với nước mát."
+        ],
+        "special": [
+            "Không sulfate",
+            "Không paraben",
+            "Không chất tạo màu tổng hợp",
+            "Không hương liệu hóa học"
+        ],
+        "stock": 32,
+        "createdAt": {
+            "$date": "2025-04-16T16:30:00.000Z"
+        }
+    }
+    ]

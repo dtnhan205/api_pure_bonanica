@@ -4,6 +4,7 @@ const cors = require('cors');
 const categoriesRouter = require('./routes/categoryRoutes');
 const productsRouter = require('./routes/productsRouter');
 const usersRouter = require('./routes/usersRouter');
+const cartRouter = require('./routes/cartRouter');
 
 require('dotenv').config();
 
@@ -47,6 +48,7 @@ mongoose.connection.on('disconnected', () => console.log('Mongoose đã ngắt k
 app.use('/api/categories', categoriesRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/cart', cartRouter);
 
 // Xử lý lỗi 404 (tuyến đường không tồn tại)
 app.use((req, res, next) => {
