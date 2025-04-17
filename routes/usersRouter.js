@@ -13,7 +13,6 @@ const {
 router.post('/register', register);
 router.post('/login', login);
 router.get('/userinfo', verifyToken, getUser);
-router.put('/update', verifyToken, updateUser);
-router.put('/change-password', verifyToken, changePassword);
+router.put('/update', verifyToken, updateUser,changePassword);
 
 module.exports = router;
