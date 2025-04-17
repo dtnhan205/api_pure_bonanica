@@ -54,27 +54,45 @@ exports.getProductById = async (req, res) => {
 // Create a new product
 exports.createProduct = async (req, res) => {
   try {
-    const { category } = req.body;
+    const {
+      name,
+      price,
+      description,
+      category,
+      stock,
+      ingredients,
+      usage_instructions,
+      special
+    } = req.body;
+
+    // Kiểm tra category
     if (!mongoose.Types.ObjectId.isValid(category)) {
       return res.status(400).json({ message: 'ID danh mục không hợp lệ' });
     }
+
     const categoryExists = await mongoose.model('Category').findById(category);
     if (!categoryExists) {
       return res.status(400).json({ message: 'Danh mục không tồn tại' });
     }
+
+    // Lấy đường dẫn ảnh sau khi upload
+    const imagePaths = req.files.map(file => `/uploads/${file.filename}`);
+
     const newProduct = new Product({
-      name: req.body.name,
-      price: req.body.price,
-      description: req.body.description,
-      images: req.body.images || [],
+      name,
+      price,
+      description,
+      images: imagePaths,
       category,
-      stock: req.body.stock,
-      ingredients: req.body.ingredients || [],
-      usage_instructions: req.body.usage_instructions || [],
-      special: req.body.special || [],
+      stock,
+      ingredients: ingredients ? JSON.parse(ingredients) : [],
+      usage_instructions: usage_instructions ? JSON.parse(usage_instructions) : [],
+      special: special ? JSON.parse(special) : [],
     });
+
     await newProduct.save();
     await newProduct.populate('category', '_id name');
+
     res.status(201).json({
       message: 'Tạo sản phẩm thành công',
       product: newProduct,
@@ -84,6 +102,7 @@ exports.createProduct = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
 
 // Update a product by ID
 exports.updateProduct = async (req, res) => {
