@@ -1,17 +1,25 @@
-const express = require('express');
-const router = express.Router();
 const mongoose = require('mongoose');
 const Product = require('../models/product');
 
-// GET all products
-router.get('/', async (req, res) => {
+// Get all products
+exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find()
-      .populate('category')
-      .populate('subcategory');
+    // Lấy dữ liệu trước khi populate
+    const productsBeforePopulate = await Product.find();
+    console.log('Products before populate:', productsBeforePopulate);
+
+    // Populate category
+    const products = await Product.find().populate('category');
+    console.log('Products after populate:', products);
 
     if (!products.length) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm nào' });
+    }
+
+    // Kiểm tra các sản phẩm có category null
+    const invalidProducts = products.filter(product => !product.category);
+    if (invalidProducts.length > 0) {
+      console.warn('Sản phẩm với danh mục không hợp lệ:', invalidProducts);
     }
 
     res.json(products);
@@ -19,10 +27,10 @@ router.get('/', async (req, res) => {
     console.error('GET /api/products error:', err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
-});
+};
 
-// GET product by ID
-router.get('/:id', async (req, res) => {
+// Get product by ID
+exports.getProductById = async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -30,9 +38,7 @@ router.get('/:id', async (req, res) => {
   }
 
   try {
-    const product = await Product.findById(id)
-      .populate('category')
-      .populate('subcategory');
+    const product = await Product.findById(id).populate('category');
 
     if (!product) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
@@ -43,37 +49,44 @@ router.get('/:id', async (req, res) => {
     console.error(`GET /api/products/${id} error:`, err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
-});
+};
 
-// POST (tạo sản phẩm mới)
-router.post('/', async (req, res) => {
+// Create a new product
+exports.createProduct = async (req, res) => {
   try {
+    const { category } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({ message: 'ID danh mục không hợp lệ' });
+    }
+    const categoryExists = await mongoose.model('Category').findById(category);
+    if (!categoryExists) {
+      return res.status(400).json({ message: 'Danh mục không tồn tại' });
+    }
     const newProduct = new Product({
       name: req.body.name,
       price: req.body.price,
       description: req.body.description,
-      images: req.body.images || [], 
-      category: req.body.category,
+      images: req.body.images || [],
+      category,
       stock: req.body.stock,
-      subcategory: req.body.subcategory,
       ingredients: req.body.ingredients || [],
       usage_instructions: req.body.usage_instructions || [],
-      special: req.body.special || []
+      special: req.body.special || [],
     });
     await newProduct.save();
-
+    await newProduct.populate('category', '_id name');
     res.status(201).json({
       message: 'Tạo sản phẩm thành công',
-      product: newProduct
+      product: newProduct,
     });
   } catch (err) {
     console.error('POST /api/products error:', err);
     res.status(400).json({ error: err.message });
   }
-});
+};
 
-// PUT (cập nhật sản phẩm)
-router.put('/:id', async (req, res) => {
+// Update a product by ID
+exports.updateProduct = async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -81,23 +94,35 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
+    const { category } = req.body;
+
+    // Kiểm tra category (nếu được cung cấp)
+    if (category && !mongoose.Types.ObjectId.isValid(category)) {
+      return res.status(400).json({ message: 'ID danh mục không hợp lệ' });
+    }
+    if (category) {
+      const categoryExists = await mongoose.model('Category').findById(category);
+      if (!categoryExists) {
+        return res.status(400).json({ message: 'Danh mục không tồn tại' });
+      }
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       id,
       {
         name: req.body.name,
         price: req.body.price,
         description: req.body.description,
-        images: req.body.images || [], 
-        category: req.body.category,
+        images: req.body.images || [],
+        category: category || undefined,
         stock: req.body.stock,
-        subcategory: req.body.subcategory,
-        ingredients: req.body.ingredients || [], 
+        ingredients: req.body.ingredients || [],
         usage_instructions: req.body.usage_instructions || [],
-        special: req.body.special || []
+        special: req.body.special || [],
       },
       {
         new: true,
-        runValidators: true
+        runValidators: true,
       }
     );
 
@@ -107,16 +132,16 @@ router.put('/:id', async (req, res) => {
 
     res.json({
       message: 'Cập nhật sản phẩm thành công',
-      product: updatedProduct
+      product: updatedProduct,
     });
   } catch (err) {
     console.error(`PUT /api/products/${id} error:`, err);
     res.status(400).json({ error: err.message });
   }
-});
+};
 
-// DELETE (xoá sản phẩm)
-router.delete('/:id', async (req, res) => {
+// Delete a product by ID
+exports.deleteProduct = async (req, res) => {
   const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -127,14 +152,12 @@ router.delete('/:id', async (req, res) => {
     const deletedProduct = await Product.findByIdAndDelete(id);
 
     if (!deletedProduct) {
-      return res.status(404).json({ message: 'Không tìm thấy sản phẩm để xoá' });
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm để xóa' });
     }
 
-    res.json({ message: 'Xoá sản phẩm thành công' });
+    res.json({ message: 'Xóa sản phẩm thành công' });
   } catch (err) {
     console.error(`DELETE /api/products/${id} error:`, err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
-});
-
-module.exports = router;
+};
