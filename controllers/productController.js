@@ -57,6 +57,7 @@ exports.createProduct = async (req, res) => {
     const {
       name,
       price,
+      distcountprice,
       description,
       category,
       stock,
@@ -81,6 +82,7 @@ exports.createProduct = async (req, res) => {
     const newProduct = new Product({
       name,
       price,
+      distcountprice,
       description,
       images: imagePaths,
       category,
@@ -132,6 +134,7 @@ exports.updateProduct = async (req, res) => {
         name: req.body.name,
         price: req.body.price,
         description: req.body.description,
+        distcountprice: req.body.distcountprice,
         images: req.body.images || [],
         category: category || undefined,
         stock: req.body.stock,
