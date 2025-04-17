@@ -77,8 +77,7 @@ exports.createProduct = async (req, res) => {
     }
 
     // Lấy đường dẫn ảnh sau khi upload
-    const imagePaths = req.files.map(file => `/uploads/${file.filename}`);
-
+    const imagePaths = req.files.map(file => `/images/${file.filename}`);
     const newProduct = new Product({
       name,
       price,
@@ -180,6 +179,29 @@ exports.deleteProduct = async (req, res) => {
     res.json({ message: 'Xóa sản phẩm thành công' });
   } catch (err) {
     console.error(`DELETE /api/products/${id} error:`, err);
+    res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+// Get products without discount
+exports.getProductsWithoutDiscount = async (req, res) => {
+  try {
+    const products = await Product.find({ distcountprice: { $eq: null } })
+      .select('name price')
+      .populate('category', 'name');
+
+    const count = products.length;
+
+    if (!count) {
+      return res.status(404).json({ message: 'Không có sản phẩm nào không có giá giảm' });
+    }
+
+    res.json({
+      message: 'Danh sách sản phẩm không có giá giảm',
+      count: count,
+      products: products
+    });
+  } catch (err) {
+    console.error('GET /api/products/no-discount error:', err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
 };
