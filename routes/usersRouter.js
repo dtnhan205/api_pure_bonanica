@@ -9,10 +9,9 @@ const {
   updateUser,
   changePassword
 } = require('../controllers/userController');
-
 router.post('/register', register);
 router.post('/login', login);
 router.get('/userinfo', verifyToken, getUser);
 router.put('/update', verifyToken, updateUser,changePassword);
-
+  
 module.exports = router;
