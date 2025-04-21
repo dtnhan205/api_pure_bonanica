@@ -1,18 +1,21 @@
 const userModel = require('../models/user');
 const bcrypt = require('bcryptjs');
+const { number } = require('joi');
 const jwt = require('jsonwebtoken');
 
 
 
 const getAllUsers = async (req, res) => {
   try {
-    const user = await userModel.findById(req.params.id, { password: 0 });
-    if (!user) throw new Error('Không tìm thấy người dùng');
-    res.json(user);
+    const users = await userModel.find({}, { password: 0 }); 
+    console.log(users); 
+    if (!users || users.length === 0) throw new Error('Không có người dùng');
+    res.json(users);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message }); 
   }
 };
+
 
 const getUserById = async (req, res) => {
   try {
@@ -33,30 +36,74 @@ const deleteUser = async (req, res) => {
   }
 }
 
-// Đăng ký
+// Đăng ký người dùng
 const register = async (req, res) => {
   try {
-    const { username, phone, email, password, address, birthday } = req.body;
-    const existingUser = await userModel.findOne({ email });
-    if (existingUser) throw new Error('Email đã tồn tại');
+    const { username, phone, email, password, address, birthday, listOrder, status } = req.body;
 
+    if (!username || !phone || !email || !password) {
+      return res.status(400).json({ message: "Tất cả các trường username, phone, email, password đều bắt buộc" });
+    }
+
+    if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ message: "Các trường username, phone, email, password phải là chuỗi" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Email không hợp lệ" });
+    }
+    if (phone.length < 10 || phone.length > 15 & phone.length === number) {
+      return res.status(400).json({ message: "Số điện thoại phải từ 10 đến 15 ký tự và phải là số" });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Mật khẩu phải có ít nhất 8 ký tự" });
+    }
+
+    if (address && typeof address !== 'string') {
+      return res.status(400).json({ message: "Địa chỉ phải là chuỗi" });
+    }
+    if (birthday && typeof birthday !== 'string') {
+      return res.status(400).json({ message: "Ngày sinh phải là chuỗi (định dạng YYYY-MM-DD)" });
+    }
+    if (listOrder && !Array.isArray(listOrder)) {
+      return res.status(400).json({ message: "listOrder phải là một mảng" });
+    }
+    if (status && typeof status !== 'string') {
+      return res.status(400).json({ message: "Trạng thái phải là chuỗi" });
+    }
+
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: 'Email đã tồn tại' });
+    }
+
+    // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Tạo user mới với giá trị mặc định
     const user = new userModel({
       username,
       phone,
       email,
       password: hashedPassword,
-      address,
-      birthday
+      address: address || '', // Giá trị mặc định nếu không có
+      birthday: birthday || '', // Giá trị mặc định nếu không có
+      listOrder: Array.isArray(listOrder) ? listOrder : [], // Đảm bảo là mảng
+      status: status && typeof status === 'string' ? status : 'active', // Giá trị mặc định là 'active'
     });
+
+    // Lưu user vào database
     const savedUser = await user.save();
+
+    // Loại bỏ password khỏi response
     const { password: _, ...userData } = savedUser._doc;
     res.status(201).json({ message: 'Đăng ký thành công', user: userData });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // Đăng nhập
 const login = async (req, res) => {
@@ -70,7 +117,7 @@ const login = async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
-      'conguoiyeuchua',
+      'dinhthenhan',
       { expiresIn: '1h' }
     );
 
@@ -80,13 +127,24 @@ const login = async (req, res) => {
   }
 };
 
-// Middleware: xác thực token
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(403).json({ message: 'Không có token' });
 
-  jwt.verify(token, 'conguoiyeuchua', (err, decoded) => {
-    if (err) return res.status(401).json({ message: 'Token không hợp lệ hoặc hết hạn' });
+
+// Middleware kiểm tra token
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.slice(7);
+  if (!token) {
+    return res.status(403).json({ message: "Không có token" });
+  }
+
+  jwt.verify(token, "dinhthenhan", (err, decoded) => {
+    if (err) {
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).json({ message: "Token đã hết hạn" });
+      } else if (err.name === "JsonWebTokenError") {
+        return res.status(401).json({ message: "Token không hợp lệ" });
+      }
+      return res.status(401).json({ message: "Lỗi xác thực token" });
+    }
     req.userId = decoded.id;
     next();
   });
@@ -96,7 +154,9 @@ const verifyToken = (req, res, next) => {
 const getUser = async (req, res) => {
   try {
     const user = await userModel.findById(req.userId, { password: 0 });
-    if (!user) throw new Error('Không tìm thấy người dùng');
+    if (!user) {
+      throw new Error("Không tìm thấy user");
+    }
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });

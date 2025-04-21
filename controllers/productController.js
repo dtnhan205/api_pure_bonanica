@@ -66,7 +66,6 @@ exports.createProduct = async (req, res) => {
       special
     } = req.body;
 
-    // Kiểm tra category
     if (!mongoose.Types.ObjectId.isValid(category)) {
       return res.status(400).json({ message: 'ID danh mục không hợp lệ' });
     }
@@ -76,8 +75,13 @@ exports.createProduct = async (req, res) => {
       return res.status(400).json({ message: 'Danh mục không tồn tại' });
     }
 
-    // Lấy đường dẫn ảnh sau khi upload
     const imagePaths = req.files?.map(file => file.filename) || [];
+
+    // Hàm tách chuỗi thành mảng
+    const parseArrayField = (value) => {
+      if (!value) return [];
+      return value.split(',').map(item => item.trim());
+    };
 
     const newProduct = new Product({
       name,
@@ -87,9 +91,9 @@ exports.createProduct = async (req, res) => {
       images: imagePaths,
       category,
       stock,
-      ingredients: ingredients ? JSON.parse(ingredients) : [],
-      usage_instructions: usage_instructions ? JSON.parse(usage_instructions) : [],
-      special: special ? JSON.parse(special) : [],
+      ingredients: parseArrayField(ingredients),
+      usage_instructions: parseArrayField(usage_instructions),
+      special: parseArrayField(special),
     });
 
     await newProduct.save();
@@ -104,6 +108,7 @@ exports.createProduct = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
 
 
 // Update a product by ID
