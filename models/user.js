@@ -5,6 +5,8 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, required: true }, 
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  address: { type: String, default: '' },
+  listOrder: { type: Array, default: [] },
   status: { type: String, default: 'active' }, 
   createdAt: { type: Date, default: Date.now }, 
   role: { type: String, default: 'user' } 

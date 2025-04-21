@@ -2,6 +2,35 @@ const userModel = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+
+
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await userModel.find({}, { password: 0 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+const getUserById = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.params.id, { password: 0 });
+    if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+const deleteUser = async (req, res) => {
+  try {
+    const user = await userModel.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: 'Người dùng không tồn tại' });
+    res.json({ message: 'Xóa người dùng thành công' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 // Đăng ký
 const register = async (req, res) => {
   try {
@@ -108,5 +137,8 @@ module.exports = {
   getUser,
   verifyToken,
   updateUser,
-  changePassword
+  changePassword,
+  getAllUsers,
+  getUserById,
+  deleteUser
 };
