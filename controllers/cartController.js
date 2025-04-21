@@ -1,6 +1,22 @@
 const Cart = require('../models/cart');
 const Product = require('../models/product');
 
+exports.getCartItems = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+
+    if (!cart) {
+      return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
+    }
+
+    res.json(cart);
+  } catch (error) {
+    res.status(500).json({ error: 'Lỗi khi lấy giỏ hàng' });
+  }
+};
+
+
 exports.addToCart = async (req, res) => {
   try {
     const { productId, quantity } = req.body;

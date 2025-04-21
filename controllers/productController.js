@@ -77,7 +77,8 @@ exports.createProduct = async (req, res) => {
     }
 
     // Lấy đường dẫn ảnh sau khi upload
-    const imagePaths = req.files.map(file => `/images/${file.filename}`);
+    const imagePaths = req.files?.map(file => file.filename) || [];
+
     const newProduct = new Product({
       name,
       price,
