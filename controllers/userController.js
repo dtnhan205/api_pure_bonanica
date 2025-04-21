@@ -6,12 +6,14 @@ const jwt = require('jsonwebtoken');
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await userModel.find({}, { password: 0 });
-    res.json(users);
+    const user = await userModel.findById(req.params.id, { password: 0 });
+    if (!user) throw new Error('Không tìm thấy người dùng');
+    res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-}
+};
+
 const getUserById = async (req, res) => {
   try {
     const user = await userModel.findById(req.params.id, { password: 0 });
@@ -34,7 +36,7 @@ const deleteUser = async (req, res) => {
 // Đăng ký
 const register = async (req, res) => {
   try {
-    const { username, phone, email, password } = req.body;
+    const { username, phone, email, password, address, birthday } = req.body;
     const existingUser = await userModel.findOne({ email });
     if (existingUser) throw new Error('Email đã tồn tại');
 
@@ -43,16 +45,18 @@ const register = async (req, res) => {
       username,
       phone,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      address,
+      birthday
     });
     const savedUser = await user.save();
-
     const { password: _, ...userData } = savedUser._doc;
     res.status(201).json({ message: 'Đăng ký thành công', user: userData });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Đăng nhập
 const login = async (req, res) => {
@@ -102,23 +106,27 @@ const getUser = async (req, res) => {
 // Cập nhật người dùng
 const updateUser = async (req, res) => {
   try {
-    const { username, phone, email, status, role } = req.body;
+    const { username, phone, email, address, birthday, status, role } = req.body;
     const user = await userModel.findByIdAndUpdate(
-      req.userId,
-      { username, phone, email, status, role },
+      req.params.id,
+      { username, phone, email, address, birthday, status, role },
       { new: true, select: '-password' }
     );
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     res.json({ message: 'Cập nhật thành công', user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+
 // Thay đổi mật khẩu
 const changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const user = await userModel.findById(req.userId);
+    const user = await userModel.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) throw new Error('Mật khẩu cũ không đúng');
 
@@ -130,6 +138,7 @@ const changePassword = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 module.exports = {
   register,
