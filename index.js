@@ -49,6 +49,7 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/carts', cartRouter);
+app.use(express.static('public'));
 
 // Xử lý lỗi 404 (tuyến đường không tồn tại)
 app.use((req, res, next) => {
