@@ -1,6 +1,7 @@
 const Cart = require('../models/cart');
 const Product = require('../models/product');
 const User = require('../models/user');
+const Order = require('../models/order');
 
 exports.getCartItems = async (req, res) => {
   try {
@@ -166,15 +167,22 @@ exports.checkout = async (req, res) => {
 
     const order = {
       user: userId,
-      items: cart.items,
+      items: cart.items.map(item => ({
+        product: item.product._id,
+        quantity: item.quantity
+      })),
       total: cart.items.reduce((acc, item) => acc + item.product.price * item.quantity, 0),
-      createdAt: new Date()
+      createdAt: new Date(),
+      status: 'pending'
     };
+
+    const newOrder = await Order.create(order);
 
     cart.items = [];
     await cart.save();
 
-    res.json({ message: 'Thanh toán thành công', order });
+    await newOrder.populate('items.product');
+    res.json({ message: 'Thanh toán thành công', order: newOrder });
   } catch (error) {
     console.error('Lỗi khi thanh toán:', error.message);
     res.status(500).json({ error: 'Lỗi khi thanh toán' });

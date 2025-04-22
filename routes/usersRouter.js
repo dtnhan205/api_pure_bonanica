@@ -9,7 +9,6 @@ const {
   verifyToken,
   getUserById,
   updateUser,
-  changePassword,
   deleteUser
 } = require('../controllers/userController');
 
@@ -20,7 +19,6 @@ router.post('/login', login);
 // Các route cần xác thực token
 router.get('/userinfo', verifyToken, getUser);
 router.put('/update/:id', verifyToken, updateUser); 
-router.put('/change-password/:id', verifyToken, changePassword); 
 
 // Các route không cần xác thực token
 router.get('/', getAllUsers); 
