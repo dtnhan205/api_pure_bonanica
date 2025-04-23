@@ -5,6 +5,7 @@ const categoriesRouter = require('./routes/categoryRoutes');
 const productsRouter = require('./routes/productsRouter');
 const usersRouter = require('./routes/usersRouter');
 const cartRouter = require('./routes/cartRouter');
+const orderRouter = require('./routes/orderRouter');
 
 require('dotenv').config();
 
@@ -49,6 +50,7 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/carts', cartRouter);
+app.use('/api/orders', orderRouter);
 app.use(express.static('public'));
 
 // Xử lý lỗi 404 (tuyến đường không tồn tại)
