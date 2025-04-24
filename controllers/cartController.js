@@ -149,10 +149,14 @@ exports.clearCart = async (req, res) => {
 
 exports.checkout = async (req, res) => {
   try {
-    const userId = req.query.userId || req.body.userId;
+    const { userId, address } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
+    }
+
+    if (!address) {
+      return res.status(400).json({ error: 'Vui lòng cung cấp địa chỉ' });
     }
 
     const user = await User.findById(userId);
@@ -172,19 +176,24 @@ exports.checkout = async (req, res) => {
         quantity: item.quantity
       })),
       total: cart.items.reduce((acc, item) => acc + item.product.price * item.quantity, 0),
+      address, 
       createdAt: new Date(),
       status: 'pending'
-    };
+    };  
 
     const newOrder = await Order.create(order);
+
+    await newOrder.populate([
+      { path: 'items.product' },
+      { path: 'user', select: 'username email' }
+    ]);
 
     cart.items = [];
     await cart.save();
 
-    await newOrder.populate('items.product');
     res.json({ message: 'Thanh toán thành công', order: newOrder });
   } catch (error) {
-    console.error('Lỗi khi thanh toán:', error.message);
-    res.status(500).json({ error: 'Lỗi khi thanh toán' });
+    console.error('Lỗi khi thanh toán:', error.stack);
+    res.status(500).json({ error: 'Lỗi khi thanh toán', details: error.message });
   }
 };
