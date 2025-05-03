@@ -21,18 +21,20 @@ exports.getCartItems = async (req, res) => {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
-    const cart = await Cart.findOne({ user: userId }).populate('items.product', 'name price stock');
+    const cart = await Cart.findOne({ user: userId })
+      .populate('items.product', 'name price stock images'); // Thêm images vào populate
 
     if (!cart) {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
     }
 
-    res.json({
+    res.json({  
       _id: cart._id,
       user: cart.user,
       items: cart.items.map(item => ({
         product: item.product,
-        quantity: item.quantity
+        quantity: item.quantity,
+        images: item.product.images || []  // Đảm bảo rằng nếu không có hình ảnh, trả về mảng rỗng
       }))
     });
   } catch (error) {
@@ -40,6 +42,7 @@ exports.getCartItems = async (req, res) => {
     res.status(500).json({ error: 'Lỗi khi lấy giỏ hàng', details: error.message });
   }
 };
+
 
 exports.addToCart = async (req, res) => {
   try {
@@ -297,7 +300,8 @@ exports.checkout = async (req, res) => {
       user: userId,
       items: validItems.map(item => ({
         product: item.product._id,
-        quantity: item.quantity
+        quantity: item.quantity,
+        images: item.product.images 
       })),
       total: validItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0),
       address,
