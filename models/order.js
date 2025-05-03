@@ -13,9 +13,10 @@ const cartItemSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'users',
+    ref: 'users', 
     required: true
   },
   items: [cartItemSchema],
@@ -24,17 +25,24 @@ const orderSchema = new mongoose.Schema({
     required: true
   },
   address: {
-    type: String, 
+    type: String,
     required: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  status: {
+  paymentMethod: {
     type: String,
-    enum: ['pending', 'shipped', 'delivered', 'cancelled'],
-    default: 'pending'
+    required: true
+  },
+  note: {
+    type: String
+  },
+  productDetails: {
+    type: String
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'completed', 'failed', 'cancelled'],
+    default: 'pending',
+    required: true
   }
 }, { versionKey: false });
 
