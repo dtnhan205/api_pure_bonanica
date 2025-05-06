@@ -2,6 +2,7 @@ const Cart = require('../models/cart');
 const Product = require('../models/product');
 const Users = require('../models/user'); // Đổi tên biến thành Users để rõ ràng
 const Order = require('../models/order');
+const Coupon = require('../models/coupon');
 const mongoose = require('mongoose');
 
 exports.getCartItems = async (req, res) => {
@@ -244,7 +245,7 @@ exports.clearCart = async (req, res) => {
 
 exports.checkout = async (req, res) => {
   try {
-    const { userId, address, paymentMethod, note, productDetails } = req.body;
+    const { userId, address, paymentMethod, note, productDetails, couponCode } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
@@ -262,7 +263,7 @@ exports.checkout = async (req, res) => {
       return res.status(400).json({ error: 'Vui lòng cung cấp phương thức thanh toán' });
     }
 
-    const user = await Users.findById(userId); // Cập nhật thành Users
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
@@ -272,10 +273,6 @@ exports.checkout = async (req, res) => {
       return res.status(400).json({ error: 'Giỏ hàng trống' });
     }
 
-    // Debug: Log cart items to check population
-    console.log('Cart items:', cart.items);
-
-    // Filter out items with null products
     const invalidItems = cart.items.filter(item => !item.product);
     const validItems = cart.items.filter(item => item.product);
 
@@ -289,31 +286,75 @@ exports.checkout = async (req, res) => {
       await cart.save();
     }
 
-    // Validate stock for all valid items in the cart
     for (const item of validItems) {
       if (item.product.stock < item.quantity) {
         return res.status(400).json({ error: `Sản phẩm ${item.product.name || item.product._id} chỉ còn ${item.product.stock} trong kho, không đủ số lượng yêu cầu` });
       }
     }
 
+    let subtotal = validItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+    let discount = 0;
+    let appliedCoupon = null;
+
+    // Kiểm tra và áp dụng mã giảm giá nếu có
+    if (couponCode) {
+      console.log('Coupon code received:', couponCode);
+      const coupon = await Coupon.findOne({ code: { $regex: `^${couponCode}$`, $options: 'i' } });
+      if (!coupon) {
+        return res.status(400).json({ error: 'Mã giảm giá không tồn tại' });
+      }
+
+      if (!coupon.isActive) {
+        return res.status(400).json({ error: 'Mã giảm giá không còn hoạt động' });
+      }
+
+      if (coupon.expiryDate && new Date() > coupon.expiryDate) {
+        return res.status(400).json({ error: 'Mã giảm giá đã hết hạn' });
+      }
+
+      if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
+        return res.status(400).json({ error: `Đơn hàng phải có giá trị tối thiểu ${coupon.minOrderValue} để sử dụng mã này` });
+      }
+
+      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+        return res.status(400).json({ error: 'Mã giảm giá đã đạt giới hạn sử dụng' });
+      }
+
+      // Tính toán giảm giá
+      if (coupon.discountType === 'percentage') {
+        discount = (subtotal * coupon.discountValue) / 100;
+      } else if (coupon.discountType === 'fixed') {
+        discount = coupon.discountValue;
+      }
+
+      // Cập nhật số lần sử dụng mã giảm giá
+      coupon.usedCount = (coupon.usedCount || 0) + 1;
+      await coupon.save();
+      appliedCoupon = coupon;
+    }
+
+    const total = subtotal - discount;
+
     const order = {
       user: userId,
       items: validItems.map(item => ({
         product: item.product._id,
         quantity: item.quantity,
-        images: item.product.images 
+        images: item.product.images
       })),
-      total: validItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0),
+      subtotal,
+      discount,
+      total,
       address,
       paymentMethod,
       note,
       productDetails,
+      coupon: appliedCoupon ? appliedCoupon._id : null,
       paymentStatus: 'pending'
     };
 
     const newOrder = await Order.create(order);
 
-    // Update stock for each product
     for (const item of validItems) {
       item.product.stock -= item.quantity;
       await item.product.save();
@@ -321,7 +362,8 @@ exports.checkout = async (req, res) => {
 
     await newOrder.populate([
       { path: 'items.product' },
-      { path: 'user', select: 'username email' }
+      { path: 'user', select: 'username email' },
+      { path: 'coupon' }
     ]);
 
     cart.items = [];
