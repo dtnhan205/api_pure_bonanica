@@ -245,7 +245,7 @@ exports.clearCart = async (req, res) => {
 
 exports.checkout = async (req, res) => {
   try {
-    const { userId, address, paymentMethod, note, productDetails, couponCode } = req.body;
+    const { userId, address, sdt, paymentMethod, note, productDetails, couponCode } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
@@ -257,6 +257,9 @@ exports.checkout = async (req, res) => {
 
     if (!address) {
       return res.status(400).json({ error: 'Vui lòng cung cấp địa chỉ' });
+    }
+    if (!sdt) {
+      return res.status(400).json({ error: 'Vui lòng cung cấp số điện thoại' });
     }
 
     if (!paymentMethod) {
@@ -346,6 +349,7 @@ exports.checkout = async (req, res) => {
       discount,
       total,
       address,
+      sdt,
       paymentMethod,
       note,
       productDetails,
