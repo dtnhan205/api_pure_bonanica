@@ -7,7 +7,8 @@ const usersRouter = require('./routes/usersRouter');
 const cartRouter = require('./routes/cartRouter');
 const orderRouter = require('./routes/orderRouter');
 const commentRouter = require('./routes/commentRouter');
-const couponRouter = require('./routes/couponRouter'); 
+const couponRouter = require('./routes/couponRouter');
+const emailRouter = require('./routes/emailRouter'); // Thêm route email
 
 require('dotenv').config();
 
@@ -16,6 +17,7 @@ const app = express();
 // Log để kiểm tra biến môi trường
 console.log('MONGODB_URI:', process.env.MONGODB_URI);
 console.log('PORT:', process.env.PORT);
+console.log('EMAIL_USER:', process.env.EMAIL_USER); // Thêm log để kiểm tra email
 
 // Middleware
 app.use(cors({
@@ -55,6 +57,7 @@ app.use('/api/carts', cartRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/comments', commentRouter);
 app.use('/api/coupons', couponRouter);
+app.use('/api/email', emailRouter); // Thêm route email
 app.use(express.static('public'));
 
 // Xử lý lỗi 404 (tuyến đường không tồn tại)
