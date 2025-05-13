@@ -1,5 +1,5 @@
 const Order = require('../models/order');
-const Users = require('../models/user'); // Đổi tên biến thành Users
+const Users = require('../models/user'); 
 const mongoose = require('mongoose');
 
 exports.getAllOrders = async (req, res) => {
@@ -28,7 +28,7 @@ exports.getOrdersByUserIdForAdmin = async (req, res) => {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
     }
 
-    const user = await Users.findById(userId); // Cập nhật thành Users
+    const user = await Users.findById(userId); 
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
