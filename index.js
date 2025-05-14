@@ -21,9 +21,10 @@ console.log('PORT:', process.env.PORT);
 // Middleware
 app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3801', 'http://localhost:3001', 'http://localhost:3002'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200, 
 }));
 app.use(express.json());
 
@@ -36,7 +37,9 @@ if (!MONGODB_URI) {
 }
 
 mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 30000
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 60000,
+  connectTimeoutMS: 30000,
 })
   .then(() => console.log('Kết nối MongoDB thành công'))
   .catch((err) => {

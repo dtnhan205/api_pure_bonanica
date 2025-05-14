@@ -42,8 +42,10 @@ const orderSchema = new mongoose.Schema({
     default: null
   },
   address: {
-    type: String,
-    required: true
+    ward: { type: String, required: true },
+    district: { type: String, required: true },
+    city: { type: String, required: true },
+    province: { type: String, required: true }
   },
   sdt: {
     type: String,
