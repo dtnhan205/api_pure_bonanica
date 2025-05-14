@@ -1,45 +1,48 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
-const router = express.Router();  // Sử dụng Router thay vì app.post
+const router = express.Router();
 
-require('dotenv').config(); // Thêm dotenv để quản lý biến môi trường
+require('dotenv').config();
 
-// Cấu hình transporter
+// Kiểm tra biến môi trường
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  throw new Error('EMAIL_USER hoặc EMAIL_PASS không được định nghĩa trong .env');
+}
+
+// Cấu hình Nodemailer
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // Lấy từ biến môi trường
-    pass: process.env.EMAIL_PASS, // Lấy từ biến môi trường
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
-// Hàm kiểm tra email hợp lệ
-const isValidEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-// API route gửi email
+// Gửi email
 router.post('/sendEmail', async (req, res) => {
-  const { email, username } = req.body; // Thêm username để cá nhân hóa
+  try {
+    const { username, email, subject, html } = req.body;
 
-  // Kiểm tra dữ liệu đầu vào
-  if (!email || !isValidEmail(email)) {
-    return res.status(400).json({ message: 'Email không hợp lệ' });
-  }
-  if (!username) {
-    return res.status(400).json({ message: 'Vui lòng cung cấp tên người dùng' });
-  }
+    // Validate input
+    if (!email) {
+      return res.status(400).json({ message: 'Email là bắt buộc' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Email không hợp lệ' });
+    }
+    if (!username) {
+      return res.status(400).json({ message: 'Vui lòng cung cấp tên người dùng' });
+    }
 
-const mailOptions = {
-    from: `"Pure-Botanica" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: subject || 'Chào mừng bạn đã đăng ký! 🌿',
-    text: text || `Xin chào ${username},\nCảm ơn bạn đã đăng ký tài khoản! `,
-    html: html || `
-      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+    // Cung cấp subject mặc định nếu không có
+    const emailSubject = subject || 'Chào mừng bạn đến với Pure-Botanica 🌿';
+
+    // Cung cấp HTML mặc định nếu không có
+    const emailHtml = html || `
+        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
         <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0;">
-          <img src="https://api-zeal.onrender.com/images/logo_web.png" alt="Pure-Botanica Logo" style="max-width: 160px; margin-bottom: 10px;">
+
           <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Chào mừng bạn đến với Pure-Botanica!</h1>
         </div>
         <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
@@ -65,17 +68,23 @@ const mailOptions = {
           <p style="margin: 0;">Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | <a href="https://purebotanica.com" style="color: #357E38; text-decoration: none;">purebotanica.com</a></p>
         </div>
       </div>
-    `,
-  };
+    `;
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email đã được gửi:', info.response);
-    return res.status(200).json({ message: 'Email xác nhận đã được gửi!' });
+    // Cấu hình email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: emailSubject,
+      html: emailHtml,
+    };
+
+    // Gửi email
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: 'Email xác nhận đã được gửi!' });
   } catch (error) {
-    console.error('Lỗi khi gửi email:', error);
-    return res.status(500).json({ message: 'Lỗi khi gửi email', error: error.message });
+    console.error('Lỗi Nodemailer:', error.message, error.stack);
+    res.status(500).json({ message: 'Lỗi khi gửi email', error: error.message });
   }
 });
 
-module.exports = router;  // Sử dụng router thay vì app
+module.exports = router;
