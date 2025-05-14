@@ -18,14 +18,15 @@ exports.getAllOrders = async (req, res) => {
 
 exports.getOrdersByUserIdForAdmin = async (req, res) => {
   try {
-    if (!req.params || !req.params.userId) {
+    const { userId } = req.params;
+
+    if (!userId) {
       return res.status(400).json({ error: 'Thiếu userId trong URL. Vui lòng cung cấp userId trong đường dẫn (ví dụ: /admin/user/:userId)' });
     }
 
-    const userId = req.params.userId;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
+    // Kiểm tra ObjectId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'userId không hợp lệ' });
     }
 
     const user = await Users.findById(userId); 
@@ -53,6 +54,11 @@ exports.getOrderByIdForAdmin = async (req, res) => {
       return res.status(400).json({ error: 'Thiếu orderId trong yêu cầu' });
     }
 
+    // Kiểm tra ObjectId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'orderId không hợp lệ' });
+    }
+
     const order = await Order.findById(orderId)
       .populate('items.product')
       .populate('user', 'username email');
@@ -76,7 +82,12 @@ exports.getUserOrders = async (req, res) => {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
     }
 
-    const user = await Users.findById(userId); // Cập nhật thành Users
+    // Kiểm tra ObjectId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'userId không hợp lệ' });
+    }
+
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
@@ -101,7 +112,15 @@ exports.getOrderById = async (req, res) => {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
     }
 
-    const user = await Users.findById(userId); // Cập nhật thành Users
+    // Kiểm tra ObjectId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'userId không hợp lệ' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'orderId không hợp lệ' });
+    }
+
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
@@ -117,7 +136,7 @@ exports.getOrderById = async (req, res) => {
     res.json(order);
   } catch (error) {
     console.error('Lỗi khi lấy chi tiết đơn hàng:', error.message);
-    res.status(500).json({ error: 'Lỗi khi lấy chi tiết đơn hàng' });
+    res.status(500).json({ error: 'Lỗi khi lấy chi tiết đơn hàng', details: error.message });
   }
 };
 
@@ -131,7 +150,15 @@ exports.updateOrderStatus = async (req, res) => {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
     }
 
-    const user = await Users.findById(userId); // Cập nhật thành Users
+    // Kiểm tra ObjectId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'userId không hợp lệ' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'orderId không hợp lệ' });
+    }
+
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
@@ -152,7 +179,7 @@ exports.updateOrderStatus = async (req, res) => {
     res.json({ message: 'Cập nhật trạng thái thanh toán thành công', order });
   } catch (error) {
     console.error('Lỗi khi cập nhật trạng thái thanh toán:', error.message);
-    res.status(500).json({ error: 'Lỗi khi cập nhật trạng thái thanh toán' });
+    res.status(500).json({ error: 'Lỗi khi cập nhật trạng thái thanh toán', details: error.message });
   }
 };
 
@@ -165,6 +192,11 @@ exports.updateOrder = async (req, res) => {
       return res.status(400).json({ error: 'Thiếu orderId trong yêu cầu' });
     }
 
+    // Kiểm tra ObjectId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'orderId không hợp lệ' });
+    }
+
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
@@ -174,12 +206,23 @@ exports.updateOrder = async (req, res) => {
       return res.status(400).json({ error: 'Trạng thái thanh toán không hợp lệ' });
     }
 
+    // Cập nhật các trường
     order.paymentMethod = paymentMethod || order.paymentMethod;
     order.note = note || order.note;
     order.productDetails = productDetails || order.productDetails;
     order.paymentStatus = paymentStatus || order.paymentStatus;
     order.total = total || order.total;
-    order.address = address || order.address;
+
+    // Xử lý address dưới dạng chuỗi
+    if (address) {
+      if (typeof address === 'object' && address.ward && address.district && address.city && address.province) {
+        order.address = `${address.ward}, ${address.district}, ${address.city}, ${address.province}`;
+      } else if (typeof address === 'string') {
+        order.address = address;
+      } else {
+        return res.status(400).json({ error: 'Định dạng địa chỉ không hợp lệ' });
+      }
+    }
 
     await order.save();
     await order.populate('items.product');
@@ -187,7 +230,7 @@ exports.updateOrder = async (req, res) => {
     res.json({ message: 'Cập nhật đơn hàng thành công', order });
   } catch (error) {
     console.error('Lỗi khi cập nhật đơn hàng:', error.message);
-    res.status(500).json({ error: 'Lỗi khi cập nhật đơn hàng' });
+    res.status(500).json({ error: 'Lỗi khi cập nhật đơn hàng', details: error.message });
   }
 };
 
@@ -200,7 +243,14 @@ exports.cancelOrder = async (req, res) => {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
     }
 
-    const user = await Users.findById(userId); // Cập nhật thành Users
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'userId không hợp lệ' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'orderId không hợp lệ' });
+    }
+
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
@@ -228,6 +278,6 @@ exports.cancelOrder = async (req, res) => {
     res.json({ message: 'Đã hủy đơn hàng thành công', order });
   } catch (error) {
     console.error('Lỗi khi hủy đơn hàng:', error.message);
-    res.status(500).json({ error: 'Lỗi khi hủy đơn hàng' });
+    res.status(500).json({ error: 'Lỗi khi hủy đơn hàng', details: error.message });
   }
 };

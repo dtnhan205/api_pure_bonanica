@@ -1,6 +1,6 @@
 const Cart = require('../models/cart');
 const Product = require('../models/product');
-const Users = require('../models/user'); // Đổi tên biến thành Users để rõ ràng
+const Users = require('../models/user');
 const Order = require('../models/order');
 const Coupon = require('../models/coupon');
 const mongoose = require('mongoose');
@@ -17,25 +17,25 @@ exports.getCartItems = async (req, res) => {
       return res.status(400).json({ error: 'userId không hợp lệ' });
     }
 
-    const user = await Users.findById(userId); // Cập nhật thành Users
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
     const cart = await Cart.findOne({ user: userId })
-      .populate('items.product', 'name price stock images'); // Thêm images vào populate
+      .populate('items.product', 'name price stock images');
 
     if (!cart) {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
     }
 
-    res.json({  
+    res.json({
       _id: cart._id,
       user: cart.user,
       items: cart.items.map(item => ({
         product: item.product,
         quantity: item.quantity,
-        images: item.product.images || []  // Đảm bảo rằng nếu không có hình ảnh, trả về mảng rỗng
+        images: item.product?.images || []
       }))
     });
   } catch (error) {
@@ -43,7 +43,6 @@ exports.getCartItems = async (req, res) => {
     res.status(500).json({ error: 'Lỗi khi lấy giỏ hàng', details: error.message });
   }
 };
-
 
 exports.addToCart = async (req, res) => {
   try {
@@ -66,8 +65,8 @@ exports.addToCart = async (req, res) => {
       return res.status(400).json({ error: 'productId không hợp lệ' });
     }
 
-    if (quantity <= 0) {
-      return res.status(400).json({ error: 'Số lượng phải lớn hơn 0' });
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      return res.status(400).json({ error: 'Số lượng phải là số nguyên lớn hơn 0' });
     }
 
     const user = await Users.findById(userId);
@@ -101,7 +100,7 @@ exports.addToCart = async (req, res) => {
     }
 
     await cart.save();
-    await cart.populate('items.product');
+    await cart.populate('items.product', 'name price stock images');
     res.json(cart);
   } catch (error) {
     console.error('Lỗi thêm sản phẩm vào giỏ hàng:', error.stack);
@@ -130,11 +129,11 @@ exports.updateQuantity = async (req, res) => {
       return res.status(400).json({ error: 'productId không hợp lệ' });
     }
 
-    if (quantity <= 0) {
-      return res.status(400).json({ error: 'Số lượng phải lớn hơn 0' });
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      return res.status(400).json({ error: 'Số lượng phải là số nguyên lớn hơn 0' });
     }
 
-    const user = await Users.findById(userId); 
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
@@ -160,7 +159,7 @@ exports.updateQuantity = async (req, res) => {
 
     item.quantity = quantity;
     await cart.save();
-    await cart.populate('items.product');
+    await cart.populate('items.product', 'name price stock images');
 
     res.json(cart);
   } catch (error) {
@@ -190,7 +189,7 @@ exports.removeItem = async (req, res) => {
       return res.status(400).json({ error: 'productId không hợp lệ' });
     }
 
-    const user = await Users.findById(userId); // Cập nhật thành Users
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
@@ -200,9 +199,14 @@ exports.removeItem = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
     }
 
-    cart.items = cart.items.filter(item => item.product.toString() !== productId);
+    const itemIndex = cart.items.findIndex(item => item.product.toString() === productId);
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: 'Không tìm thấy sản phẩm trong giỏ' });
+    }
+
+    cart.items.splice(itemIndex, 1);
     await cart.save();
-    await cart.populate('items.product');
+    await cart.populate('items.product', 'name price stock images');
 
     res.json(cart);
   } catch (error) {
@@ -223,7 +227,7 @@ exports.clearCart = async (req, res) => {
       return res.status(400).json({ error: 'userId không hợp lệ' });
     }
 
-    const user = await Users.findById(userId); 
+    const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
@@ -266,6 +270,12 @@ exports.checkout = async (req, res) => {
     // Kiểm tra số điện thoại
     if (!sdt) {
       return res.status(400).json({ error: 'Vui lòng cung cấp số điện thoại' });
+    }
+
+    // Kiểm tra định dạng số điện thoại (ví dụ: 10 chữ số, chỉ chứa số)
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(sdt)) {
+      return res.status(400).json({ error: 'Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số.' });
     }
 
     // Kiểm tra phương thức thanh toán
@@ -345,6 +355,9 @@ exports.checkout = async (req, res) => {
         discount = coupon.discountValue;
       }
 
+      // Đảm bảo giảm giá không vượt quá tổng tiền
+      discount = Math.min(discount, subtotal);
+
       // Cập nhật số lần sử dụng mã giảm giá
       coupon.usedCount = (coupon.usedCount || 0) + 1;
       await coupon.save();
@@ -353,22 +366,22 @@ exports.checkout = async (req, res) => {
 
     const total = subtotal - discount;
 
-    // Tạo đơn hàng với địa chỉ chi tiết
+    // Tạo đơn hàng với địa chỉ chi tiết dưới dạng chuỗi
     const order = {
       user: userId,
       items: validItems.map((item) => ({
         product: item.product._id,
         quantity: item.quantity,
-        images: item.product.images,
+        images: item.product.images || [],
       })),
       subtotal,
       discount,
-      total, // Đảm bảo có dấu phẩy ở đây
+      total,
       address: {
         ward: address.ward,
         district: address.district,
         city: address.city,
-        province: address.province,
+        province: address.province
       },
       sdt,
       paymentMethod,
@@ -401,10 +414,9 @@ exports.checkout = async (req, res) => {
     res.json({
       message: 'Thanh toán thành công',
       order: newOrder,
-      warning:
-        invalidItems.length > 0
-          ? `Đã loại bỏ ${invalidItems.length} sản phẩm không hợp lệ khỏi giỏ hàng`
-          : undefined,
+      warning: invalidItems.length > 0
+        ? `Đã loại bỏ ${invalidItems.length} sản phẩm không hợp lệ khỏi giỏ hàng`
+        : undefined,
     });
   } catch (error) {
     console.error('Lỗi khi thanh toán:', error.stack);
@@ -435,7 +447,20 @@ exports.updatePrice = async (req, res) => {
       return res.status(404).json({ error: 'Giỏ hàng trống' });
     }
 
-    let subtotal = cart.items.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+    const invalidItems = cart.items.filter((item) => !item.product);
+    const validItems = cart.items.filter((item) => item.product);
+
+    if (validItems.length === 0) {
+      return res.status(400).json({ error: 'Giỏ hàng không chứa sản phẩm hợp lệ' });
+    }
+
+    if (invalidItems.length > 0) {
+      console.log('Invalid items removed from cart:', invalidItems);
+      cart.items = validItems;
+      await cart.save();
+    }
+
+    let subtotal = validItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
     let discount = 0;
 
     if (couponCode) {
@@ -466,7 +491,7 @@ exports.updatePrice = async (req, res) => {
         discount = coupon.discountValue;
       }
 
-      discount = Math.min(discount, subtotal); 
+      discount = Math.min(discount, subtotal);
     }
 
     const total = subtotal - discount;
