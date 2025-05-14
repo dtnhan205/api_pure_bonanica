@@ -1,28 +1,38 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+const userController = require('../controllers/userController');
 
-const {
-  register,
-  login,
-  getUser,
-  getAllUsers,
-  verifyToken,
-  getUserById,
-  updateUser,
-  deleteUser
-} = require('../controllers/userController');
+// Đăng ký
+router.post('/register', userController.register);
 
-// Đăng ký và đăng nhập không cần xác thực token
-router.post('/register', register);
-router.post('/login', login);
+// Đăng nhập
+router.post('/login', userController.login);
 
-// Các route cần xác thực token
-router.get('/userinfo', verifyToken, getUser);
-router.put('/update/:id', verifyToken, updateUser); 
+// Xác thực email
+router.get('/verify-email/:token', userController.verifyEmail);
 
-// Các route không cần xác thực token
-router.get('/', getAllUsers); 
-router.get('/:id', getUserById);
-router.delete('/:id', deleteUser);
+// Quên mật khẩu
+router.post('/forgot-password', userController.forgotPassword);
+
+// Đặt lại mật khẩu
+router.post('/reset-password/:token', userController.resetPassword);
+
+// Lấy thông tin user (yêu cầu token)
+router.get('/userinfo', userController.verifyToken, userController.getUser);
+
+// Lấy tất cả user
+router.get('/', userController.getAllUsers);
+
+// Lấy user theo ID
+router.get('/:id', userController.getUserById);
+
+// Cập nhật user
+router.put('/update/:id', userController.verifyToken, userController.updateUser);
+
+// Xóa user
+router.delete('/:id', userController.verifyToken, userController.deleteUser);
+
+// Thay đổi mật khẩu
+router.put('/change-password/:id', userController.verifyToken, userController.changePassword);
 
 module.exports = router;
