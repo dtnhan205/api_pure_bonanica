@@ -36,10 +36,13 @@ if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
 
 // Middleware
 app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3801', 'http://localhost:3001', 'http://localhost:3002'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000', 'http://localhost:3801', 'http://localhost:3001', 'http://localhost:3002'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200, 
 }));
 app.use(express.json());
 
@@ -62,6 +65,9 @@ app.use('/api/users/forgot-password', authLimiter);
 // Kết nối MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://dtn280705:dtn280705@api-pure-bonanica.hioxvef.mongodb.net/zeal?retryWrites=true&w=majority&appName=api-pure-bonanica';
 mongoose.connect(MONGODB_URI, {
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 60000,
+  connectTimeoutMS: 30000,
   serverSelectionTimeoutMS: 50000
 })
   .then(() => console.log('Kết nối MongoDB thành công'))
