@@ -2,6 +2,8 @@ const userModel = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const rateLimit = require('express-rate-limit');
+
 require('dotenv').config();
 
 const SALT_ROUNDS = 10; // Số vòng lặp băm cho bcrypt
@@ -551,6 +553,12 @@ const changePassword = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
+// Chống spam
+// const authLimiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, 
+//   max: 5, 
+//   message: 'Quá nhiều yêu cầu, vui lòng thử lại sau 15 phút',
+// });
 
 module.exports = {
   register,
@@ -565,4 +573,5 @@ module.exports = {
   updateUser,
   deleteUser,
   changePassword,
+  // authLimiter
 };

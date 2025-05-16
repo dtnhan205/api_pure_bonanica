@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 
+
+// userController.authLimiter 
+
 // Đăng ký
 router.post('/register', userController.register);
 
