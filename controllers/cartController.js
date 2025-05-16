@@ -249,7 +249,7 @@ exports.clearCart = async (req, res) => {
 
 exports.checkout = async (req, res) => {
   try {
-    const { userId, address, sdt, paymentMethod, note, productDetails, couponCode } = req.body;
+    const { userId, addressLine, ward, district, cityOrProvince, sdt, paymentMethod, note, productDetails, couponCode } = req.body;
 
     // Kiểm tra userId
     if (!userId) {
@@ -261,9 +261,9 @@ exports.checkout = async (req, res) => {
     }
 
     // Kiểm tra địa chỉ chi tiết
-    if (!address || !address.ward || !address.district || !address.city || !address.province) {
+    if (!addressLine || !ward || !district || !cityOrProvince) {
       return res.status(400).json({
-        error: 'Vui lòng cung cấp đầy đủ thông tin địa chỉ (xã/phường, quận/huyện, thành phố, tỉnh)',
+        error: 'Vui lòng cung cấp đầy đủ thông tin địa chỉ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)',
       });
     }
 
@@ -378,10 +378,10 @@ exports.checkout = async (req, res) => {
       discount,
       total,
       address: {
-        ward: address.ward,
-        district: address.district,
-        city: address.city,
-        province: address.province
+        addressLine,  // Số nhà, đường
+        ward,
+        district,
+        cityOrProvince,  // Tỉnh/Thành phố
       },
       sdt,
       paymentMethod,
@@ -423,6 +423,7 @@ exports.checkout = async (req, res) => {
     res.status(500).json({ error: 'Lỗi khi thanh toán', details: error.message });
   }
 };
+
 
 exports.updatePrice = async (req, res) => {
   try {
