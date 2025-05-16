@@ -13,24 +13,23 @@ const emailRouter = require('./routes/emailRouter');
 
 require('dotenv').config();
 
-// Log biến môi trường
+// Kiểm tra biến môi trường bắt buộc
+const requiredEnv = ['MONGODB_URI', 'PORT', 'JWT_SECRET', 'EMAIL_USER', 'EMAIL_PASS', 'BASE_URL'];
+for (const env of requiredEnv) {
+  if (!process.env[env]) {
+    console.error(`Lỗi: ${env} không được định nghĩa trong .env`);
+    process.exit(1);
+  }
+}
+
+// Log biến môi trường (ẩn thông tin nhạy cảm)
 console.log('MONGODB_URI:', process.env.MONGODB_URI);
 console.log('PORT:', process.env.PORT);
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
+console.log('JWT_SECRET:', '****');
 console.log('EMAIL_USER:', process.env.EMAIL_USER);
 console.log('EMAIL_PASS:', '****');
 console.log('BASE_URL:', process.env.BASE_URL);
 console.log('ALLOWED_ORIGINS:', process.env.ALLOWED_ORIGINS);
-
-// Kiểm tra biến môi trường bắt buộc
-if (!process.env.JWT_SECRET) {
-  console.error('Lỗi: JWT_SECRET không được định nghĩa trong .env');
-  process.exit(1);
-}
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.error('Lỗi: EMAIL_USER hoặc EMAIL_PASS không được định nghĩa trong .env');
-  process.exit(1);
-}
 
 const app = express();
 
@@ -72,8 +71,7 @@ app.use('/api/users/login', authLimiter);
 app.use('/api/users/forgot-password', authLimiter);
 
 // Kết nối MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://dtn280705:dtn280705@api-pure-bonanica.hioxvef.mongodb.net/zeal?retryWrites=true&w=majority&appName=api-pure-bonanica';
-mongoose.connect(MONGODB_URI, {
+mongoose.connect(process.env.MONGODB_URI, {
   serverSelectionTimeoutMS: 50000,
   socketTimeoutMS: 60000,
   connectTimeoutMS: 30000,
@@ -92,6 +90,7 @@ mongoose.connection.on('disconnected', () => console.log('Mongoose đã ngắt k
 app.use('/api/categories', categoriesRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/users', usersRouter);
+console.log('Route /api/users/reset-password đã được đăng ký');
 app.use('/api/carts', cartRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/comments', commentRouter);
