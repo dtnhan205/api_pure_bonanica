@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const rateLimit = require('express-rate-limit');
 const categoriesRouter = require('./routes/categoryRoutes');
 const productsRouter = require('./routes/productsRouter');
 const usersRouter = require('./routes/usersRouter');
@@ -59,16 +58,6 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
-
-// Rate limiting cho các route nhạy cảm
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 phút
-  max: 5, // 5 yêu cầu mỗi IP
-  message: 'Quá nhiều yêu cầu, vui lòng thử lại sau 15 phút',
-});
-app.use('/api/users/register', authLimiter);
-app.use('/api/users/login', authLimiter);
-app.use('/api/users/forgot-password', authLimiter);
 
 // Kết nối MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
