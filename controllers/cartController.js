@@ -249,7 +249,29 @@ exports.clearCart = async (req, res) => {
 
 exports.checkout = async (req, res) => {
   try {
-    const { userId, addressLine, ward, district, cityOrProvince, sdt, paymentMethod, note, productDetails, couponCode } = req.body;
+   const {
+      userId,
+      address,
+      sdt,
+      paymentMethod,
+      note,
+      productDetails,
+      couponCode
+    } = req.body;
+
+      if (
+      !address ||
+      !address.addressLine ||
+      !address.ward ||
+      !address.district ||
+      !address.cityOrProvince
+    ) {
+      return res.status(400).json({
+        error: 'Vui lòng cung cấp đầy đủ thông tin địa chỉ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)',
+      });
+    }
+
+
 
     // Kiểm tra userId
     if (!userId) {
@@ -260,12 +282,7 @@ exports.checkout = async (req, res) => {
       return res.status(400).json({ error: 'userId không hợp lệ' });
     }
 
-    // Kiểm tra địa chỉ chi tiết
-    if (!addressLine || !ward || !district || !cityOrProvince) {
-      return res.status(400).json({
-        error: 'Vui lòng cung cấp đầy đủ thông tin địa chỉ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)',
-      });
-    }
+
 
     // Kiểm tra số điện thoại
     if (!sdt) {
@@ -367,7 +384,7 @@ exports.checkout = async (req, res) => {
     const total = subtotal - discount;
 
     // Tạo đơn hàng với địa chỉ chi tiết dưới dạng chuỗi
-    const order = {
+     const order = {
       user: userId,
       items: validItems.map((item) => ({
         product: item.product._id,
@@ -377,12 +394,7 @@ exports.checkout = async (req, res) => {
       subtotal,
       discount,
       total,
-      address: {
-        addressLine,  // Số nhà, đường
-        ward,
-        district,
-        cityOrProvince,  // Tỉnh/Thành phố
-      },
+      address, // <-- truyền nguyên object address
       sdt,
       paymentMethod,
       note,
@@ -390,6 +402,7 @@ exports.checkout = async (req, res) => {
       coupon: appliedCoupon ? appliedCoupon._id : null,
       paymentStatus: 'pending',
     };
+
 
     const newOrder = await Order.create(order);
 
