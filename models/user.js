@@ -28,8 +28,8 @@ const userSchema = new mongoose.Schema({
   birthday: { type: Date, default: null },
   status: {
     type: String,
-    enum: ['pending', 'active', 'inactive', 'banned'],
-    default: 'pending',
+    enum: ['active', 'inactive', 'banned'],
+    default: 'active',
   },
   emailVerificationToken: { type: String, default: null },
   passwordResetToken: { type: String, default: null },

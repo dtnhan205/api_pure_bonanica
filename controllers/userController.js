@@ -191,7 +191,6 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Lấy thông tin người dùng
 const getUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -205,7 +204,6 @@ const getUser = async (req, res) => {
   }
 };
 
-// Lấy tất cả người dùng
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -216,7 +214,6 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// Lấy người dùng theo ID
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
@@ -230,7 +227,6 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Cập nhật người dùng
 const updateUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -254,7 +250,6 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Xóa người dùng
 const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -274,7 +269,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Thay đổi mật khẩu
 const changePassword = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -310,7 +304,6 @@ const changePassword = async (req, res) => {
 module.exports = {
   register,
   login,
-  verifyEmail,
   forgotPassword,
   resetPassword,
   verifyToken,
