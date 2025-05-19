@@ -89,25 +89,6 @@ const login = async (req, res) => {
   }
 };
 
-// Xác thực email
-const verifyEmail = async (req, res) => {
-  try {
-    const { token } = req.params;
-    const user = await User.findOne({ verificationToken: token });
-    if (!user) {
-      return res.status(400).json({ message: 'Token không hợp lệ hoặc đã hết hạn' });
-    }
-
-    user.status = 'active';
-    user.verificationToken = undefined;
-    await user.save();
-
-    res.status(200).json({ message: 'Xác thực email thành công' });
-  } catch (err) {
-    console.error('Lỗi xác thực email:', err.message, err.stack);
-    res.status(500).json({ message: 'Lỗi server', error: err.message });
-  }
-};
 
 // Quên mật khẩu
 const forgotPassword = async (req, res) => {

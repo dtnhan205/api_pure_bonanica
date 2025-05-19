@@ -12,6 +12,7 @@ const commentRouter = require('./routes/commentRouter');
 const couponRouter = require('./routes/couponRouter');
 const emailRouter = require('./routes/emailRouter');
 const passport = require('./passport');
+const authRouter = require('./routes/authRoutes');
 require('dotenv').config();
 
 // Kiểm tra biến môi trường bắt buộc
@@ -80,8 +81,6 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: store,
-    cookie: { secure: false }, // Tắt secure cho môi trường dev
   })
 );
 
@@ -121,6 +120,7 @@ app.use('/api/comments', commentRouter);
 app.use('/api/coupons', couponRouter);
 app.use('/api/email', emailRouter);
 app.use(express.static('public'));
+app.use('/api', authRouter);
 
 // Xử lý lỗi 404
 app.use((req, res, next) => {
