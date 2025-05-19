@@ -2,40 +2,34 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 
-
-// userController.authLimiter 
-
-// Đăng ký
+// Register
 router.post('/register', userController.register);
 
-// Đăng nhập
+// Login
 router.post('/login', userController.login);
 
-// Xác thực email
-router.get('/verify-email/:token', userController.verifyEmail);
-
-// Quên mật khẩu
+// Forgot password
 router.post('/forgot-password', userController.forgotPassword);
 
-// Đặt lại mật khẩu
+// Reset password
 router.post('/reset-password/:token', userController.resetPassword);
 
-// Lấy thông tin user (yêu cầu token)
+// Get user info (requires token)
 router.get('/userinfo', userController.verifyToken, userController.getUser);
 
-// Lấy tất cả user
+// Get all users
 router.get('/', userController.getAllUsers);
 
-// Lấy user theo ID
+// Get user by ID
 router.get('/:id', userController.getUserById);
 
-// Cập nhật user
+// Update user
 router.put('/update/:id', userController.verifyToken, userController.updateUser);
 
-// Xóa user
+// Delete user
 router.delete('/:id', userController.verifyToken, userController.deleteUser);
 
-// Thay đổi mật khẩu
+// Change password
 router.put('/change-password/:id', userController.verifyToken, userController.changePassword);
 
 module.exports = router;
