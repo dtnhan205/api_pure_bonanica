@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
 const categoriesRouter = require('./routes/categoryRoutes');
 const productsRouter = require('./routes/productsRouter');
 const usersRouter = require('./routes/usersRouter');
@@ -9,11 +11,11 @@ const orderRouter = require('./routes/orderRouter');
 const commentRouter = require('./routes/commentRouter');
 const couponRouter = require('./routes/couponRouter');
 const emailRouter = require('./routes/emailRouter');
-
+const passport = require('./passport');
 require('dotenv').config();
 
 // Kiểm tra biến môi trường bắt buộc
-const requiredEnv = ['MONGODB_URI', 'PORT', 'JWT_SECRET', 'EMAIL_USER', 'EMAIL_PASS', 'BASE_URL'];
+const requiredEnv = ['MONGODB_URI', 'PORT', 'JWT_SECRET', 'EMAIL_USER', 'EMAIL_PASS', 'BASE_URL', 'SESSION_SECRET'];
 for (const env of requiredEnv) {
   if (!process.env[env]) {
     console.error(`Lỗi: ${env} không được định nghĩa trong .env`);
@@ -29,6 +31,7 @@ console.log('EMAIL_USER:', process.env.EMAIL_USER);
 console.log('EMAIL_PASS:', '****');
 console.log('BASE_URL:', process.env.BASE_URL);
 console.log('ALLOWED_ORIGINS:', process.env.ALLOWED_ORIGINS);
+console.log('SESSION_SECRET:', '****');
 
 const app = express();
 
@@ -53,6 +56,39 @@ app.use(cors({
 
 app.use(express.json());
 
+// Cấu hình session
+const store = new MongoDBStore({
+  uri: process.env.MONGODB_URI,
+  collection: 'sessions',
+});
+
+store.on('error', (error) => {
+  console.error('Lỗi kết nối session store:', error.message);
+});
+
+// // Xóa session cũ khi khởi động
+// store.on('connected', () => {
+//   console.log('Session store connected, clearing old sessions...');
+//   store.client.collection('sessions').deleteMany({}, (err) => {
+//     if (err) console.error('Error clearing sessions:', err);
+//     else console.log('Old sessions cleared');
+//   });
+// });
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: store,
+    cookie: { secure: false }, // Tắt secure cho môi trường dev
+  })
+);
+
+// Khởi tạo Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Log yêu cầu
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -61,7 +97,7 @@ app.use((req, res, next) => {
 
 // Kết nối MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
-  serverSelectionTimeoutMS: 50000,
+  serverSelectionTimeoutMS: 60000,
   socketTimeoutMS: 60000,
   connectTimeoutMS: 30000,
 })
@@ -79,7 +115,6 @@ mongoose.connection.on('disconnected', () => console.log('Mongoose đã ngắt k
 app.use('/api/categories', categoriesRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/users', usersRouter);
-console.log('Route /api/users/reset-password đã được đăng ký');
 app.use('/api/carts', cartRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/comments', commentRouter);
@@ -95,7 +130,7 @@ app.use((req, res, next) => {
 // Xử lý lỗi chung
 app.use((err, req, res, next) => {
   console.error('Lỗi server:', err.message, err.stack);
-  res.status(500).json({ error: 'Lỗi máy chủ' });
+  res.status(500).json({ message: 'Lỗi server', error: err.message });
 });
 
 // Khởi động server

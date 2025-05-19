@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-
-
-// userController.authLimiter 
+const { googleAuth, googleAuthCallback } = require('../controllers/googleAuthController');
 
 // Đăng ký
 router.post('/register', userController.register);
@@ -37,5 +35,9 @@ router.delete('/:id', userController.verifyToken, userController.deleteUser);
 
 // Thay đổi mật khẩu
 router.put('/change-password/:id', userController.verifyToken, userController.changePassword);
+
+// Đăng nhập bằng Google
+router.get('/google', googleAuth);
+router.get('/google/callback', googleAuthCallback);
 
 module.exports = router;

@@ -3,33 +3,54 @@ const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, trim: true },
-  phone: { type: String, required: true, match: [/^0\d{9}$/, 'Số điện thoại không hợp lệ'] },
+  phone: { 
+    type: String, 
+    required: function() { return !this.googleId; }, // Bắt buộc nếu không có googleId
+    match: [/^0\d{9}$/, 'Số điện thoại không hợp lệ'],
+    default: ''
+  },
   email: {
     type: String,
     required: true,
-    unique: true, // This creates a unique index automatically
+    unique: true,
     lowercase: true,
     trim: true,
     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email không hợp lệ'],
   },
-  password: { type: String, required: true, minlength: [8, 'Mật khẩu phải có ít nhất 8 ký tự'] },
+  password: { 
+    type: String, 
+    required: function() { return !this.googleId; }, // Bắt buộc nếu không có googleId
+    minlength: [8, 'Mật khẩu phải có ít nhất 8 ký tự'],
+    default: ''
+  },
   address: { type: String, default: '', trim: true },
   listOrder: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
-  birthday: { type: Date },
+  birthday: { type: Date, default: null },
   status: {
     type: String,
     enum: ['pending', 'active', 'inactive', 'banned'],
     default: 'pending',
   },
-  emailVerificationToken: { type: String },
-  passwordResetToken: { type: String },
+  emailVerificationToken: { type: String, default: null },
+  passwordResetToken: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  googleId: { 
+    type: String, 
+    unique: true, 
+    sparse: true, 
+    validate: {
+      validator: function(v) {
+        return !v || typeof v === 'string' && v.length > 0;
+      },
+      message: 'Google ID không hợp lệ'
+    }
+  },
 }, { versionKey: false });
 
-// Tự động băm mật khẩu trước khi lưu
+// Tự động băm mật khẩu trước khi lưu (chỉ áp dụng nếu có password)
 userSchema.pre('save', async function (next) {
-  if (this.isModified('password')) {
+  if (this.isModified('password') && this.password && this.password.length > 0) {
     this.password = await bcrypt.hash(this.password, 10);
   }
   next();
