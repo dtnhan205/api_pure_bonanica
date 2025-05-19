@@ -13,6 +13,11 @@ const cartItemSchema = new mongoose.Schema({
   }
 });
 
+const productDetailSchema = new mongoose.Schema({
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+  details: { type: mongoose.Schema.Types.Mixed }
+}, { _id: false });
+
 const orderSchema = new mongoose.Schema({
   _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
   user: {
@@ -42,10 +47,10 @@ const orderSchema = new mongoose.Schema({
     default: null
   },
   address: {
+    addressLine: { type: String, required: true },
     ward: { type: String, required: true },
     district: { type: String, required: true },
-    city: { type: String, required: true },
-    province: { type: String, required: true }
+    cityOrProvince: { type: String, required: true }
   },
   sdt: {
     type: String,
@@ -58,9 +63,7 @@ const orderSchema = new mongoose.Schema({
   note: {
     type: String
   },
-  productDetails: {
-    type: String
-  },
+  productDetails: [productDetailSchema], 
   paymentStatus: {
     type: String,
     enum: ['pending', 'completed', 'failed', 'cancelled'],

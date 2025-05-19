@@ -4,13 +4,13 @@ const bcrypt = require('bcrypt');
 const userSchema = new mongoose.Schema({
   username: { 
     type: String, 
-    required: function() { return !this.googleId; }, // Bắt buộc nếu không có googleId
+    required: function() { return !this.googleId; },
     trim: true,
-    default: '' // Giá trị mặc định rỗng cho trường hợp Google Auth
+    default: ''
   },
   phone: { 
     type: String, 
-    required: function() { return !this.googleId; }, // Bắt buộc nếu không có googleId
+    required: function() { return !this.googleId; },
     match: [/^0\d{9}$/, 'Số điện thoại không hợp lệ'],
     default: ''
   },
@@ -20,13 +20,20 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email không hợp lệ']
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email không hợp lệ'],
   },
   password: { 
     type: String, 
-    required: function() { return !this.googleId; }, // Bắt buộc nếu không có googleId
-    minlength: [8, 'Mật khẩu phải có ít nhất 8 ký tự'],
-    default: null // Đổi default thành null để tránh lỗi validation
+    required: function() { return !this.googleId; },
+    default: '',
+    validate: {
+      validator: function(value) {
+        // Chỉ kiểm tra minlength nếu password bắt buộc và không rỗng
+        if (this.googleId || value === '') return true;
+        return value.length >= 8;
+      },
+      message: 'Mật khẩu phải có ít nhất 8 ký tự'
+    }
   },
   address: { type: String, default: '', trim: true },
   listOrder: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
@@ -34,7 +41,7 @@ const userSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['active', 'inactive', 'banned'],
-    default: 'active'
+    default: 'active',
   },
   emailVerificationToken: { type: String, default: null },
   passwordResetToken: { type: String, default: null },
@@ -43,32 +50,22 @@ const userSchema = new mongoose.Schema({
   googleId: { 
     type: String, 
     unique: true, 
-    sparse: true, // Cho phép nhiều document không có googleId
+    sparse: true, 
     validate: {
       validator: function(v) {
-        return !v || (typeof v === 'string' && v.length > 0);
+        return !v || typeof v === 'string' && v.length > 0;
       },
       message: 'Google ID không hợp lệ'
     }
-  }
+  },
 }, { versionKey: false });
 
-// Middleware: Băm mật khẩu trước khi lưu, chỉ áp dụng nếu password hợp lệ
-userSchema.pre('save', async function(next) {
-  // Chỉ băm nếu password được sửa đổi và không rỗng
-  if (this.isModified('password') && this.password && this.password.length >= 8) {
-    try {
-      this.password = await bcrypt.hash(this.password, 10);
-    } catch (error) {
-      return next(error);
-    }
-  }
-  // Nếu password rỗng và có googleId, đặt thành null để tránh validation lỗi
-  if (this.googleId && (!this.password || this.password === '')) {
-    this.password = null;
+// Tự động băm mật khẩu trước khi lưu (chỉ áp dụng nếu có password)
+userSchema.pre('save', async function (next) {
+  if (this.isModified('password') && this.password && this.password.length > 0) {
+    this.password = await bcrypt.hash(this.password, 10);
   }
   next();
 });
-
 
 module.exports = mongoose.model('users', userSchema);
