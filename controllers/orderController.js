@@ -1,7 +1,9 @@
 const Order = require('../models/order');
 const Users = require('../models/user'); 
 const mongoose = require('mongoose');
+const authMiddleware = require('../middlewares/auth');
 
+// Admin functions
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -21,7 +23,7 @@ exports.getOrdersByUserIdForAdmin = async (req, res) => {
     const { userId } = req.params;
 
     if (!userId) {
-      return res.status(400).json({ error: 'Thiếu userId trong URL. Vui lòng cung cấp userId trong đường dẫn (ví dụ: /admin/user/:userId)' });
+      return res.status(400).json({ error: 'Thiếu userId trong URL' });
     }
 
     // Kiểm tra ObjectId hợp lệ
@@ -74,9 +76,10 @@ exports.getOrderByIdForAdmin = async (req, res) => {
   }
 };
 
+// User functions
 exports.getUserOrders = async (req, res) => {
   try {
-    const userId = req.query.userId || req.body.userId;
+    const { userId } = req.params;
 
     if (!userId) {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
@@ -87,16 +90,19 @@ exports.getUserOrders = async (req, res) => {
       return res.status(400).json({ error: 'userId không hợp lệ' });
     }
 
+    // Kiểm tra người dùng tồn tại
     const user = await Users.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
+    // Lấy danh sách đơn hàng
     const orders = await Order.find({ user: userId })
       .populate('items.product')
-      .sort({ _id: -1 });
+      .sort({ _id: -1 })
+      .lean();
 
-    res.json(orders);
+    res.status(200).json(orders);
   } catch (error) {
     console.error('Lỗi khi lấy danh sách đơn hàng:', error.stack);
     res.status(500).json({ error: 'Lỗi khi lấy danh sách đơn hàng', details: error.message });
@@ -105,29 +111,21 @@ exports.getUserOrders = async (req, res) => {
 
 exports.getOrderById = async (req, res) => {
   try {
-    const userId = req.query.userId || req.body.userId;
     const { orderId } = req.params;
 
-    if (!userId) {
-      return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
+    if (!orderId) {
+      return res.status(400).json({ error: 'Thiếu orderId trong yêu cầu' });
     }
 
     // Kiểm tra ObjectId hợp lệ
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'userId không hợp lệ' });
-    }
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ error: 'orderId không hợp lệ' });
     }
 
-    const user = await Users.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'Người dùng không tồn tại' });
-    }
-
-    const order = await Order.findOne({ _id: orderId, user: userId }).populate(
-      'items.product'
-    );
+    // Tìm đơn hàng (không cần kiểm tra user nếu không có middleware auth)
+    const order = await Order.findById(orderId)
+      .populate('items.product')
+      .populate('user', 'username email');
 
     if (!order) {
       return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
@@ -135,8 +133,36 @@ exports.getOrderById = async (req, res) => {
 
     res.json(order);
   } catch (error) {
-    console.error('Lỗi khi lấy chi tiết đơn hàng:', error.message);
+    console.error('Lỗi khi lấy chi tiết đơn hàng:', error.stack);
     res.status(500).json({ error: 'Lỗi khi lấy chi tiết đơn hàng', details: error.message });
+  }
+};
+
+// Alternative version with auth middleware
+exports.getOrderByIdWithAuth = async (req, res) => {
+  try {
+    const userId = req.user._id; // Lấy từ token xác thực
+    const { orderId } = req.params;
+
+    // Kiểm tra ObjectId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'userId hoặc orderId không hợp lệ' });
+    }
+
+    // Tìm đơn hàng
+    const order = await Order.findOne({ _id: orderId, user: userId }).populate({
+      path: 'items.product',
+      select: 'name price image'
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error('Lỗi khi lấy chi tiết đơn hàng:', error);
+    res.status(500).json({ error: 'Lỗi server nội bộ' });
   }
 };
 
