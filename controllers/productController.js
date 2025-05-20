@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const Product = require('../models/product');
 
-// Get all products
+// Get all products (chỉ lấy sản phẩm có status: 'show')
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find({ status: 'show' });
     if (!products.length) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm nào' });
     }
@@ -20,7 +20,7 @@ exports.getProductById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const product = await Product.findById(id);
+    const product = await Product.findOne({ _id: id, status: 'show' });
     if (!product) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
     }
@@ -43,7 +43,8 @@ exports.createProduct = async (req, res) => {
       images,
       ingredients,
       special,
-      stock
+      stock,
+      status, // Thêm status từ req.body
     } = req.body;
 
     const imagePaths = req.files?.map(file => file.filename) || [];
@@ -54,7 +55,7 @@ exports.createProduct = async (req, res) => {
     };
 
     const newProduct = new Product({
-      _id: req.body._id || Date.now(), // Auto-generate if not provided
+      _id: req.body._id || Date.now(),
       price,
       discountPrice,
       description,
@@ -64,6 +65,7 @@ exports.createProduct = async (req, res) => {
       ingredients: parseArrayField(ingredients),
       special: parseArrayField(special),
       stock,
+      status: status || 'show', // Mặc định là 'show' nếu không được cung cấp
     });
 
     await newProduct.save();
@@ -94,6 +96,7 @@ exports.updateProduct = async (req, res) => {
         ingredients: req.body.ingredients || [],
         special: req.body.special || [],
         stock: req.body.stock,
+        status: req.body.status, // Cập nhật trạng thái hidden/show
       },
       {
         new: true,
@@ -134,7 +137,7 @@ exports.deleteProduct = async (req, res) => {
 // Get products without discount
 exports.getProductsWithoutDiscount = async (req, res) => {
   try {
-    const products = await Product.find({ discountPrice: { $eq: null } })
+    const products = await Product.find({ discountPrice: { $eq: null }, status: 'show' })
       .select('price');
 
     const count = products.length;
@@ -149,6 +152,29 @@ exports.getProductsWithoutDiscount = async (req, res) => {
     });
   } catch (err) {
     console.error('GET /api/products/no-discount error:', err);
+    res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
+// Toggle product visibility (Chuyển đổi giữa hidden và show)
+exports.toggleProductVisibility = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    }
+
+    product.status = product.status === 'show' ? 'hidden' : 'show'; 
+    await product.save();
+
+    res.json({
+      message: `Sản phẩm đã được ${product.status === 'show' ? 'hiển thị' : 'ẩn'}`,
+      product,
+    });
+  } catch (err) {
+    console.error(`PUT /api/products/${id}/toggle-visibility error:`, err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
 };

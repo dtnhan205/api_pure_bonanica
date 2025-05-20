@@ -15,7 +15,8 @@ const productSchema = new mongoose.Schema({
   usage_instructions: [{ type: String, trim: true }],
   special: [{ type: String, trim: true }],
   stock: { type: Number, required: true, min: 0 },
-  view: { type: Number, default: 0 }
+  view: { type: Number, default: 0 },
+  status: { type: String, enum: ['hidden', 'show'], default: 'show' },
 });
 
 module.exports = mongoose.model('Product', productSchema);

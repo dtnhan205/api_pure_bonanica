@@ -9,5 +9,6 @@ router.get('/no-discount', productController.getProductsWithoutDiscount);
 router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
 router.delete('/:id', productController.deleteProduct);
+router.put('/:id/toggle-visibility', productController.toggleProductVisibility); 
 
 module.exports = router;
