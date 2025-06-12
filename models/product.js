@@ -1,22 +1,60 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-  _id: { type: mongoose.Schema.Types.ObjectId, auto: true }, 
   name: { type: String, required: true, trim: true },
-  price: { type: Number, required: true, min: 0 },
-  images: [{ type: String, trim: true }],
-  discountPrice: { type: Number, min: 0 },
-  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-  description: { type: String, trim: true },
-  color: { type: String, trim: true },
-  brand: { type: String, trim: true },
-  createdAt: { type: Date, default: Date.now },
-  ingredients: [{ type: String, trim: true }],
-  usage_instructions: [{ type: String, trim: true }],
-  special: [{ type: String, trim: true }],
-  stock: { type: Number, required: true, min: 0 },
-  view: { type: Number, default: 0 },
+  slug: { type: String, required: true, trim: true, unique: true },
   status: { type: String, enum: ['hidden', 'show'], default: 'show' },
-});
+  brand: [
+    {
+      _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+      name: { type: String, required: true }
+    }
+  ],
+  category: [
+    {
+      _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+      name: { type: String, required: true }
+    }
+  ],
+  images: [{ type: String }],
+  short_description: [{ type: String }],
+  description: [{ type: String }],
+  instructions: [
+    {
+      method_to_use: { type: Number },
+      'name-methodto_use': { type: String },
+      Instructions: [
+        {
+          step: { type: String },
+          step_content: { type: String }
+        }
+      ]
+    }
+  ],
+  ingredients: [
+    {
+      name: { type: String },
+      ingredient_content: { type: String }
+    }
+  ],
+  warnings: [{ type: String }],
+  productuses: [{ type: String }],
+  option: [
+    {
+      stock: { type: Number, default: 0 },
+      valuesoption: { type: String },
+      attribute: [
+        {
+          _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+          name_attribute: { type: String }
+        }
+      ],
+      price: {
+        price: { type: Number, required: true },
+        discontprice: { type: Number, default: 0 }
+      }
+    }
+  ]
+}, { timestamps: true });
 
-module.exports = mongoose.model('Product', productSchema);
+module.exports = mongoose.models.Product || mongoose.model('Product', productSchema);

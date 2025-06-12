@@ -9,8 +9,11 @@ const usersRouter = require('./routes/usersRouter');
 const cartRouter = require('./routes/cartRouter');
 const orderRouter = require('./routes/orderRouter');
 const commentRouter = require('./routes/commentRouter');
-const couponRouter = require('./routes/couponRouter');
+const couponRouter = require('./routes/couponRouter');            
 const emailRouter = require('./routes/emailRouter');
+const newRouter = require('./routes/newRouter');
+const brandRouter = require('./routes/brandRouter');
+const attributeRouter = require('./routes/attributeRouter');
 const passport = require('./passport');
 const authRouter = require('./routes/authRoutes');
 require('dotenv').config();
@@ -67,15 +70,6 @@ store.on('error', (error) => {
   console.error('Lỗi kết nối session store:', error.message);
 });
 
-// // Xóa session cũ khi khởi động
-// store.on('connected', () => {
-//   console.log('Session store connected, clearing old sessions...');
-//   store.client.collection('sessions').deleteMany({}, (err) => {
-//     if (err) console.error('Error clearing sessions:', err);
-//     else console.log('Old sessions cleared');
-//   });
-// });
-
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -119,6 +113,9 @@ app.use('/api/orders', orderRouter);
 app.use('/api/comments', commentRouter);
 app.use('/api/coupons', couponRouter);
 app.use('/api/email', emailRouter);
+app.use('/api/news', newRouter);  
+app.use('/api/brands', brandRouter);
+app.use('/api/attributes', attributeRouter);
 app.use(express.static('public'));
 app.use('/api', authRouter);
 
