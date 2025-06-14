@@ -14,6 +14,7 @@ const emailRouter = require('./routes/emailRouter');
 const newRouter = require('./routes/newRouter');
 const brandRouter = require('./routes/brandRouter');
 const attributeRouter = require('./routes/attributeRouter');
+const productAttributeRouter = require('./routes/productAttributeRouter');
 const passport = require('./passport');
 const authRouter = require('./routes/authRoutes');
 require('dotenv').config();
@@ -116,6 +117,7 @@ app.use('/api/email', emailRouter);
 app.use('/api/news', newRouter);  
 app.use('/api/brands', brandRouter);
 app.use('/api/attributes', attributeRouter);
+app.use('/api/product-attributes', productAttributeRouter);
 app.use(express.static('public'));
 app.use('/api', authRouter);
 

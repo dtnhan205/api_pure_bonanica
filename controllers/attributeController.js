@@ -9,7 +9,7 @@ exports.getAllAttributes = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy thuộc tính nào' });
     }
     res.json(attributes);
-  } catch (err) {
+  } catch (err) { 
     console.error('GET /api/attributes error:', err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
