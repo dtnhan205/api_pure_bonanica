@@ -2,59 +2,26 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, trim: true, unique: true },
+  slug: { type: String, required: true, trim: true, unique: true, index: true },
   status: { type: String, enum: ['hidden', 'show'], default: 'show' },
-  brand: [
-    {
-      _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-      name: { type: String, required: true }
-    }
-  ],
-  category: [
-    {
-      _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-      name: { type: String, required: true }
-    }
-  ],
+  view: { type: Number, default: 0 },
+  id_brand: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Brand' },
+  id_category: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Category' },
   images: [{ type: String }],
   short_description: [{ type: String }],
   description: [{ type: String }],
-  instructions: [
-    {
-      method_to_use: { type: Number },
-      'name-methodto_use': { type: String },
-      Instructions: [
-        {
-          step: { type: String },
-          step_content: { type: String }
-        }
-      ]
-    }
-  ],
+  usage_instructions: [{ type: String }],
   ingredients: [
     {
-      name: { type: String },
-      ingredient_content: { type: String }
+      name_ingredients: { type: String, trim: true },
+      uses_ingredients: { type: String, trim: true }
     }
   ],
-  warnings: [{ type: String }],
-  productuses: [{ type: String }],
-  option: [
-    {
-      stock: { type: Number, default: 0 },
-      valuesoption: { type: String },
-      attribute: [
-        {
-          _id: { type: mongoose.Schema.Types.ObjectId, required: true },
-          name_attribute: { type: String }
-        }
-      ],
-      price: {
-        price: { type: Number, required: true },
-        discontprice: { type: Number, default: 0 }
-      }
-    }
-  ]
-}, { timestamps: true });
+  warning: [{ type: String }],
+  product_uses: [{ type: String }],
+  createdAt: { type: Date, default: Date.now }
+}, { 
+  timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
+});
 
 module.exports = mongoose.models.Product || mongoose.model('Product', productSchema);

@@ -24,12 +24,13 @@ exports.createComment = async (req, res) => {
     const comment = new Comment({
       user: userId,
       product: productId,
-      content
+      content,
+      status: 'show' // Mặc định trạng thái là show khi tạo mới
     });
 
     await comment.save();
 
-    // Sử dụng mảng populate
+    // Populate thông tin user và product
     await comment.populate([
       { path: 'user', select: 'username email' },
       { path: 'product', select: 'name price images' }
@@ -45,6 +46,13 @@ exports.createComment = async (req, res) => {
 // Lấy tất cả bình luận (dành cho admin)
 exports.getAllCommentsForAdmin = async (req, res) => {
   try {
+    // Kiểm tra quyền admin (giả sử có middleware kiểm tra quyền)
+    const userId = req.user?.id; // Lấy userId từ token hoặc session
+    const user = await User.findById(userId);
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ error: 'Bạn không có quyền xem tất cả bình luận' });
+    }
+
     const comments = await Comment.find()
       .populate('user', 'username email')
       .populate('product', 'name price images')
@@ -66,7 +74,8 @@ exports.getCommentsByProduct = async (req, res) => {
       return res.status(400).json({ error: 'Thiếu productId trong yêu cầu' });
     }
 
-    const comments = await Comment.find({ product: productId })
+    // Chỉ lấy các bình luận có status: show cho người dùng thông thường
+    const comments = await Comment.find({ product: productId, status: 'show' })
       .populate('user', 'username email')
       .populate('product', 'name price images')
       .sort({ createdAt: -1 });
@@ -98,7 +107,7 @@ exports.updateComment = async (req, res) => {
       return res.status(404).json({ error: 'Bình luận không tồn tại' });
     }
 
-    if (comment.user.toString() !== userId) {
+    if (comment.user.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({ error: 'Bạn không có quyền chỉnh sửa bình luận này' });
     }
 
@@ -106,7 +115,7 @@ exports.updateComment = async (req, res) => {
     comment.updatedAt = new Date();
     await comment.save();
 
-    // Sử dụng mảng populate
+    // Populate thông tin user và product
     await comment.populate([
       { path: 'user', select: 'username email' },
       { path: 'product', select: 'name price images' }
@@ -116,6 +125,51 @@ exports.updateComment = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi cập nhật bình luận:', error.stack);
     res.status(500).json({ error: 'Lỗi khi cập nhật bình luận', details: error.message });
+  }
+};
+
+// Cập nhật trạng thái bình luận (show/hidden) - chỉ dành cho admin
+exports.updateCommentStatus = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { userId, status } = req.body;
+
+    if (!userId || !commentId || !status) {
+      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc: userId, commentId hoặc status' });
+    }
+
+    if (!['show', 'hidden'].includes(status)) {
+      return res.status(400).json({ error: 'Trạng thái không hợp lệ, chỉ được phép là "show" hoặc "hidden"' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Người dùng không tồn tại' });
+    }
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ error: 'Bạn không có quyền thay đổi trạng thái bình luận' });
+    }
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: 'Bình luận không tồn tại' });
+    }
+
+    comment.status = status;
+    comment.updatedAt = new Date();
+    await comment.save();
+
+    // Populate thông tin user và product
+    await comment.populate([
+      { path: 'user', select: 'username email' },
+      { path: 'product', select: 'name price images' }
+    ]);
+
+    res.json({ message: `Cập nhật trạng thái bình luận thành ${status}`, comment });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật trạng thái bình luận:', error.stack);
+    res.status(500).json({ error: 'Lỗi khi cập nhật trạng thái bình luận', details: error.message });
   }
 };
 
@@ -139,7 +193,7 @@ exports.deleteComment = async (req, res) => {
       return res.status(404).json({ error: 'Bình luận không tồn tại' });
     }
 
-    if (comment.user.toString() !== userId) {
+    if (comment.user.toString() !== userId && !user.isAdmin) {
       return res.status(403).json({ error: 'Bạn không có quyền xóa bình luận này' });
     }
 

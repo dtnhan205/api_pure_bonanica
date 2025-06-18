@@ -10,6 +10,8 @@ router.get('/product/:productId', commentController.getCommentsByProduct);
 
 router.put('/:commentId', commentController.updateComment);
 
+router.put('/toggle-visibility/:commentId', commentController.updateCommentStatus);
+
 router.delete('/:commentId', commentController.deleteComment);
 
 module.exports = router; 

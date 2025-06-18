@@ -1,0 +1,56 @@
+[{
+  "id_category": {
+    "$oid": "6847ecd6ce10409e3b1f2f22"
+  },
+  "id_brand": {
+    "$oid": "684a7ba83686683efadc317d"
+  },
+  "name": "Toner Hydrosol Perilla – Lá Tía Tô Mào Gà",
+  "slug": "toner-hydrosol-perilla-la-tia-to-mao-ga",
+  "status": "show",
+  "view": 0,
+  "short_description": [
+    "Toner Hydrosol Perilla chiết xuất từ lá Tía Tô Mào Gà là sản phẩm cân bằng da, giúp cấp ẩm, làm dịu, kháng viêm và hỗ trợ cải thiện các vấn đề về mụn, đặc biệt phù hợp cho da dầu mụn và nhạy cảm."
+  ],
+  "description": [
+    "Toner Hydrosol Perilla là một giải pháp tự nhiên và dịu nhẹ để chăm sóc da hàng ngày, đặc biệt lý tưởng cho làn da dầu, mụn hoặc nhạy cảm. Sản phẩm này được tạo ra thông qua quá trình chưng cất hơi nước từ lá Tía Tô Mào Gà (Perilla frutescens), giữ lại trọn vẹn các tinh chất quý giá và dưỡng chất thực vật tan trong nước.",
+    "Khác với các loại toner chứa cồn gây khô da, Hydrosol Perilla mang đến khả năng cấp ẩm sâu, cân bằng độ pH tự nhiên của da sau khi rửa mặt, giúp da không bị căng rát. Với đặc tính kháng viêm, kháng khuẩn mạnh mẽ từ lá Tía Tô Mào Gà, toner này giúp làm dịu các nốt mụn sưng viêm, giảm mẩn đỏ và hỗ trợ quá trình phục hồi da tổn thương do mụn. Đồng thời, sản phẩm cũng góp phần kiểm soát bã nhờn, se khít lỗ chân lông, mang lại làn da sạch thoáng, mịn màng hơn. Hương thơm dịu nhẹ, thanh mát tự nhiên của lá Tía Tô Mào Gà còn giúp thư giãn tinh thần trong quá trình sử dụng."
+  ],
+  "images": [
+    "toner-perilla-1.jpg",
+    "toner-perilla-2.jpg",
+    "toner-perilla-3.jpg",
+    "toner-perilla-4.jpg"
+  ],
+  "CreatedAt": "2025-06-18T17:35:00Z",
+  "ingredients": [
+    {
+      "name_ingredients": "100% Hydrosol (nước cất) từ Lá Tía Tô Mào Gà (Perilla frutescens):",
+      "uses_ingredients": "Được sản xuất bằng phương pháp chưng cất hơi nước, giữ lại các thành phần hoạt tính tan trong nước của lá Tía Tô Mào Gà."
+    }
+  ],
+  "usage_instructions": [
+    "Bước 1:",
+    "Rửa mặt sạch bằng sữa rửa mặt phù hợp và lau khô nhẹ nhàng bằng khăn mềm.",
+    "Bước 2:",
+    "Lấy một lượng toner vừa đủ thấm đều lên bông tẩy trang. Nhẹ nhàng lau khắp mặt theo chiều từ trong ra ngoài, từ dưới lên trên. Hoặc đổ một vài giọt toner vào lòng bàn tay sạch. Vỗ nhẹ nhàng trực tiếp lên khắp mặt và cổ cho đến khi sản phẩm thẩm thấu hết.",
+    "Bước 3:",
+    "Sau khi toner đã thẩm thấu, tiếp tục các bước dưỡng da tiếp theo như serum, kem dưỡng ẩm."
+  ],
+  "warning": [
+    "Chỉ sử dụng ngoài da.",
+    "Bảo quản sản phẩm nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp.",
+    "Đậy kín nắp sau khi sử dụng.",
+    "Để xa tầm tay trẻ em.",
+    "Nếu có dấu hiệu kích ứng hoặc mẩn đỏ, ngưng sử dụng ngay và tham khảo ý kiến chuyên gia."
+  ],
+  "product_uses": [
+    "Cân bằng độ pH: Giúp khôi phục độ pH tự nhiên của da sau bước làm sạch, tạo môi trường lý tưởng cho các bước dưỡng da tiếp theo.",
+    "Cấp ẩm sâu: Cung cấp độ ẩm cần thiết, giúp da mềm mại, mịn màng và không bị khô căng.",
+    "Kháng viêm, làm dịu da: Giúp giảm sưng, mẩn đỏ và làm dịu các nốt mụn viêm, da kích ứng.",
+    "Kháng khuẩn, hỗ trợ giảm mụn: Góp phần ức chế vi khuẩn gây mụn, hỗ trợ cải thiện tình trạng mụn trứng cá và ngăn ngừa mụn mới.",
+    "Kiểm soát bã nhờn: Giúp điều tiết lượng dầu thừa trên da, giảm tình trạng bóng dầu và ngăn ngừa bít tắc lỗ chân lông.",
+    "Se khít lỗ chân lông: Hỗ trợ thu nhỏ lỗ chân lông, mang lại bề mặt da mịn màng hơn.",
+    "Chống oxy hóa: Bảo vệ da khỏi tác động của các gốc tự do, góp phần ngăn ngừa lão hóa sớm."
+  ]
+}]
