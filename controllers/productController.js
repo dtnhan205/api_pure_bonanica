@@ -1,8 +1,18 @@
 const Product = require('../models/product');
 const mongoose = require('mongoose');
 
-// Hàm tạo slug từ tên sản phẩm với kiểm tra duy nhất
-const generateSlug = async (name, currentSlug = null) => {
+// Hàm tạo slug từ tên sản phẩm với kiểm tra tên duy nhất
+const generateSlug = async (name, currentProductId = null) => {
+  // Kiểm tra xem tên sản phẩm đã tồn tại chưa (không phân biệt hoa thường)
+  const nameExists = await Product.findOne({ 
+    name: { $regex: `^${name}$`, $options: 'i' },
+    _id: { $ne: currentProductId } // Loại trừ sản phẩm hiện tại khi cập nhật
+  });
+
+  if (nameExists) {
+    throw new Error(`Tên sản phẩm "${name}" đã tồn tại`);
+  }
+
   let baseSlug = name
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
@@ -11,12 +21,33 @@ const generateSlug = async (name, currentSlug = null) => {
     .replace(/-+/g, '-');
 
   let uniqueSlug = baseSlug;
-  let counter = 1;
-  while (await Product.countDocuments({ slug: uniqueSlug, slug: { $ne: currentSlug } }) > 0) {
-    uniqueSlug = `${baseSlug}-${counter}`;
-    counter++;
-    console.log(`Checking slug: ${uniqueSlug}`);
+
+  // Kiểm tra tính duy nhất của slug
+  const regex = new RegExp(`^${baseSlug}(-\\d+)?$`, 'i');
+  const existingSlugs = await Product.find({ slug: regex }, 'slug').lean();
+
+  if (existingSlugs.length === 0) {
+    console.log(`Generated unique slug for "${name}": ${uniqueSlug}`);
+    return uniqueSlug;
   }
+
+  // Lấy danh sách các số từ các slug hiện có (nếu có)
+  const numbers = existingSlugs
+    .map(doc => {
+      const match = doc.slug.match(/-(\d+)$/);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+    .filter(num => !isNaN(num));
+
+  // Nếu không có slug nào trùng hoặc chỉ có baseSlug mà không có số, trả về baseSlug
+  if (!existingSlugs.some(doc => doc.slug === baseSlug)) {
+    console.log(`Generated unique slug for "${name}": ${uniqueSlug}`);
+    return uniqueSlug;
+  }
+
+  // Tìm số lớn nhất và tăng thêm 1
+  const maxNumber = numbers.length > 0 ? Math.max(...numbers) : 0;
+  uniqueSlug = `${baseSlug}-${maxNumber + 1}`;
 
   console.log(`Generated unique slug for "${name}": ${uniqueSlug}`);
   return uniqueSlug;
@@ -60,7 +91,6 @@ exports.createProduct = async (req, res, next) => {
     const validatedIdBrand = validateObjectId(id_brand, 'id_brand');
     const validatedIdCategory = validateObjectId(id_category, 'id_category');
 
-    // Log để debug
     console.log('Validated id_brand:', validatedIdBrand);
     console.log('Validated id_category:', validatedIdCategory);
 
@@ -78,11 +108,18 @@ exports.createProduct = async (req, res, next) => {
       return res.status(400).json({ error: `id_category không tồn tại trong database: ${validatedIdCategory}` });
     }
 
+    // Tạo slug tự động từ name
+    const slug = await generateSlug(name);
+
     // Kiểm tra tính hợp lệ của option
     let parsedOption = [];
     if (option) {
       try {
-        parsedOption = typeof option === 'string' ? JSON.parse(option.replace(/\n/g, '').trim()) : option;
+        let cleanedOption = typeof option === 'string' ? option.replace(/\n/g, '').trim() : option;
+        if (cleanedOption.startsWith('{') && cleanedOption.endsWith('}')) {
+          cleanedOption = `[${cleanedOption}]`; // Chuyển thành mảng nếu là object đơn
+        }
+        parsedOption = JSON.parse(cleanedOption);
         if (!Array.isArray(parsedOption)) {
           parsedOption = [parsedOption];
         }
@@ -97,9 +134,6 @@ exports.createProduct = async (req, res, next) => {
         }
       }
     }
-
-    // Tạo slug tự động từ name
-    const slug = await generateSlug(name);
 
     // Xử lý file upload
     const imagePaths = req.files && req.files.length > 0 
@@ -160,15 +194,17 @@ exports.updateProduct = async (req, res, next) => {
     console.log('Received body for update:', JSON.stringify(req.body, null, 2));
     console.log('Received files for update:', req.files ? req.files.map(f => ({ name: f.originalname, size: f.size || 'undefined', filename: f.filename })) : 'No files');
 
-    const { slug } = req.params;
+    const { id } = req.params; // Sử dụng id thay vì slug
     const { name, id_brand, id_category, option, ...updateData } = req.body;
 
-    if (!slug) {
-      return res.status(400).json({ error: 'Slug sản phẩm không hợp lệ' });
+    // Kiểm tra tính hợp lệ của id
+    const validatedId = validateObjectId(id, '_id');
+    if (!validatedId) {
+      return res.status(400).json({ error: `ID sản phẩm không hợp lệ: ${id}` });
     }
 
     // Lấy sản phẩm hiện tại để so sánh
-    const existingProduct = await Product.findOne({ slug }).select('slug');
+    const existingProduct = await Product.findById(validatedId).select('name slug');
     if (!existingProduct) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
     }
@@ -210,26 +246,23 @@ exports.updateProduct = async (req, res, next) => {
       }
     }
 
-    // Tự động tạo slug mới nếu name được gửi
-    if (name) {
-      const newSlug = await generateSlug(name, existingProduct.slug); // Sử dụng slug hiện tại
-      updateData.slug = newSlug;
-      console.log('Generated new slug:', newSlug);
-    }
-
-    // Kiểm tra tính duy nhất của slug nếu có thay đổi
-    if (updateData.slug && updateData.slug !== existingProduct.slug) {
-      const existingSlug = await Product.findOne({ slug: updateData.slug, slug: { $ne: existingProduct.slug } });
-      if (existingSlug) {
-        return res.status(400).json({ error: 'Slug đã tồn tại, vui lòng chọn slug khác' });
-      }
+    // Tự động tạo slug mới và cập nhật name nếu name được gửi
+    if (name && name !== existingProduct.name) {
+      const newSlug = await generateSlug(name, existingProduct._id); // Loại trừ sản phẩm hiện tại
+      updateData.name = name; // Cập nhật tên sản phẩm
+      updateData.slug = newSlug; // Cập nhật slug
+      console.log('Generated new slug from name:', newSlug);
     }
 
     // Kiểm tra tính hợp lệ của option
     if (option !== undefined) { // Chỉ kiểm tra nếu option được gửi
       let parsedOption;
       try {
-        parsedOption = typeof option === 'string' ? JSON.parse(option.replace(/\n/g, '').trim()) : option;
+        let cleanedOption = typeof option === 'string' ? option.replace(/\n/g, '').trim() : option;
+        if (cleanedOption.startsWith('{') && cleanedOption.endsWith('}')) {
+          cleanedOption = `[${cleanedOption}]`; // Chuyển thành mảng nếu là object đơn
+        }
+        parsedOption = JSON.parse(cleanedOption);
         if (!Array.isArray(parsedOption)) {
           parsedOption = [parsedOption];
         }
@@ -254,8 +287,8 @@ exports.updateProduct = async (req, res, next) => {
     // Thêm log trước khi cập nhật
     console.log('Update data:', JSON.stringify(updateData, null, 2));
 
-    const updatedProduct = await Product.findOneAndUpdate(
-      { slug: existingProduct.slug }, // Sử dụng slug hiện tại để tìm
+    const updatedProduct = await Product.findByIdAndUpdate(
+      validatedId, // Sử dụng _id để tìm chính xác sản phẩm
       { $set: updateData },
       { new: true, runValidators: true, select: '-__v' }
     );
