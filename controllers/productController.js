@@ -1,59 +1,122 @@
 const Product = require('../models/product');
 const mongoose = require('mongoose');
 
+// Hàm tạo slug từ tên sản phẩm với kiểm tra duy nhất
+const generateSlug = async (name, currentSlug = null) => {
+  let baseSlug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+
+  let uniqueSlug = baseSlug;
+  let counter = 1;
+  while (await Product.countDocuments({ slug: uniqueSlug, slug: { $ne: currentSlug } }) > 0) {
+    uniqueSlug = `${baseSlug}-${counter}`;
+    counter++;
+    console.log(`Checking slug: ${uniqueSlug}`);
+  }
+
+  console.log(`Generated unique slug for "${name}": ${uniqueSlug}`);
+  return uniqueSlug;
+};
+
+// Hàm kiểm tra và chuẩn hóa ObjectId với log chi tiết
+const validateObjectId = (id, fieldName) => {
+  console.log(`Validating ${fieldName}:`, id);
+  if (!id || typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+    console.warn(`Invalid ${fieldName}:`, id);
+    return null;
+  }
+  return id;
+};
+
+// Hàm kiểm tra sự tồn tại của ObjectId (tùy chọn)
+const checkIdExistence = async (model, id, fieldName) => {
+  const doc = await model.findById(id);
+  if (!doc) {
+    console.warn(`${fieldName} not found in database:`, id);
+    return false;
+  }
+  return true;
+};
+
 exports.createProduct = async (req, res, next) => {
   try {
     console.log('Received body:', JSON.stringify(req.body, null, 2));
-    console.log('Received files:', req.files ? req.files.map(f => ({ name: f.originalname, size: f.size, filename: f.filename })) : 'No files');
+    console.log('Received files:', req.files ? req.files.map(f => ({ name: f.originalname, size: f.size || 'undefined', filename: f.filename })) : 'No files');
 
     const { 
-      name, slug, status, view, id_brand, id_category, 
-      short_description, description, usage_instructions, 
-      ingredients, warning, product_uses 
+      name, status, view, id_brand, id_category, 
+      short_description, description, option 
     } = req.body;
 
-    const parseArray = (data) => {
-      if (!data) return [];
-      if (typeof data === 'string') {
-        try {
-          return JSON.parse(data);
-        } catch (e) {
-          console.warn(`Failed to parse JSON for ${data}:`, e.message);
-          return data.split(',').map(item => item.trim());
+    if (!name || !id_brand || !id_category) {
+      return res.status(400).json({ error: 'Thiếu các trường bắt buộc: name, id_brand, id_category' });
+    }
+
+    // Chuẩn hóa và kiểm tra ObjectId
+    const validatedIdBrand = validateObjectId(id_brand, 'id_brand');
+    const validatedIdCategory = validateObjectId(id_category, 'id_category');
+
+    // Log để debug
+    console.log('Validated id_brand:', validatedIdBrand);
+    console.log('Validated id_category:', validatedIdCategory);
+
+    // Kiểm tra tính hợp lệ của ObjectId
+    if (!validatedIdBrand) {
+      return res.status(400).json({ error: `id_brand không hợp lệ: ${id_brand}` });
+    }
+    if (!validatedIdCategory) {
+      return res.status(400).json({ error: `id_category không hợp lệ: ${id_category}` });
+    }
+
+    // Tùy chọn: Kiểm tra sự tồn tại trong database
+    const Category = require('../models/category');
+    if (!(await checkIdExistence(Category, validatedIdCategory, 'id_category'))) {
+      return res.status(400).json({ error: `id_category không tồn tại trong database: ${validatedIdCategory}` });
+    }
+
+    // Kiểm tra tính hợp lệ của option
+    let parsedOption = [];
+    if (option) {
+      try {
+        parsedOption = typeof option === 'string' ? JSON.parse(option.replace(/\n/g, '').trim()) : option;
+        if (!Array.isArray(parsedOption)) {
+          parsedOption = [parsedOption];
+        }
+      } catch (e) {
+        return res.status(400).json({ error: `Dữ liệu option không hợp lệ: ${e.message}` });
+      }
+
+      for (const opt of parsedOption) {
+        if (!opt.value || typeof opt.price !== 'number' || typeof opt.stock !== 'number' || 
+            opt.price < 0 || opt.stock < 0 || (opt.discount_price && opt.discount_price < 0)) {
+          return res.status(400).json({ error: 'value, price, stock trong option là bắt buộc và không được âm' });
         }
       }
-      return Array.isArray(data) ? data : [data];
-    };
-
-    if (!name || !slug || !id_brand || !id_category) {
-      return res.status(400).json({ error: 'Thiếu các trường bắt buộc: name, slug, id_brand, id_category' });
     }
 
-    if (!mongoose.isValidObjectId(id_brand) || !mongoose.isValidObjectId(id_category)) {
-      return res.status(400).json({ error: 'id_brand hoặc id_category không hợp lệ' });
-    }
+    // Tạo slug tự động từ name
+    const slug = await generateSlug(name);
 
-    const existingSlug = await Product.findOne({ slug });
-    if (existingSlug) {
-      return res.status(400).json({ error: 'Slug đã tồn tại, vui lòng chọn slug khác' });
-    }
-
-    const imagePaths = req.files ? req.files.map(file => `/images/${file.filename}`) : [];
+    // Xử lý file upload
+    const imagePaths = req.files && req.files.length > 0 
+      ? req.files.map(file => `/images/${file.filename}`)
+      : [];
 
     const product = new Product({
       name,
       slug,
       status: status || 'show',
       view: view || 0,
-      id_brand,
-      id_category,
+      id_brand: validatedIdBrand,
+      id_category: validatedIdCategory,
       images: imagePaths,
-      short_description: parseArray(short_description),
-      description: parseArray(description),
-      usage_instructions: parseArray(usage_instructions),
-      ingredients: parseArray(ingredients),
-      warning: parseArray(warning),
-      product_uses: parseArray(product_uses),
+      short_description,
+      description,
+      option: parsedOption
     });
 
     await product.save();
@@ -93,72 +156,118 @@ exports.getProductBySlug = async (req, res) => {
 };
 
 exports.updateProduct = async (req, res, next) => {
-  upload.array('images', 10)(req, res, async (err) => {
-    if (err) return handleMulterError(err, req, res, next);
+  try {
+    console.log('Received body for update:', JSON.stringify(req.body, null, 2));
+    console.log('Received files for update:', req.files ? req.files.map(f => ({ name: f.originalname, size: f.size || 'undefined', filename: f.filename })) : 'No files');
 
-    try {
-      const { slug } = req.params;
-      const { id_brand, id_category, ...updateData } = req.body;
+    const { slug } = req.params;
+    const { name, id_brand, id_category, option, ...updateData } = req.body;
 
-      // Parse các trường là JSON hoặc chuỗi
-      const parseArray = (data) => {
-        if (!data) return [];
-        if (typeof data === 'string') {
-          try {
-            return JSON.parse(data);
-          } catch (e) {
-            return data.split(',').map(item => item.trim());
-          }
-        }
-        return Array.isArray(data) ? data : [data];
-      };
-
-      if (!slug) {
-        return res.status(400).json({ error: 'Slug sản phẩm không hợp lệ' });
-      }
-
-      if (id_brand && !mongoose.isValidObjectId(id_brand)) {
-        return res.status(400).json({ error: 'id_brand không hợp lệ' });
-      }
-      if (id_category && !mongoose.isValidObjectId(id_category)) {
-        return res.status(400).json({ error: 'id_category không hợp lệ' });
-      }
-
-      if (updateData.slug) {
-        const existingSlug = await Product.findOne({ slug: updateData.slug, slug: { $ne: slug } });
-        if (existingSlug) {
-          return res.status(400).json({ error: 'Slug đã tồn tại, vui lòng chọn slug khác' });
-        }
-      }
-
-      // Thêm hình ảnh mới (nếu có)
-      if (req.files && req.files.length > 0) {
-        updateData.images = req.files.map(file => `/images/${file.filename}`);
-      }
-
-      // Parse các trường mảng
-      if (updateData.short_description) updateData.short_description = parseArray(updateData.short_description);
-      if (updateData.description) updateData.description = parseArray(updateData.description);
-      if (updateData.usage_instructions) updateData.usage_instructions = parseArray(updateData.usage_instructions);
-      if (updateData.ingredients) updateData.ingredients = parseArray(updateData.ingredients);
-      if (updateData.warning) updateData.warning = parseArray(updateData.warning);
-      if (updateData.product_uses) updateData.product_uses = parseArray(updateData.product_uses);
-
-      const updatedProduct = await Product.findOneAndUpdate(
-        { slug },
-        { $set: updateData },
-        { new: true, runValidators: true, select: '-__v' }
-      );
-
-      if (!updatedProduct) {
-        return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
-      }
-      res.json({ message: 'Cập nhật thành công', product: updatedProduct });
-    } catch (err) {
-      console.error('Lỗi cập nhật sản phẩm:', err);
-      res.status(400).json({ error: err.message });
+    if (!slug) {
+      return res.status(400).json({ error: 'Slug sản phẩm không hợp lệ' });
     }
-  });
+
+    // Lấy sản phẩm hiện tại để so sánh
+    const existingProduct = await Product.findOne({ slug }).select('slug');
+    if (!existingProduct) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    }
+
+    // Chuẩn hóa và kiểm tra ObjectId nếu có trong updateData
+    let validatedIdBrand = updateData.id_brand; // Giá trị mặc định từ database nếu không thay đổi
+    if (id_brand !== undefined) { // Chỉ kiểm tra nếu id_brand được gửi
+      validatedIdBrand = validateObjectId(id_brand, 'id_brand');
+      if (!validatedIdBrand) {
+        return res.status(400).json({ error: `id_brand không hợp lệ: ${id_brand}` });
+      }
+      updateData.id_brand = validatedIdBrand;
+    }
+
+    let validatedIdCategory = updateData.id_category; // Giá trị mặc định từ database nếu không thay đổi
+    if (id_category !== undefined) { // Chỉ kiểm tra nếu id_category được gửi
+      validatedIdCategory = validateObjectId(id_category, 'id_category');
+      if (!validatedIdCategory) {
+        return res.status(400).json({ error: `id_category không hợp lệ: ${id_category}` });
+      }
+      updateData.id_category = validatedIdCategory;
+    }
+
+    // Log để debug
+    console.log('Validated id_brand:', validatedIdBrand);
+    console.log('Validated id_category:', validatedIdCategory);
+
+    // Tùy chọn: Kiểm tra sự tồn tại trong database nếu có thay đổi
+    if (id_category !== undefined) {
+      const Category = require('../models/category');
+      if (!(await checkIdExistence(Category, validatedIdCategory, 'id_category'))) {
+        return res.status(400).json({ error: `id_category không tồn tại trong database: ${validatedIdCategory}` });
+      }
+    }
+    if (id_brand !== undefined) {
+      const Brand = require('../models/brand');
+      if (!(await checkIdExistence(Brand, validatedIdBrand, 'id_brand'))) {
+        return res.status(400).json({ error: `id_brand không tồn tại trong database: ${validatedIdBrand}` });
+      }
+    }
+
+    // Tự động tạo slug mới nếu name được gửi
+    if (name) {
+      const newSlug = await generateSlug(name, existingProduct.slug); // Sử dụng slug hiện tại
+      updateData.slug = newSlug;
+      console.log('Generated new slug:', newSlug);
+    }
+
+    // Kiểm tra tính duy nhất của slug nếu có thay đổi
+    if (updateData.slug && updateData.slug !== existingProduct.slug) {
+      const existingSlug = await Product.findOne({ slug: updateData.slug, slug: { $ne: existingProduct.slug } });
+      if (existingSlug) {
+        return res.status(400).json({ error: 'Slug đã tồn tại, vui lòng chọn slug khác' });
+      }
+    }
+
+    // Kiểm tra tính hợp lệ của option
+    if (option !== undefined) { // Chỉ kiểm tra nếu option được gửi
+      let parsedOption;
+      try {
+        parsedOption = typeof option === 'string' ? JSON.parse(option.replace(/\n/g, '').trim()) : option;
+        if (!Array.isArray(parsedOption)) {
+          parsedOption = [parsedOption];
+        }
+      } catch (e) {
+        return res.status(400).json({ error: `Dữ liệu option không hợp lệ: ${e.message}` });
+      }
+
+      for (const opt of parsedOption) {
+        if (!opt.value || typeof opt.price !== 'number' || typeof opt.stock !== 'number' || 
+            opt.price < 0 || opt.stock < 0 || (opt.discount_price && opt.discount_price < 0)) {
+          return res.status(400).json({ error: 'value, price, stock trong option là bắt buộc và không được âm' });
+        }
+      }
+      updateData.option = parsedOption;
+    }
+
+    // Xử lý file upload
+    if (req.files && req.files.length > 0) {
+      updateData.images = req.files.map(file => `/images/${file.filename}`);
+    }
+
+    // Thêm log trước khi cập nhật
+    console.log('Update data:', JSON.stringify(updateData, null, 2));
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { slug: existingProduct.slug }, // Sử dụng slug hiện tại để tìm
+      { $set: updateData },
+      { new: true, runValidators: true, select: '-__v' }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    }
+    res.json({ message: 'Cập nhật thành công', product: updatedProduct });
+  } catch (err) {
+    console.error('Lỗi cập nhật sản phẩm:', err);
+    res.status(400).json({ error: err.message });
+  }
 };
 
 exports.deleteProduct = async (req, res) => {

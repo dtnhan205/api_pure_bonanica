@@ -8,17 +8,16 @@ const productSchema = new mongoose.Schema({
   id_brand: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Brand' },
   id_category: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Category' },
   images: [{ type: String }],
-  short_description: [{ type: String }],
-  description: [{ type: String }],
-  usage_instructions: [{ type: String }],
-  ingredients: [
+  short_description: { type: String },
+  description: { type: String },
+  option: [
     {
-      name_ingredients: { type: String, trim: true },
-      uses_ingredients: { type: String, trim: true }
+      stock: { type: Number, required: true, min: 0 },
+      value: { type: String, trim: true, required: true },
+      price: { type: Number, required: true, min: 0 },
+      discount_price: { type: Number, default: 0, min: 0 }
     }
   ],
-  warning: [{ type: String }],
-  product_uses: [{ type: String }],
   createdAt: { type: Date, default: Date.now }
 }, { 
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }

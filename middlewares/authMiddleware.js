@@ -1,31 +1,23 @@
+const Admin = require('../models/admin'); 
 const jwt = require('jsonwebtoken');
-const User = require('../models/user'); 
 
-const authMiddleware = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Không có token xác thực' });
-  }
-
-  const token = authHeader.split(' ')[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dinhthenhan');
-    const user = await User.findById(decoded.id).select('-password'); // Lấy người dùng mà không có mật khẩu
-
-    if (!user) {
-      return res.status(401).json({ error: 'Người dùng không tồn tại' });
+const authAdmin = async (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ message: 'Không có token, truy cập bị từ chối' });
     }
-
-    req.user = user; // Lưu thông tin người dùng vào request
-    next();
-  } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token đã hết hạn' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const admin = await Admin.findOne({ _id: decoded.id, role: 'admin' });
+        if (!admin) {
+            return res.status(401).json({ message: 'Không có quyền admin' });
+        }
+        req.admin = admin;
+        next();
+    } catch (error) {
+        res.status(401).json({ message: 'Token không hợp lệ', error: error.message });
     }
-    return res.status(401).json({ error: 'Token không hợp lệ' });
-  }
 };
 
-module.exports = authMiddleware;
+
+module.exports = authAdmin;

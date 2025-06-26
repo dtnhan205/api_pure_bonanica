@@ -23,16 +23,13 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   console.log(`Processing file: ${file.originalname}, mimetype: ${file.mimetype}, size: ${file.size || 'undefined'} bytes`);
-  if (!file.size || file.size === 0) {
-    console.warn('File size is undefined or zero, possible corrupted file or incomplete upload');
-    return cb(new Error('Kích thước file không hợp lệ hoặc file bị hỏng'), false);
-  }
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml'];
   const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
   const ext = path.extname(file.originalname).toLowerCase();
   if (allowedTypes.includes(file.mimetype) && allowedExts.includes(ext)) {
     cb(null, true);
   } else {
+    console.warn(`Invalid file type or extension: ${file.originalname}`);
     cb(new Error('Chỉ hỗ trợ file ảnh (jpg, jpeg, png, gif, webp, svg)'), false);
   }
 };
@@ -42,7 +39,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: { 
-    fileSize: 10 * 1024 * 1024, // 10MB
+    fileSize: 20 * 1024 * 1024, // 20MB
     fields: 100,
     parts: 120,
     files: 20
@@ -67,8 +64,14 @@ const optionalUpload = (req, res, next) => {
   // Chọn middleware dựa trên route
   const middleware = req.path.includes('/news') ? newsUpload : productUpload;
   middleware(req, res, (err) => {
-    if (err) return handleMulterError(err, req, res, next);
-    next();
+    if (err) {
+      console.warn(`Multer error caught in optionalUpload: ${err.message}`);
+      // Tiếp tục request ngay cả khi có lỗi upload, vì file không bắt buộc
+      req.files = []; // Đặt req.files rỗng để controller xử lý
+      next();
+    } else {
+      next();
+    }
   });
 };
 
