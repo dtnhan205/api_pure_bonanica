@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, trim: true, unique: true, index: true },
+  slug: { type: String, required: true, trim: true, unique: true }, 
   status: { type: String, enum: ['hidden', 'show'], default: 'show' },
   view: { type: Number, default: 0 },
   id_brand: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Brand' },

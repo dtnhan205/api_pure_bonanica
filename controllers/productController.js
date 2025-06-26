@@ -1,5 +1,8 @@
-const Product = require('../models/product');
 const mongoose = require('mongoose');
+const Product = require('../models/product');
+const validator = require('validator');
+const jwt = require('jsonwebtoken');
+const Admin = require('../models/user');
 
 // Hàm tạo slug từ tên sản phẩm với kiểm tra tên duy nhất
 const generateSlug = async (name, currentProductId = null) => {
@@ -24,14 +27,18 @@ const generateSlug = async (name, currentProductId = null) => {
 
   // Kiểm tra tính duy nhất của slug
   const regex = new RegExp(`^${baseSlug}(-\\d+)?$`, 'i');
-  const existingSlugs = await Product.find({ slug: regex }, 'slug').lean();
+  const existingSlugs = await Product.find({ slug: regex, _id: { $ne: currentProductId } }, 'slug').lean();
 
   if (existingSlugs.length === 0) {
     console.log(`Generated unique slug for "${name}": ${uniqueSlug}`);
     return uniqueSlug;
   }
 
-  // Lấy danh sách các số từ các slug hiện có (nếu có)
+  if (!existingSlugs.some(doc => doc.slug === baseSlug)) {
+    console.log(`Generated unique slug for "${name}": ${uniqueSlug}`);
+    return uniqueSlug;
+  }
+
   const numbers = existingSlugs
     .map(doc => {
       const match = doc.slug.match(/-(\d+)$/);
@@ -39,13 +46,6 @@ const generateSlug = async (name, currentProductId = null) => {
     })
     .filter(num => !isNaN(num));
 
-  // Nếu không có slug nào trùng hoặc chỉ có baseSlug mà không có số, trả về baseSlug
-  if (!existingSlugs.some(doc => doc.slug === baseSlug)) {
-    console.log(`Generated unique slug for "${name}": ${uniqueSlug}`);
-    return uniqueSlug;
-  }
-
-  // Tìm số lớn nhất và tăng thêm 1
   const maxNumber = numbers.length > 0 ? Math.max(...numbers) : 0;
   uniqueSlug = `${baseSlug}-${maxNumber + 1}`;
 
@@ -63,7 +63,7 @@ const validateObjectId = (id, fieldName) => {
   return id;
 };
 
-// Hàm kiểm tra sự tồn tại của ObjectId (tùy chọn)
+// Hàm kiểm tra sự tồn tại của ObjectId
 const checkIdExistence = async (model, id, fieldName) => {
   const doc = await model.findById(id);
   if (!doc) {
@@ -73,7 +73,71 @@ const checkIdExistence = async (model, id, fieldName) => {
   return true;
 };
 
-exports.createProduct = async (req, res, next) => {
+// Middleware kiểm tra quyền admin
+const verifyAdmin = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ error: 'Không có token, quyền truy cập bị từ chối' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const admin = await Admin.findById(decoded.id);
+    if (!admin) {
+      return res.status(403).json({ error: 'Không có quyền admin' });
+    }
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Token không hợp lệ' });
+  }
+};
+
+exports.getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ status: 'show' }).select('-__v').sort({ createdAt: -1 });
+    res.json(products);
+  } catch (err) {
+    console.error('Lỗi lấy sản phẩm:', err);
+    res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
+exports.getProductByIdOrSlug = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+    if (!identifier) {
+      return res.status(400).json({ error: 'Identifier (ID hoặc slug) không hợp lệ' });
+    }
+
+    const isObjectId = mongoose.isValidObjectId(identifier);
+    const query = isObjectId ? { _id: identifier } : { slug: identifier };
+    const isAdmin = !!req.headers.authorization;
+
+    let product;
+    if (isAdmin) {
+      // Admin: Không tăng view
+      product = await Product.findOne(query).select('-__v');
+    } else {
+      // Non-admin: Tăng view
+      product = await Product.findOneAndUpdate(
+        query,
+        { $inc: { view: 1 } },
+        { new: true, select: '-__v' }
+      );
+    }
+
+    if (!product) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    }
+    res.json(product);
+  } catch (err) {
+    console.error(`GET /api/products/${req.params.identifier} error:`, err);
+    res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
+exports.createProduct = async (req, res) => {
   try {
     console.log('Received body:', JSON.stringify(req.body, null, 2));
     console.log('Received files:', req.files ? req.files.map(f => ({ name: f.originalname, size: f.size || 'undefined', filename: f.filename })) : 'No files');
@@ -91,10 +155,6 @@ exports.createProduct = async (req, res, next) => {
     const validatedIdBrand = validateObjectId(id_brand, 'id_brand');
     const validatedIdCategory = validateObjectId(id_category, 'id_category');
 
-    console.log('Validated id_brand:', validatedIdBrand);
-    console.log('Validated id_category:', validatedIdCategory);
-
-    // Kiểm tra tính hợp lệ của ObjectId
     if (!validatedIdBrand) {
       return res.status(400).json({ error: `id_brand không hợp lệ: ${id_brand}` });
     }
@@ -102,8 +162,12 @@ exports.createProduct = async (req, res, next) => {
       return res.status(400).json({ error: `id_category không hợp lệ: ${id_category}` });
     }
 
-    // Tùy chọn: Kiểm tra sự tồn tại trong database
+    // Kiểm tra sự tồn tại trong database
+    const Brand = require('../models/brand');
     const Category = require('../models/category');
+    if (!(await checkIdExistence(Brand, validatedIdBrand, 'id_brand'))) {
+      return res.status(400).json({ error: `id_brand không tồn tại trong database: ${validatedIdBrand}` });
+    }
     if (!(await checkIdExistence(Category, validatedIdCategory, 'id_category'))) {
       return res.status(400).json({ error: `id_category không tồn tại trong database: ${validatedIdCategory}` });
     }
@@ -117,7 +181,7 @@ exports.createProduct = async (req, res, next) => {
       try {
         let cleanedOption = typeof option === 'string' ? option.replace(/\n/g, '').trim() : option;
         if (cleanedOption.startsWith('{') && cleanedOption.endsWith('}')) {
-          cleanedOption = `[${cleanedOption}]`; // Chuyển thành mảng nếu là object đơn
+          cleanedOption = `[${cleanedOption}]`;
         }
         parsedOption = JSON.parse(cleanedOption);
         if (!Array.isArray(parsedOption)) {
@@ -144,7 +208,7 @@ exports.createProduct = async (req, res, next) => {
       name,
       slug,
       status: status || 'show',
-      view: view || 0,
+      view: parseInt(view, 10) || 0,
       id_brand: validatedIdBrand,
       id_category: validatedIdCategory,
       images: imagePaths,
@@ -156,111 +220,71 @@ exports.createProduct = async (req, res, next) => {
     await product.save();
     res.status(201).json({ message: 'Tạo sản phẩm thành công', product });
   } catch (err) {
-    console.error('Lỗi tạo sản phẩm:', err);
+    console.error('POST /api/products error:', err);
+    if (err.code === 11000) {
+      return res.status(400).json({ error: 'Trùng lặp slug' });
+    }
     res.status(400).json({ error: err.message });
   }
 };
 
-exports.getAllProducts = async (req, res) => {
+exports.updateProduct = async (req, res) => {
   try {
-    const products = await Product.find({ status: 'show' }).select('-__v').sort({ createdAt: -1 });
-    res.json(products);
-  } catch (err) {
-    console.error('Lỗi lấy sản phẩm:', err);
-    res.status(500).json({ error: 'Lỗi máy chủ' });
-  }
-};
+    console.log('Received body:', JSON.stringify(req.body, null, 2));
+    console.log('Received files:', req.files ? req.files.map(f => ({ name: f.originalname, size: f.size || 'undefined', filename: f.filename })) : 'No files');
 
-exports.getProductBySlug = async (req, res) => {
-  const { slug } = req.params;
-  try {
-    if (!slug) {
-      return res.status(400).json({ error: 'Slug sản phẩm không hợp lệ' });
-    }
+    const { identifier } = req.params;
+    const isObjectId = mongoose.isValidObjectId(identifier);
+    const query = isObjectId ? { _id: identifier } : { slug: identifier };
 
-    const product = await Product.findOne({ slug, status: 'show' }).select('-__v');
-    if (!product) {
-      return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
-    }
-    res.json(product);
-  } catch (err) {
-    console.error('Lỗi lấy sản phẩm theo slug:', err);
-    res.status(500).json({ error: 'Lỗi máy chủ' });
-  }
-};
-
-exports.updateProduct = async (req, res, next) => {
-  try {
-    console.log('Received body for update:', JSON.stringify(req.body, null, 2));
-    console.log('Received files for update:', req.files ? req.files.map(f => ({ name: f.originalname, size: f.size || 'undefined', filename: f.filename })) : 'No files');
-
-    const { id } = req.params; // Sử dụng id thay vì slug
     const { name, id_brand, id_category, option, ...updateData } = req.body;
 
-    // Kiểm tra tính hợp lệ của id
-    const validatedId = validateObjectId(id, '_id');
-    if (!validatedId) {
-      return res.status(400).json({ error: `ID sản phẩm không hợp lệ: ${id}` });
-    }
-
-    // Lấy sản phẩm hiện tại để so sánh
-    const existingProduct = await Product.findById(validatedId).select('name slug');
+    // Lấy sản phẩm hiện tại
+    const existingProduct = await Product.findOne(query);
     if (!existingProduct) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
     }
 
-    // Chuẩn hóa và kiểm tra ObjectId nếu có trong updateData
-    let validatedIdBrand = updateData.id_brand; // Giá trị mặc định từ database nếu không thay đổi
-    if (id_brand !== undefined) { // Chỉ kiểm tra nếu id_brand được gửi
-      validatedIdBrand = validateObjectId(id_brand, 'id_brand');
+    // Chuẩn hóa và kiểm tra ObjectId nếu có
+    if (id_brand !== undefined) {
+      const validatedIdBrand = validateObjectId(id_brand, 'id_brand');
       if (!validatedIdBrand) {
         return res.status(400).json({ error: `id_brand không hợp lệ: ${id_brand}` });
       }
-      updateData.id_brand = validatedIdBrand;
-    }
-
-    let validatedIdCategory = updateData.id_category; // Giá trị mặc định từ database nếu không thay đổi
-    if (id_category !== undefined) { // Chỉ kiểm tra nếu id_category được gửi
-      validatedIdCategory = validateObjectId(id_category, 'id_category');
-      if (!validatedIdCategory) {
-        return res.status(400).json({ error: `id_category không hợp lệ: ${id_category}` });
-      }
-      updateData.id_category = validatedIdCategory;
-    }
-
-    // Log để debug
-    console.log('Validated id_brand:', validatedIdBrand);
-    console.log('Validated id_category:', validatedIdCategory);
-
-    // Tùy chọn: Kiểm tra sự tồn tại trong database nếu có thay đổi
-    if (id_category !== undefined) {
-      const Category = require('../models/category');
-      if (!(await checkIdExistence(Category, validatedIdCategory, 'id_category'))) {
-        return res.status(400).json({ error: `id_category không tồn tại trong database: ${validatedIdCategory}` });
-      }
-    }
-    if (id_brand !== undefined) {
       const Brand = require('../models/brand');
       if (!(await checkIdExistence(Brand, validatedIdBrand, 'id_brand'))) {
         return res.status(400).json({ error: `id_brand không tồn tại trong database: ${validatedIdBrand}` });
       }
+      updateData.id_brand = validatedIdBrand;
     }
 
-    // Tự động tạo slug mới và cập nhật name nếu name được gửi
+    if (id_category !== undefined) {
+      const validatedIdCategory = validateObjectId(id_category, 'id_category');
+      if (!validatedIdCategory) {
+        return res.status(400).json({ error: `id_category không hợp lệ: ${id_category}` });
+      }
+      const Category = require('../models/category');
+      if (!(await checkIdExistence(Category, validatedIdCategory, 'id_category'))) {
+        return res.status(400).json({ error: `id_category không tồn tại trong database: ${validatedIdCategory}` });
+      }
+      updateData.id_category = validatedIdCategory;
+    }
+
+    // Tự động tạo slug mới nếu name thay đổi
     if (name && name !== existingProduct.name) {
-      const newSlug = await generateSlug(name, existingProduct._id); // Loại trừ sản phẩm hiện tại
-      updateData.name = name; // Cập nhật tên sản phẩm
-      updateData.slug = newSlug; // Cập nhật slug
+      const newSlug = await generateSlug(name, isObjectId ? identifier : existingProduct._id);
+      updateData.name = name;
+      updateData.slug = newSlug;
       console.log('Generated new slug from name:', newSlug);
     }
 
     // Kiểm tra tính hợp lệ của option
-    if (option !== undefined) { // Chỉ kiểm tra nếu option được gửi
+    if (option !== undefined) {
       let parsedOption;
       try {
         let cleanedOption = typeof option === 'string' ? option.replace(/\n/g, '').trim() : option;
         if (cleanedOption.startsWith('{') && cleanedOption.endsWith('}')) {
-          cleanedOption = `[${cleanedOption}]`; // Chuyển thành mảng nếu là object đơn
+          cleanedOption = `[${cleanedOption}]`;
         }
         parsedOption = JSON.parse(cleanedOption);
         if (!Array.isArray(parsedOption)) {
@@ -284,11 +308,11 @@ exports.updateProduct = async (req, res, next) => {
       updateData.images = req.files.map(file => `/images/${file.filename}`);
     }
 
-    // Thêm log trước khi cập nhật
-    console.log('Update data:', JSON.stringify(updateData, null, 2));
+    // Loại bỏ các trường undefined
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      validatedId, // Sử dụng _id để tìm chính xác sản phẩm
+    const updatedProduct = await Product.findOneAndUpdate(
+      query,
       { $set: updateData },
       { new: true, runValidators: true, select: '-__v' }
     );
@@ -296,39 +320,40 @@ exports.updateProduct = async (req, res, next) => {
     if (!updatedProduct) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
     }
-    res.json({ message: 'Cập nhật thành công', product: updatedProduct });
+    res.json({ message: 'Cập nhật sản phẩm thành công', product: updatedProduct });
   } catch (err) {
-    console.error('Lỗi cập nhật sản phẩm:', err);
+    console.error(`PUT /api/products/${req.params.identifier} error:`, err);
+    if (err.code === 11000) {
+      return res.status(400).json({ error: 'Trùng lặp slug' });
+    }
     res.status(400).json({ error: err.message });
   }
 };
 
 exports.deleteProduct = async (req, res) => {
-  const { slug } = req.params;
   try {
-    if (!slug) {
-      return res.status(400).json({ error: 'Slug sản phẩm không hợp lệ' });
-    }
+    const { identifier } = req.params;
+    const isObjectId = mongoose.isValidObjectId(identifier);
+    const query = isObjectId ? { _id: identifier } : { slug: identifier };
 
-    const deletedProduct = await Product.findOneAndDelete({ slug });
+    const deletedProduct = await Product.findOneAndDelete(query);
     if (!deletedProduct) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
     }
     res.json({ message: 'Xóa sản phẩm thành công' });
   } catch (err) {
-    console.error('Lỗi xóa sản phẩm:', err);
+    console.error(`DELETE /api/products/${req.params.identifier} error:`, err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
 };
 
 exports.toggleProductVisibility = async (req, res) => {
-  const { slug } = req.params;
   try {
-    if (!slug) {
-      return res.status(400).json({ error: 'Slug sản phẩm không hợp lệ' });
-    }
+    const { identifier } = req.params;
+    const isObjectId = mongoose.isValidObjectId(identifier);
+    const query = isObjectId ? { _id: identifier } : { slug: identifier };
 
-    const product = await Product.findOne({ slug }).select('-__v');
+    const product = await Product.findOne(query).select('-__v');
     if (!product) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
     }
@@ -336,9 +361,22 @@ exports.toggleProductVisibility = async (req, res) => {
     product.status = product.status === 'show' ? 'hidden' : 'show';
     await product.save();
 
-    res.json({ message: `Trạng thái sản phẩm đã chuyển thành ${product.status}`, product });
+    res.json({
+      message: `Sản phẩm đã được ${product.status === 'show' ? 'hiển thị' : 'ẩn'}`,
+      product,
+    });
   } catch (err) {
-    console.error('Lỗi toggle visibility:', err);
+    console.error(`PUT /api/products/${req.params.identifier}/toggle-visibility error:`, err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
+};
+
+module.exports = {
+  getAllProducts: exports.getAllProducts,
+  getProductByIdOrSlug: exports.getProductByIdOrSlug,
+  createProduct: exports.createProduct,
+  updateProduct: exports.updateProduct,
+  deleteProduct: exports.deleteProduct,
+  toggleProductVisibility: exports.toggleProductVisibility,
+  verifyAdmin,
 };
