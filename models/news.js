@@ -13,6 +13,5 @@ const newsSchema = new mongoose.Schema({
 });
 
 newsSchema.index({ views: -1 });
-newsSchema.index({ slug: 1 });
 
 module.exports = mongoose.model('News', newsSchema);

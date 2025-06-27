@@ -95,7 +95,7 @@ const verifyAdmin = async (req, res, next) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find({ status: 'show' }).select('-__v').sort({ createdAt: -1 });
+    const products = await Product.find().select('-__v').sort({ createdAt: -1 });
     res.json(products);
   } catch (err) {
     console.error('Lỗi lấy sản phẩm:', err);
