@@ -6,6 +6,11 @@ const cartItemSchema = new mongoose.Schema({
     ref: 'Product',
     required: true
   },
+  optionId: {
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Product.option',
+    required: true
+  },
   quantity: {
     type: Number,
     default: 1,
@@ -16,7 +21,7 @@ const cartItemSchema = new mongoose.Schema({
 const cartSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'users',
+    ref: 'User',
     required: true,
     unique: true,
     index: true

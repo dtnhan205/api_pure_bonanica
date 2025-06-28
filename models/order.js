@@ -6,17 +6,18 @@ const cartItemSchema = new mongoose.Schema({
     ref: 'Product',
     required: true
   },
+  optionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product.option', // Tham chiếu đến _id của option trong Product
+    required: true
+  },
   quantity: {
     type: Number,
     default: 1,
     min: 1
-  }
+  },
+  images: [String] // Giữ lại nếu cần lưu ảnh
 });
-
-const productDetailSchema = new mongoose.Schema({
-  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-  details: { type: mongoose.Schema.Types.Mixed }
-}, { _id: false });
 
 const orderSchema = new mongoose.Schema({
   _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
@@ -63,7 +64,6 @@ const orderSchema = new mongoose.Schema({
   note: {
     type: String
   },
-  productDetails: [productDetailSchema], 
   paymentStatus: {
     type: String,
     enum: ['pending', 'completed', 'failed', 'cancelled'],
