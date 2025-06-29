@@ -631,5 +631,6 @@ module.exports = {
   removeItem: exports.removeItem,
   clearCart: exports.clearCart,
   checkout: exports.checkout,
-  updatePrice: exports.updatePrice
+  updatePrice: exports.updatePrice,
+  getAllCarts: exports.getAllCarts
 };
