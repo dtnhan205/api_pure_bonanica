@@ -17,6 +17,7 @@ const attributeRouter = require('./routes/attributeRouter');
 const productAttributeRouter = require('./routes/productAttributeRouter');
 const passport = require('./passport');
 const authRouter = require('./routes/authRoutes');
+const  paymentRouter = require('./routes/paymentRoutes');
 require('dotenv').config();
 
 // Kiểm tra biến môi trường bắt buộc
@@ -118,6 +119,7 @@ app.use('/api/news', newRouter);
 app.use('/api/brands', brandRouter);
 app.use('/api/attributes', attributeRouter);
 app.use('/api/product-attributes', productAttributeRouter);
+app.use('/api/payments', paymentRouter);
 app.use(express.static('public'));
 app.use('/api', authRouter);
 
