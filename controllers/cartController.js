@@ -281,8 +281,8 @@ exports.updateQuantity = async (req, res) => {
 
 exports.removeItem = async (req, res) => {
   try {
+    const { cartId, productId, optionId } = req.params;
     const userId = req.query.userId || req.body.userId;
-    const { productId, optionId } = req.params;
 
     if (!userId) {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
@@ -292,22 +292,18 @@ exports.removeItem = async (req, res) => {
       return res.status(400).json({ error: 'userId không hợp lệ' });
     }
 
-    if (!productId || !optionId) {
-      return res.status(400).json({ error: 'Thiếu productId hoặc optionId trong yêu cầu' });
+    if (!cartId || !productId || !optionId) {
+      return res.status(400).json({ error: 'Thiếu cartId, productId hoặc optionId trong yêu cầu' });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(optionId)) {
-      return res.status(400).json({ error: 'productId hoặc optionId không hợp lệ' });
+    if (!mongoose.Types.ObjectId.isValid(cartId) || !mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(optionId)) {
+      return res.status(400).json({ error: 'cartId, productId hoặc optionId không hợp lệ' });
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'Người dùng không tồn tại' });
-    }
-
-    const cart = await Cart.findOne({ user: userId });
+    // Find the cart by cartId and verify it belongs to the user
+    const cart = await Cart.findOne({ _id: cartId, user: userId });
     if (!cart) {
-      return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
+      return res.status(404).json({ error: 'Không tìm thấy giỏ hàng hoặc giỏ hàng không thuộc về người dùng' });
     }
 
     const itemIndex = cart.items.findIndex(item => 
