@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const cartController = require('../controllers/cartController');
+const { authMiddleware, isAdmin } = require('../middlewares/auth');
 
 
+router.get('/getall',isAdmin, cartController.getAllCarts);
 router.get('/', cartController.getCartItems);
 router.post('/add', cartController.addToCart);
 router.put('/update', cartController.updateQuantity);

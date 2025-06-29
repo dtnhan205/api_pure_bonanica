@@ -5,6 +5,67 @@ const User = require('../models/user');
 const Order = require('../models/order');
 const Coupon = require('../models/coupon');
 
+
+exports.getAllCarts = async (req, res) => {
+  try {
+    // Lấy tất cả giỏ hàng và populate thông tin người dùng và sản phẩm
+    const carts = await Cart.find()
+      .populate({
+        path: 'user',
+        select: 'username email'
+      })
+      .populate({
+        path: 'items.product',
+        select: 'name images option'
+      });
+
+    if (!carts || carts.length === 0) {
+      return res.status(404).json({ error: 'Không tìm thấy giỏ hàng nào' });
+    }
+
+    // Format dữ liệu trả về
+    const formattedCarts = carts.map(cart => {
+      const items = cart.items.map(item => {
+        const product = item.product;
+        const option = product?.option?.find(opt => opt._id.toString() === item.optionId.toString());
+        
+        return {
+          product: product ? {
+            _id: product._id,
+            name: product.name,
+            images: product.images || []
+          } : null,
+          option: option ? {
+            _id: option._id,
+            value: option.value,
+            price: option.price,
+            discount_price: option.discount_price || 0,
+            stock: option.stock
+          } : null,
+          quantity: item.quantity
+        };
+      });
+
+      return {
+        _id: cart._id,
+        user: cart.user ? {
+          _id: cart.user._id,
+          username: cart.user.username,
+          email: cart.user.email
+        } : null,
+        items,
+        createdAt: cart.createdAt,
+        updatedAt: cart.updatedAt
+      };
+    });
+
+    res.json(formattedCarts);
+  } catch (error) {
+    console.error('Lỗi khi lấy tất cả giỏ hàng:', error.stack);
+    res.status(500).json({ error: 'Lỗi khi lấy tất cả giỏ hàng', details: error.message });
+  }
+};
+
 exports.getCartItems = async (req, res) => {
   try {
     const userId = req.query.userId || req.body.userId;
