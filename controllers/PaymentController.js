@@ -29,20 +29,24 @@ const utils = {
     const now = moment.tz('Asia/Ho_Chi_Minh');
     const createdAt = moment.tz(payment.createdAt, 'Asia/Ho_Chi_Minh');
     const duration = moment.duration(now.diff(createdAt)).asMinutes();
-    if (duration > 15) {
-      payment.status = 'expired';
-      return false;
+    console.log(`Check expiration: ${payment.paymentCode}, createdAt: ${createdAt.format()}, now: ${now.format()}, Duration: ${duration} minutes`);
+    if (duration > 1440) { // 24 giờ = 1440 phút
+      return { isValid: false, status: 'expired' };
     }
-    return true;
+    return { isValid: true, status: 'pending' };
   }
 };
 
 // Error handling
 const handleError = (res, error, statusCode = 500) => {
-  console.error('Lỗi:', error.message, error.stack);
+  console.error('Lỗi:', {
+    message: error.message,
+    stack: error.stack,
+    timestamp: moment.tz('Asia/Ho_Chi_Minh').format(),
+  });
   return res.status(statusCode).json({
     status: 'error',
-    message: error.message || 'Lỗi server nội bộ'
+    message: error.message || 'Lỗi server. Vui lòng thử lại sau',
   });
 };
 
@@ -53,20 +57,31 @@ const bankApiService = {
     const ac = 1;
 
     try {
+      console.log('Fetching transactions with:', { API_KEY: '***', ACCOUNT_NO });
       const response = await axios.get(
-        `https://apicanhan.com/api/mbbankv3?key=${API_KEY}&username=${API_USERNAME}&password=${API_PASSWORD}&accountNo=${ACCOUNT_NO}&ac=${ac}`
+        `https://apicanhan.com/api/mbbankv3?key=${API_KEY}&username=${API_USERNAME}&password=${API_PASSWORD}&accountNo=${ACCOUNT_NO}&ac=${ac}`,
+        { timeout: 10000 }
       );
       
-      if (!response.data.transactions || !Array.isArray(response.data.transactions)) {
-        throw new Error('Dữ liệu giao dịch từ API không hợp lệ');
+      console.log('API response:', response.data);
+      if (!response.data || typeof response.data !== 'object') {
+        console.warn('Phản hồi không hợp lệ:', response.data);
+        return [];
       }
+      if (!response.data.transactions || !Array.isArray(response.data.transactions)) {
+        console.warn('Transactions không phải mảng hoặc không tồn tại:', response.data);
+        return [];
+      }
+      console.log('Fetched transactions count:', response.data.transactions.length);
       return response.data.transactions;
     } catch (error) {
       console.error('Lỗi API Ngân hàng:', {
         message: error.message,
-        response: error.response ? error.response.data : null
+        response: error.response ? error.response.data : null,
+        status: error.response ? error.response.status : null,
+        code: error.code,
       });
-      throw error;
+      return [];
     }
   },
 
@@ -82,7 +97,7 @@ const bankApiService = {
           'Asia/Ho_Chi_Minh'
         );
         const txDuration = moment.duration(moment.tz('Asia/Ho_Chi_Minh').diff(txMoment)).asMinutes();
-        const normalizedTxAmount = parseFloat(tx.amount.replace(/[, ]/g, '')); // Xử lý dấu phẩy và khoảng trắng
+        const normalizedTxAmount = parseFloat(tx.amount.replace(/[, ]/g, ''));
         const codeMatch = tx.description.match(/thanhtoan(\d{5})/);
         const foundCode = codeMatch ? codeMatch[1] : null;
 
@@ -92,23 +107,24 @@ const bankApiService = {
           txDuration,
           targetAmount: normalizedAmount,
           targetCode,
-        }); // Debug: Kiểm tra các giá trị
+        });
 
         return (
-          normalizedTxAmount === normalizedAmount &&
+          Math.abs(normalizedTxAmount - normalizedAmount) < 1 && // Cho phép sai số nhỏ
           foundCode === targetCode &&
           tx.type === 'IN' &&
           txDuration >= 0 &&
-          txDuration <= 15
+          txDuration <= 1440 // Cập nhật thời gian tối đa thành 24 giờ
         );
       } catch (error) {
-        console.error('Error in transaction matching:', error, tx);
+        console.error('Error in transaction matching:', error.message, tx);
         return false;
       }
     });
   }
 };
 
+// Validation schemas
 const schemas = {
   createPayment: Joi.object({
     amount: Joi.number().positive().required().messages({
@@ -140,6 +156,11 @@ const schemas = {
     paymentCode: Joi.string().required().pattern(/^thanhtoan\d{5}$/).messages({
       'string.pattern.base': 'Mã thanh toán không hợp lệ',
       'any.required': 'Thiếu mã thanh toán'
+    }),
+    amount: Joi.number().positive().required().messages({
+      'number.base': 'Số tiền phải là số',
+      'number.positive': 'Số tiền phải là số dương',
+      'any.required': 'Thiếu số tiền'
     })
   })
 };
@@ -147,20 +168,17 @@ const schemas = {
 // Tạo thanh toán mới
 exports.createPayment = async (req, res) => {
   try {
-    // Xác thực đầu vào
     const { error } = schemas.createPayment.validate(req.body);
     if (error) return handleError(res, new Error(error.details[0].message), 400);
 
     const { amount, orderId } = req.body;
 
-    // Kiểm tra đơn hàng
     utils.validateObjectId(orderId, 'orderId');
     const order = await Order.findById(orderId);
     if (!order) {
       return handleError(res, new Error('Không tìm thấy đơn hàng'), 404);
     }
 
-    // Tạo thanh toán
     const paymentCode = utils.generatePaymentCode();
     const payment = new Payment({ paymentCode, orderId, amount });
     await payment.save();
@@ -175,18 +193,71 @@ exports.createPayment = async (req, res) => {
   }
 };
 
+// Xác minh giao dịch ngân hàng và cập nhật trạng thái đơn hàng
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { error } = schemas.verifyPayment.validate(req.body);
+    if (error) return handleError(res, new Error(error.details[0].message), 400);
 
+    const { paymentCode, amount } = req.body;
+
+    const payment = await Payment.findOne({ paymentCode, status: 'pending' }).populate('orderId');
+    if (!payment) {
+      return handleError(res, new Error('Thanh toán không tồn tại hoặc đã được xử lý'), 404);
+    }
+
+    if (!payment.orderId) {
+      return handleError(res, new Error('Không tìm thấy đơn hàng liên quan'), 404);
+    }
+
+    if (!utils.checkPaymentExpiration(payment).isValid) {
+      await payment.save();
+      return handleError(res, new Error('Thanh toán đã hết hạn'), 400);
+    }
+
+    const transactions = await bankApiService.fetchTransactions();
+    const matchingTransaction = bankApiService.findMatchingTransaction(transactions, paymentCode, amount);
+
+    if (!matchingTransaction) {
+      return handleError(res, new Error('Không tìm thấy giao dịch khớp trong vòng 24 giờ'), 400);
+    }
+
+    payment.status = 'success';
+    payment.transactionId = matchingTransaction.transactionID;
+    payment.description = matchingTransaction.description;
+    payment.transactionDate = moment.tz(
+      matchingTransaction.transactionDate.replace(/\\/g, '/'),
+      'DD/MM/YYYY HH:mm:ss',
+      'Asia/Ho_Chi_Minh'
+    ).toDate();
+    await payment.save();
+
+    payment.orderId.paymentStatus = 'completed';
+    await payment.orderId.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Xác minh thanh toán thành công',
+      data: {
+        transactionId: matchingTransaction.transactionID,
+        orderId: payment.orderId._id,
+        paymentStatus: payment.orderId.paymentStatus
+      }
+    });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
 
 // Kiểm tra trạng thái thanh toán và tự động verify nếu khớp
 exports.checkPaymentStatus = async (req, res) => {
   try {
-    const { error } = schemas.checkPaymentStatus.validate(req.params);
+    const { error } = schemas.checkPaymentStatus.validate(req.body);
     if (error) return handleError(res, new Error(error.details[0].message), 400);
 
-    const { paymentCode } = req.params;
+    const { paymentCode, amount } = req.body;
 
-    // Tìm thanh toán
-    let payment = await Payment.findOne({ paymentCode })
+    const payment = await Payment.findOne({ paymentCode, status: 'pending' })
       .select('paymentCode amount status transactionId createdAt orderId')
       .lean();
 
@@ -195,57 +266,63 @@ exports.checkPaymentStatus = async (req, res) => {
     }
 
     // Kiểm tra thời gian hết hạn
-    if (payment.status === 'pending' && !utils.checkPaymentExpiration(payment)) {
-      await Payment.updateOne({ _id: payment._id }, { status: 'expired' });
-      payment.status = 'expired';
+    const { isValid, status } = utils.checkPaymentExpiration(payment);
+    if (!isValid) {
+      await Payment.updateOne({ _id: payment._id }, { status });
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          paymentCode: payment.paymentCode,
+          status,
+          transactionId: payment.transactionId || null,
+        },
+      });
     }
 
-    // Nếu trạng thái là pending và chưa hết hạn, kiểm tra giao dịch ngân hàng
-    if (payment.status === 'pending' && utils.checkPaymentExpiration(payment)) {
-      const transactions = await bankApiService.fetchTransactions();
-      const matchingTransaction = bankApiService.findMatchingTransaction(transactions, paymentCode, payment.amount);
+    // Kiểm tra giao dịch từ ngân hàng và verify nếu khớp
+    const transactions = await bankApiService.fetchTransactions();
+    console.log('Transactions fetched:', transactions.length);
+    const matchingTransaction = bankApiService.findMatchingTransaction(transactions, paymentCode, amount);
 
-      if (matchingTransaction) {
-        payment.status = 'success';
-        payment.transactionId = matchingTransaction.transactionID;
-        payment.description = matchingTransaction.description;
-        payment.transactionDate = moment.tz(
-          matchingTransaction.transactionDate.replace(/\\/g, '/'),
-          'DD/MM/YYYY HH:mm:ss',
-          'Asia/Ho_Chi_Minh'
-        ).toDate();
-
-        await Payment.updateOne(
-          { _id: payment._id },
-          {
-            status: 'success',
-            transactionId: matchingTransaction.transactionID,
-            description: matchingTransaction.description,
-            transactionDate: payment.transactionDate,
-          }
-        );
-
-        // Cập nhật trạng thái đơn hàng
-        const order = await Order.findById(payment.orderId);
-        if (order) {
-          order.paymentStatus = 'completed';
-          await order.save();
-        }
-
-        return res.status(200).json({
+    if (matchingTransaction) {
+      // Cập nhật thanh toán
+      await Payment.updateOne(
+        { _id: payment._id },
+        {
           status: 'success',
-          message: 'Xác minh thanh toán thành công',
-          data: {
-            paymentCode: payment.paymentCode,
-            status: payment.status,
-            transactionId: payment.transactionId,
-            orderId: payment.orderId,
-            paymentStatus: 'completed',
-          },
-        });
+          transactionId: matchingTransaction.transactionID,
+          description: matchingTransaction.description,
+          transactionDate: moment.tz(
+            matchingTransaction.transactionDate.replace(/\\/g, '/'),
+            'DD/MM/YYYY HH:mm:ss',
+            'Asia/Ho_Chi_Minh'
+          ).toDate(),
+        }
+      );
+
+      // Cập nhật trạng thái đơn hàng
+      const order = await Order.findById(payment.orderId);
+      if (order) {
+        order.paymentStatus = 'completed';
+        await order.save();
+      } else {
+        console.warn(`Order not found for payment: ${payment._id}`);
       }
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Xác minh thanh toán thành công',
+        data: {
+          paymentCode: payment.paymentCode,
+          status: 'success',
+          transactionId: matchingTransaction.transactionID,
+          orderId: payment.orderId,
+          paymentStatus: 'completed',
+        },
+      });
     }
 
+    // Trả về trạng thái hiện tại nếu không khớp
     return res.status(200).json({
       status: 'success',
       data: {
