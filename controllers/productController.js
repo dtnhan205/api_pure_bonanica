@@ -208,7 +208,7 @@ exports.createProduct = async (req, res) => {
       name,
       slug,
       status: status || 'show',
-      view: parseInt(view, 10) || 0,
+      view: parseInt(view, 10) || 0, 
       id_brand: validatedIdBrand,
       id_category: validatedIdCategory,
       images: imagePaths,
@@ -305,7 +305,7 @@ exports.updateProduct = async (req, res) => {
 
     // Xử lý file upload
     if (req.files && req.files.length > 0) {
-      updateData.images = req.files.map(file => `/images/${file.filename}`);
+      updateData.images = req.files.map(file => `images/${file.filename}`);
     }
 
     // Loại bỏ các trường undefined
