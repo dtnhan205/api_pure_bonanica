@@ -279,13 +279,11 @@ exports.checkPaymentStatus = async (req, res) => {
       });
     }
 
-    // Kiểm tra giao dịch từ ngân hàng và verify nếu khớp
     const transactions = await bankApiService.fetchTransactions();
     console.log('Transactions fetched:', transactions.length);
     const matchingTransaction = bankApiService.findMatchingTransaction(transactions, paymentCode, amount);
 
     if (matchingTransaction) {
-      // Cập nhật thanh toán
       await Payment.updateOne(
         { _id: payment._id },
         {
@@ -300,7 +298,6 @@ exports.checkPaymentStatus = async (req, res) => {
         }
       );
 
-      // Cập nhật trạng thái đơn hàng
       const order = await Order.findById(payment.orderId);
       if (order) {
         order.paymentStatus = 'completed';
@@ -322,7 +319,6 @@ exports.checkPaymentStatus = async (req, res) => {
       });
     }
 
-    // Trả về trạng thái hiện tại nếu không khớp
     return res.status(200).json({
       status: 'success',
       data: {
