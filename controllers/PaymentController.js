@@ -162,42 +162,16 @@ const schemas = {
       'number.positive': 'Số tiền phải là số dương',
       'any.required': 'Thiếu số tiền'
     })
+  }),
+
+  getPaymentsByUserId: Joi.object({
+    userId: Joi.string().required().custom((value, helpers) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.error('any.invalid', { message: 'UserId không hợp lệ' });
+      }
+      return value;
+    })
   })
-};
-// Lấy thông tin thanh toán theo userId
-exports.getPaymentsByUserId = async (req, res) => {
-  try {
-    const { error } = schemas.getPaymentsByUserId.validate(req.body);
-    if (error) return handleError(res, new Error(error.details[0].message), 400);
-
-    const { userId } = req.body;
-
-    utils.validateObjectId(userId, 'userId');
-
-    // Tìm tất cả các đơn hàng của userId
-    const orders = await Order.find({ userId }).select('_id');
-    if (!orders.length) {
-      return res.status(200).json({
-        status: 'success',
-        message: 'Không tìm thấy đơn hàng nào cho người dùng này',
-        data: []
-      });
-    }
-
-    // Lấy tất cả payment liên quan đến các đơn hàng
-    const orderIds = orders.map(order => order._id);
-    const payments = await Payment.find({ orderId: { $in: orderIds } })
-      .select('paymentCode amount status transactionId createdAt orderId description transactionDate')
-      .lean();
-
-    return res.status(200).json({
-      status: 'success',
-      message: 'Lấy thông tin thanh toán thành công',
-      data: payments
-    });
-  } catch (error) {
-    return handleError(res, error);
-  }
 };
 
 // Tạo thanh toán mới
@@ -377,3 +351,46 @@ exports.checkPaymentStatus = async (req, res) => {
     return handleError(res, error);
   }
 };
+
+// Lấy thông tin thanh toán theo userId
+exports.getPaymentsByUserId = async (req, res) => {
+  try {
+    console.log('Schemas:', schemas); // Debug schema
+    const { error } = schemas.getPaymentsByUserId.validate(req.body);
+    if (error) return handleError(res, new Error(error.details[0].message), 400);
+
+    const { userId } = req.body;
+    console.log('Received userId:', userId); // Debug userId từ request
+
+    utils.validateObjectId(userId, 'userId');
+
+    // Tìm tất cả các đơn hàng của user (thay vì userId)
+    const orders = await Order.find({ user: userId }).select('_id');
+    console.log('Found orders:', orders); // Debug kết quả truy vấn Order
+    if (!orders.length) {
+      return res.status(200).json({
+        status: 'success',
+        message: 'Không tìm thấy đơn hàng nào cho người dùng này',
+        data: []
+      });
+    }
+
+    // Lấy tất cả payment liên quan đến các đơn hàng
+    const orderIds = orders.map(order => order._id);
+    console.log('Order IDs:', orderIds); // Debug danh sách orderIds
+    const payments = await Payment.find({ orderId: { $in: orderIds } })
+      .select('paymentCode amount status transactionId createdAt orderId description transactionDate')
+      .lean();
+    console.log('Found payments:', payments); // Debug kết quả truy vấn Payment
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Lấy thông tin thanh toán thành công',
+      data: payments
+    });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+
+module.exports = exports;
