@@ -201,7 +201,7 @@ exports.createProduct = async (req, res) => {
 
     // Xử lý file upload
     const imagePaths = req.files && req.files.length > 0 
-      ? req.files.map(file => `/images/${file.filename}`)
+      ? req.files.map(file => `images/${file.filename}`)
       : [];
 
     const product = new Product({
