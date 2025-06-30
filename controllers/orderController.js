@@ -212,13 +212,12 @@ exports.updateOrderStatus = async (req, res) => {
 exports.updateOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { paymentMethod, note, productDetails, paymentStatus, total, address } = req.body;
+    const { paymentMethod, note, productDetails, paymentStatus, shippingStatus, total, address } = req.body;
 
     if (!orderId) {
       return res.status(400).json({ error: 'Thiếu orderId trong yêu cầu' });
     }
 
-    // Kiểm tra ObjectId hợp lệ
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ error: 'orderId không hợp lệ' });
     }
@@ -232,17 +231,20 @@ exports.updateOrder = async (req, res) => {
       return res.status(400).json({ error: 'Trạng thái thanh toán không hợp lệ' });
     }
 
-    // Cập nhật các trường
+    if (shippingStatus && !['pending', 'in_transit', 'delivered', 'returned'].includes(shippingStatus)) {
+      return res.status(400).json({ error: 'Trạng thái vận chuyển không hợp lệ' });
+    }
+
     order.paymentMethod = paymentMethod || order.paymentMethod;
     order.note = note || order.note;
     order.productDetails = productDetails || order.productDetails;
     order.paymentStatus = paymentStatus || order.paymentStatus;
+    order.shippingStatus = shippingStatus || order.shippingStatus; // Cập nhật trạng thái vận chuyển
     order.total = total || order.total;
 
-    // Xử lý address dưới dạng chuỗi
     if (address) {
-      if (typeof address === 'object' && address.ward && address.district && address.city && address.province) {
-        order.address = `${address.ward}, ${address.district}, ${address.city}, ${address.province}`;
+      if (typeof address === 'object' && address.ward && address.district && address.cityOrProvince) {
+        order.address = `${address.ward}, ${address.district}, ${address.cityOrProvince}`;
       } else if (typeof address === 'string') {
         order.address = address;
       } else {

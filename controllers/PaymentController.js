@@ -257,6 +257,7 @@ exports.checkPaymentStatus = async (req, res) => {
 
     const { paymentCode, amount } = req.body;
 
+    // Tìm payment và order liên quan
     const payment = await Payment.findOne({ paymentCode, status: 'pending' })
       .select('paymentCode amount status transactionId createdAt orderId')
       .lean();
@@ -279,6 +280,12 @@ exports.checkPaymentStatus = async (req, res) => {
       });
     }
 
+    // Kiểm tra amount khớp với payment
+    if (payment.amount !== amount) {
+      return handleError(res, new Error('Số tiền không khớp với thanh toán'), 400);
+    }
+
+    // Lấy giao dịch từ ngân hàng
     const transactions = await bankApiService.fetchTransactions();
     console.log('Transactions fetched:', transactions.length);
     const matchingTransaction = bankApiService.findMatchingTransaction(transactions, paymentCode, amount);
@@ -298,9 +305,11 @@ exports.checkPaymentStatus = async (req, res) => {
         }
       );
 
+      // Cập nhật trạng thái đơn hàng
       const order = await Order.findById(payment.orderId);
       if (order) {
         order.paymentStatus = 'completed';
+        order.shippingStatus = 'pending'; 
         await order.save();
       } else {
         console.warn(`Order not found for payment: ${payment._id}`);
@@ -315,10 +324,12 @@ exports.checkPaymentStatus = async (req, res) => {
           transactionId: matchingTransaction.transactionID,
           orderId: payment.orderId,
           paymentStatus: 'completed',
+          shippingStatus: 'pending', 
         },
       });
     }
 
+    // Nếu không tìm thấy giao dịch khớp, trả về trạng thái hiện tại
     return res.status(200).json({
       status: 'success',
       data: {

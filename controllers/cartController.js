@@ -361,8 +361,9 @@ exports.clearCart = async (req, res) => {
 
 exports.checkout = async (req, res) => {
   try {
-    const { userId, addressLine, ward, district, cityOrProvince, sdt, paymentMethod, note } = req.body;
+    const { userId, addressLine, ward, district, cityOrProvince, sdt, paymentMethod, note, couponCode } = req.body;
 
+    // Kiểm tra các trường bắt buộc
     if (!userId) {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
     }
@@ -386,11 +387,13 @@ exports.checkout = async (req, res) => {
       return res.status(400).json({ error: 'Vui lòng cung cấp phương thức thanh toán' });
     }
 
+    // Kiểm tra người dùng
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
+    // Lấy giỏ hàng và populate sản phẩm
     const cart = await Cart.findOne({ user: userId }).populate({
       path: 'items.product',
       select: 'name images option'
@@ -400,6 +403,7 @@ exports.checkout = async (req, res) => {
       return res.status(400).json({ error: 'Giỏ hàng trống' });
     }
 
+    // Lọc các mục hợp lệ và không hợp lệ
     const invalidItems = cart.items.filter(item => !item.product || !item.product.option.find(opt => opt._id.toString() === item.optionId.toString()));
     const validItems = cart.items.filter(item => item.product && item.product.option.find(opt => opt._id.toString() === item.optionId.toString()));
 
@@ -413,6 +417,7 @@ exports.checkout = async (req, res) => {
       await cart.save();
     }
 
+    // Kiểm tra số lượng tồn kho
     for (const item of validItems) {
       const product = item.product;
       const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
@@ -423,6 +428,7 @@ exports.checkout = async (req, res) => {
       }
     }
 
+    // Tính tổng tiền
     let subtotal = validItems.reduce((acc, item) => {
       const product = item.product;
       const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
@@ -433,9 +439,10 @@ exports.checkout = async (req, res) => {
     let discount = 0;
     let appliedCoupon = null;
 
-    if (req.body.couponCode) {
-      console.log('Coupon code received:', req.body.couponCode);
-      const coupon = await Coupon.findOne({ code: { $regex: `^${req.body.couponCode}$`, $options: 'i' } });
+    // Xử lý mã giảm giá
+    if (couponCode) {
+      console.log('Coupon code received:', couponCode);
+      const coupon = await Coupon.findOne({ code: { $regex: `^${couponCode}$`, $options: 'i' } });
       if (!coupon) {
         return res.status(400).json({ error: 'Mã giảm giá không tồn tại' });
       }
@@ -464,7 +471,7 @@ exports.checkout = async (req, res) => {
         discount = coupon.discountValue;
       }
 
-      discount = Math.min(discount, subtotal);
+      discount = Math.min(discount, subtotal); // Đảm bảo discount không vượt quá subtotal
       coupon.usedCount = (coupon.usedCount || 0) + 1;
       await coupon.save();
       appliedCoupon = coupon;
@@ -472,6 +479,10 @@ exports.checkout = async (req, res) => {
 
     const total = subtotal - discount;
 
+    // Tạo paymentCode duy nhất
+    const paymentCode = `thanhtoan${Math.floor(10000 + Math.random() * 90000)}`; // Ví dụ: thanhtoan28369
+
+    // Tạo đơn hàng
     const order = {
       user: userId,
       items: validItems.map(item => ({
@@ -494,10 +505,12 @@ exports.checkout = async (req, res) => {
       note,
       coupon: appliedCoupon ? appliedCoupon._id : null,
       paymentStatus: 'pending',
+      shippingStatus: 'pending', // Thêm trạng thái vận chuyển mặc định
     };
 
     const newOrder = await Order.create(order);
 
+    // Cập nhật số lượng tồn kho
     for (const item of validItems) {
       const product = await Product.findById(item.product._id);
       const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
@@ -505,18 +518,22 @@ exports.checkout = async (req, res) => {
       await product.save();
     }
 
+    // Xóa giỏ hàng sau khi thanh toán
+    cart.items = [];
+    await cart.save();
+
+    // Populate dữ liệu cho phản hồi
     await newOrder.populate([
       { path: 'items.product' },
       { path: 'user', select: 'username email' },
       { path: 'coupon' }
     ]);
 
-    cart.items = [];
-    await cart.save();
-
+    // Trả về phản hồi với paymentCode để sử dụng trong PaymentOnline
     res.json({
       message: 'Thanh toán thành công',
       order: newOrder,
+      paymentCode, // Trả về paymentCode để frontend sử dụng
       warning: invalidItems.length > 0
         ? `Đã loại bỏ ${invalidItems.length} sản phẩm không hợp lệ khỏi giỏ hàng`
         : undefined,

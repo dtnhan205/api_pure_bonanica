@@ -71,6 +71,12 @@ const orderSchema = new mongoose.Schema({
     default: 'pending',
     required: true
   },
+  shippingStatus: { 
+    type: String,
+    enum: ['pending', 'in_transit', 'delivered', 'returned'],
+    default: 'pending',
+    required: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
