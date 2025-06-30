@@ -164,6 +164,41 @@ const schemas = {
     })
   })
 };
+// Lấy thông tin thanh toán theo userId
+exports.getPaymentsByUserId = async (req, res) => {
+  try {
+    const { error } = schemas.getPaymentsByUserId.validate(req.body);
+    if (error) return handleError(res, new Error(error.details[0].message), 400);
+
+    const { userId } = req.body;
+
+    utils.validateObjectId(userId, 'userId');
+
+    // Tìm tất cả các đơn hàng của userId
+    const orders = await Order.find({ userId }).select('_id');
+    if (!orders.length) {
+      return res.status(200).json({
+        status: 'success',
+        message: 'Không tìm thấy đơn hàng nào cho người dùng này',
+        data: []
+      });
+    }
+
+    // Lấy tất cả payment liên quan đến các đơn hàng
+    const orderIds = orders.map(order => order._id);
+    const payments = await Payment.find({ orderId: { $in: orderIds } })
+      .select('paymentCode amount status transactionId createdAt orderId description transactionDate')
+      .lean();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Lấy thông tin thanh toán thành công',
+      data: payments
+    });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
 
 // Tạo thanh toán mới
 exports.createPayment = async (req, res) => {

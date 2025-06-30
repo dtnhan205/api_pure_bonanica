@@ -17,10 +17,19 @@ router.post('/create', async (req, res, next) => {
   }
 });
 
-// Route mới để kiểm tra và verify thanh toán
+// Route để kiểm tra và verify thanh toán
 router.post('/check-payment', async (req, res, next) => {
   try {
     await PaymentController.checkPaymentStatus(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Route để lấy thông tin thanh toán theo userId
+router.post('/get-by-user', async (req, res, next) => {
+  try {
+    await PaymentController.getPaymentsByUserId(req, res);
   } catch (error) {
     next(error);
   }
