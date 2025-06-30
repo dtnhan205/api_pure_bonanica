@@ -222,28 +222,33 @@ exports.verifyPayment = async (req, res) => {
 // Kiểm tra trạng thái thanh toán
 exports.checkPaymentStatus = async (req, res) => {
   try {
-    // Xác thực đầu vào
     const { error } = schemas.checkPaymentStatus.validate(req.params);
     if (error) return handleError(res, new Error(error.details[0].message), 400);
 
     const { paymentCode } = req.params;
 
-    // Tìm thanh toán
-    const payment = await Payment.findOne({ paymentCode }).populate('orderId');
+    // Tìm thanh toán với select để tối ưu hóa truy vấn
+    const payment = await Payment.findOne({ paymentCode })
+      .select('paymentCode amount status transactionId createdAt')
+      .lean();
+
     if (!payment) {
       return handleError(res, new Error('Không tìm thấy thanh toán'), 404);
     }
 
+    // Kiểm tra thời gian hết hạn
+    if (payment.status === 'pending' && !utils.checkPaymentExpiration(payment)) {
+      await Payment.updateOne({ _id: payment._id }, { status: 'expired' });
+      payment.status = 'expired';
+    }
+
+    // Trả về dữ liệu tối thiểu cho cron job
     return res.status(200).json({
       status: 'success',
-      message: 'Lấy trạng thái thanh toán thành công',
       data: {
-        paymentCode,
-        amount: payment.amount,
+        paymentCode: payment.paymentCode,
         status: payment.status,
-        transactionId: payment.transactionId,
-        orderId: payment.orderId ? payment.orderId._id : null,
-        orderStatus: payment.orderId ? payment.orderId.paymentStatus : null
+        transactionId: payment.transactionId || null
       }
     });
   } catch (error) {
