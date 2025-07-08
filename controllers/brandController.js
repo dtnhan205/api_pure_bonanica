@@ -20,7 +20,7 @@ exports.getBrandById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const brand = await Brand.findOne({ _id: id, status: 'show' });
+    const brand = await Brand.findOne({ _id: IDBFactory });
     if (!brand) {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu' });
     }
