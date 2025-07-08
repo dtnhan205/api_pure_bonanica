@@ -47,11 +47,11 @@ exports.createComment = async (req, res) => {
 exports.getAllCommentsForAdmin = async (req, res) => {
   try {
     // Kiểm tra quyền admin (giả sử có middleware kiểm tra quyền)
-    const userId = req.user?.id; // Lấy userId từ token hoặc session
-    const user = await User.findById(userId);
-    if (!user || !user.isAdmin) {
-      return res.status(403).json({ error: 'Bạn không có quyền xem tất cả bình luận' });
-    }
+    // const userId = req.user?.id; // Lấy userId từ token hoặc session
+    // const user = await User.findById(userId);
+    // if (!user || !user.isAdmin) {
+    //   return res.status(403).json({ error: 'Bạn không có quyền xem tất cả bình luận' });
+    // }
 
     const comments = await Comment.find()
       .populate('user', 'username email')

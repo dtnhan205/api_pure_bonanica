@@ -93,16 +93,38 @@ const verifyAdmin = async (req, res, next) => {
   }
 };
 
+// Lấy tất cả sản phẩm (bao gồm cả hidden/show, active/inactive)
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find().select('-__v').sort({ createdAt: -1 });
+    const products = await Product.find()
+      .populate('id_category', 'status') // Lấy status của danh mục để tính isActive
+      .select('-__v')
+      .sort({ createdAt: -1 });
     res.json(products);
   } catch (err) {
-    console.error('Lỗi lấy sản phẩm:', err);
+    console.error('Lỗi lấy sản phẩm:', err.message);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
 };
 
+// Lấy tất cả sản phẩm đang hiển thị và hoạt động (show và isActive: true)
+exports.getAllActiveProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ status: 'show' })
+      .populate('id_category', 'status') // Lấy status của danh mục để tính isActive
+      .select('-__v')
+      .sort({ createdAt: -1 });
+
+    // Lọc sản phẩm có isActive: true
+    const activeProducts = products.filter(product => product.isActive);
+    res.json(activeProducts);
+  } catch (err) {
+    console.error('Lỗi lấy sản phẩm hoạt động:', err.message);
+    res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
+// Lấy sản phẩm theo ID hoặc slug
 exports.getProductByIdOrSlug = async (req, res) => {
   try {
     const { identifier } = req.params;
@@ -117,26 +139,38 @@ exports.getProductByIdOrSlug = async (req, res) => {
     let product;
     if (isAdmin) {
       // Admin: Không tăng view
-      product = await Product.findOne(query).select('-__v');
+      product = await Product.findOne(query)
+        .populate('id_category', 'status') // Lấy status của danh mục
+        .select('-__v');
     } else {
       // Non-admin: Tăng view
       product = await Product.findOneAndUpdate(
         query,
         { $inc: { view: 1 } },
-        { new: true, select: '-__v' }
-      );
+        { new: true }
+      )
+        .populate('id_category', 'status')
+        .select('-__v');
     }
 
     if (!product) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
     }
+
+    // Kiểm tra nếu id_category không được populate
+    if (!product.id_category) {
+      console.warn(`Category not found for product ${identifier}`);
+      product.isActive = false;
+    }
+
     res.json(product);
   } catch (err) {
-    console.error(`GET /api/products/${req.params.identifier} error:`, err);
+    console.error(`GET /api/products/${req.params.identifier} error:`, err.message);
     res.status(500).json({ error: 'Lỗi máy chủ' });
   }
 };
 
+// Tạo sản phẩm
 exports.createProduct = async (req, res) => {
   try {
     console.log('Received body:', JSON.stringify(req.body, null, 2));
@@ -144,7 +178,7 @@ exports.createProduct = async (req, res) => {
 
     const { 
       name, status, view, id_brand, id_category, 
-      short_description, description, option 
+      short_description, description, option, active
     } = req.body;
 
     if (!name || !id_brand || !id_category) {
@@ -155,27 +189,22 @@ exports.createProduct = async (req, res) => {
     const validatedIdBrand = validateObjectId(id_brand, 'id_brand');
     const validatedIdCategory = validateObjectId(id_category, 'id_category');
 
-    if (!validatedIdBrand) {
-      return res.status(400).json({ error: `id_brand không hợp lệ: ${id_brand}` });
-    }
-    if (!validatedIdCategory) {
-      return res.status(400).json({ error: `id_category không hợp lệ: ${id_category}` });
+    if (!validatedIdBrand || !validatedIdCategory) {
+      return res.status(400).json({ error: 'id_brand hoặc id_category không hợp lệ' });
     }
 
-    // Kiểm tra sự tồn tại trong database
     const Brand = require('../models/brand');
     const Category = require('../models/category');
-    if (!(await checkIdExistence(Brand, validatedIdBrand, 'id_brand'))) {
-      return res.status(400).json({ error: `id_brand không tồn tại trong database: ${validatedIdBrand}` });
-    }
-    if (!(await checkIdExistence(Category, validatedIdCategory, 'id_category'))) {
-      return res.status(400).json({ error: `id_category không tồn tại trong database: ${validatedIdCategory}` });
+    if (!(await checkIdExistence(Brand, validatedIdBrand, 'id_brand')) ||
+        !(await checkIdExistence(Category, validatedIdCategory, 'id_category'))) {
+      return res.status(400).json({ error: 'id_brand hoặc id_category không tồn tại' });
     }
 
-    // Tạo slug tự động từ name
     const slug = await generateSlug(name);
+    const imagePaths = req.files && req.files.length > 0 
+      ? req.files.map(file => `images/${file.filename}`)
+      : [];
 
-    // Kiểm tra tính hợp lệ của option
     let parsedOption = [];
     if (option) {
       try {
@@ -199,15 +228,11 @@ exports.createProduct = async (req, res) => {
       }
     }
 
-    // Xử lý file upload
-    const imagePaths = req.files && req.files.length > 0 
-      ? req.files.map(file => `images/${file.filename}`)
-      : [];
-
     const product = new Product({
       name,
       slug,
       status: status || 'show',
+      active: active !== undefined ? active : true,
       view: parseInt(view, 10) || 0, 
       id_brand: validatedIdBrand,
       id_category: validatedIdCategory,
@@ -228,6 +253,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
+// Cập nhật sản phẩm
 exports.updateProduct = async (req, res) => {
   try {
     console.log('Received body:', JSON.stringify(req.body, null, 2));
@@ -237,7 +263,7 @@ exports.updateProduct = async (req, res) => {
     const isObjectId = mongoose.isValidObjectId(identifier);
     const query = isObjectId ? { _id: identifier } : { slug: identifier };
 
-    const { name, id_brand, id_category, option, ...updateData } = req.body;
+    const { name, id_brand, id_category, option, active, ...updateData } = req.body;
 
     // Lấy sản phẩm hiện tại
     const existingProduct = await Product.findOne(query);
@@ -303,6 +329,11 @@ exports.updateProduct = async (req, res) => {
       updateData.option = parsedOption;
     }
 
+    // Cập nhật active nếu được cung cấp
+    if (active !== undefined) {
+      updateData.active = active;
+    }
+
     // Xử lý file upload
     if (req.files && req.files.length > 0) {
       updateData.images = req.files.map(file => `images/${file.filename}`);
@@ -315,7 +346,7 @@ exports.updateProduct = async (req, res) => {
       query,
       { $set: updateData },
       { new: true, runValidators: true, select: '-__v' }
-    );
+    ).populate('id_category', 'status'); // Lấy status của danh mục
 
     if (!updatedProduct) {
       return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
@@ -330,6 +361,7 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
+// Xóa sản phẩm
 exports.deleteProduct = async (req, res) => {
   try {
     const { identifier } = req.params;
@@ -347,6 +379,7 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
+// Chuyển đổi trạng thái hiển thị sản phẩm
 exports.toggleProductVisibility = async (req, res) => {
   try {
     const { identifier } = req.params;
@@ -361,6 +394,8 @@ exports.toggleProductVisibility = async (req, res) => {
     product.status = product.status === 'show' ? 'hidden' : 'show';
     await product.save();
 
+    await product.populate('id_category', 'status'); // Populate sau khi lưu để tính isActive
+
     res.json({
       message: `Sản phẩm đã được ${product.status === 'show' ? 'hiển thị' : 'ẩn'}`,
       product,
@@ -371,12 +406,41 @@ exports.toggleProductVisibility = async (req, res) => {
   }
 };
 
+// Chuyển đổi trạng thái active của sản phẩm
+exports.toggleProductActive = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+    const isObjectId = mongoose.isValidObjectId(identifier);
+    const query = isObjectId ? { _id: identifier } : { slug: identifier };
+
+    const product = await Product.findOne(query).select('-__v');
+    if (!product) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    }
+
+    product.active = !product.active; // Chuyển đổi trạng thái active
+    await product.save();
+
+    await product.populate('id_category', 'status'); // Populate sau khi lưu để tính isActive
+
+    res.json({
+      message: `Sản phẩm đã được ${product.active ? 'kích hoạt' : 'tắt kích hoạt'}`,
+      product,
+    });
+  } catch (err) {
+    console.error(`PUT /api/products/${req.params.identifier}/toggle-active error:`, err);
+    res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
 module.exports = {
   getAllProducts: exports.getAllProducts,
+  getAllActiveProducts: exports.getAllActiveProducts,
   getProductByIdOrSlug: exports.getProductByIdOrSlug,
   createProduct: exports.createProduct,
   updateProduct: exports.updateProduct,
   deleteProduct: exports.deleteProduct,
   toggleProductVisibility: exports.toggleProductVisibility,
+  toggleProductActive: exports.toggleProductActive,
   verifyAdmin,
 };
