@@ -46,13 +46,6 @@ exports.createComment = async (req, res) => {
 // Lấy tất cả bình luận (dành cho admin)
 exports.getAllCommentsForAdmin = async (req, res) => {
   try {
-    // Kiểm tra quyền admin (giả sử có middleware kiểm tra quyền)
-    // const userId = req.user?.id; // Lấy userId từ token hoặc session
-    // const user = await User.findById(userId);
-    // if (!user || !user.isAdmin) {
-    //   return res.status(403).json({ error: 'Bạn không có quyền xem tất cả bình luận' });
-    // }
-
     const comments = await Comment.find()
       .populate('user', 'username email')
       .populate('product', 'name price images')
@@ -132,41 +125,47 @@ exports.updateComment = async (req, res) => {
 exports.updateCommentStatus = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userId, status } = req.body;
+    const { status } = req.body;
+    const user = req.user; // Lấy thông tin người dùng từ authMiddleware
 
-    if (!userId || !commentId || !status) {
-      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc: userId, commentId hoặc status' });
+    // Kiểm tra các trường bắt buộc
+    if (!user || !commentId || !status) {
+      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc: user, commentId hoặc status' });
     }
 
-    if (!['show', 'hidden'].includes(status)) {
+    // Chuẩn hóa trạng thái
+    const normalizedStatus = status.trim().toLowerCase();
+    if (!['show', 'hidden'].includes(normalizedStatus)) {
       return res.status(400).json({ error: 'Trạng thái không hợp lệ, chỉ được phép là "show" hoặc "hidden"' });
     }
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'Người dùng không tồn tại' });
-    }
-
-    if (!user.isAdmin) {
+    // Kiểm tra quyền admin dựa trên role
+    if (user.role !== 'admin') {
       return res.status(403).json({ error: 'Bạn không có quyền thay đổi trạng thái bình luận' });
     }
 
+    // Tìm bình luận
     const comment = await Comment.findById(commentId);
     if (!comment) {
       return res.status(404).json({ error: 'Bình luận không tồn tại' });
     }
 
-    comment.status = status;
+    // Cập nhật trạng thái
+    comment.status = normalizedStatus;
     comment.updatedAt = new Date();
     await comment.save();
 
     // Populate thông tin user và product
-    await comment.populate([
-      { path: 'user', select: 'username email' },
-      { path: 'product', select: 'name price images' }
-    ]);
+    try {
+      await comment.populate([
+        { path: 'user', select: 'username email' },
+        { path: 'product', select: 'name price images' }
+      ]);
+    } catch (populateError) {
+      console.warn('Cảnh báo: Lỗi khi populate dữ liệu:', populateError.message);
+    }
 
-    res.json({ message: `Cập nhật trạng thái bình luận thành ${status}`, comment });
+    res.json({ message: `Cập nhật trạng thái bình luận thành ${normalizedStatus}`, comment });
   } catch (error) {
     console.error('Lỗi khi cập nhật trạng thái bình luận:', error.stack);
     res.status(500).json({ error: 'Lỗi khi cập nhật trạng thái bình luận', details: error.message });
