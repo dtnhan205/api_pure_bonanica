@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const Brand = require('../models/brand');
 
-// Get all brands (chỉ lấy brand có status: 'show')
+// Get all brands
 exports.getAllBrands = async (req, res) => {
   try {
-    const brands = await Brand.find({ status: 'show' });
+    const brands = await Brand.find({ status: 'show' }).select('-__v');
     if (!brands.length) {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu nào' });
     }
@@ -20,7 +20,7 @@ exports.getBrandById = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const brand = await Brand.findOne({ _id: IDBFactory });
+    const brand = await Brand.findById(id).select('-__v');
     if (!brand) {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu' });
     }
@@ -31,21 +31,37 @@ exports.getBrandById = async (req, res) => {
   }
 };
 
-// Create a new brand
+// Create a new brand with image upload
 exports.createBrand = async (req, res) => {
   try {
+    console.log('Received body:', req.body);
+    console.log('Received file:', req.file);
+
+    if (!req.body) {
+      return res.status(400).json({ error: 'Dữ liệu request body không hợp lệ' });
+    }
+
     const { name, status } = req.body;
 
+    if (!name) {
+      return res.status(400).json({ error: 'Tên thương hiệu là bắt buộc' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Vui lòng upload hình ảnh logo' });
+    }
+
     const newBrand = new Brand({
-      _id: req.body._id || new mongoose.Types.ObjectId(),
+      _id: new mongoose.Types.ObjectId(),
       name,
       status: status || 'show',
+      logoImg: `/images/${req.file.filename}`
     });
 
     await newBrand.save();
     res.status(201).json({
       message: 'Tạo thương hiệu thành công',
-      brand: newBrand,
+      brand: newBrand
     });
   } catch (err) {
     console.error('POST /api/brands error:', err);
@@ -61,21 +77,29 @@ exports.updateBrand = async (req, res) => {
   const { id } = req.params;
 
   try {
+    console.log('Received body:', req.body);
+    console.log('Received file:', req.file);
+
     const { name, status } = req.body;
+    const updateData = { name, status };
+
+    if (req.file) {
+      updateData.logoImg = `/images/${req.file.filename}`;
+    }
 
     const updatedBrand = await Brand.findByIdAndUpdate(
       id,
-      { name, status },
-      { new: true, runValidators: true }
+      updateData,
+      { new: true, runValidators: true, select: '-__v' }
     );
 
     if (!updatedBrand) {
-      return res.status(404).json({ message: 'Không tìm thấy thương hiệu để cập nhật' });
+      return res.status(404).json({ message: 'Không tìm thấy thương hiệu để cập終わ nhật' });
     }
 
     res.json({
       message: 'Cập nhật thương hiệu thành công',
-      brand: updatedBrand,
+      brand: updatedBrand
     });
   } catch (err) {
     console.error(`PUT /api/brands/${id} error:`, err);
@@ -99,12 +123,12 @@ exports.deleteBrand = async (req, res) => {
   }
 };
 
-// Toggle brand visibility (Chuyển đổi giữa hidden và show)
+// Toggle brand visibility
 exports.toggleBrandVisibility = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const brand = await Brand.findById(id);
+    const brand = await Brand.findById(id).select('-__v');
     if (!brand) {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu' });
     }
@@ -114,7 +138,7 @@ exports.toggleBrandVisibility = async (req, res) => {
 
     res.json({
       message: `Thương hiệu đã được ${brand.status === 'show' ? 'hiển thị' : 'ẩn'}`,
-      brand,
+      brand
     });
   } catch (err) {
     console.error(`PUT /api/brands/${id}/toggle-visibility error:`, err);

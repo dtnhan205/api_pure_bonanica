@@ -14,9 +14,8 @@ const storage = multer.diskStorage({
     cb(null, imageUploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const filename = uniqueSuffix + path.extname(file.originalname);
-    console.log(`Generated filename: ${filename}`);
+    const filename = file.originalname; // Giữ tên file gốc
+    console.log(`Using original filename: ${filename}`);
     cb(null, filename);
   },
 });
@@ -66,7 +65,6 @@ const optionalUpload = (req, res, next) => {
   middleware(req, res, (err) => {
     if (err) {
       console.warn(`Multer error caught in optionalUpload: ${err.message}`);
-      // Tiếp tục request ngay cả khi có lỗi upload, vì file không bắt buộc
       req.files = []; // Đặt req.files rỗng để controller xử lý
       next();
     } else {
