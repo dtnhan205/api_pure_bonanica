@@ -3,6 +3,10 @@ const News = require('../models/news');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/user');
+const cheerio = require('cheerio');
+const path = require('path');
+const fs = require('fs').promises;
+const { v4: uuidv4 } = require('uuid');
 
 // Hàm tạo slug duy nhất
 const generateSlug = async (title, currentNewsId = null) => {
@@ -44,24 +48,77 @@ const generateSlug = async (title, currentNewsId = null) => {
   return uniqueSlug;
 };
 
-// Middleware kiểm tra quyền admin
-const verifyAdmin = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ error: 'Không có token, quyền truy cập bị từ chối' });
+// Hàm kiểm tra HTML hợp lệ
+const isValidHTML = (content) => {
+  try {
+    cheerio.load(content, { xmlMode: false, decodeEntities: false });
+    return true;
+  } catch (e) {
+    console.error('Invalid HTML content:', e);
+    return false;
+  }
+};
+
+// Hàm xử lý hình ảnh nhúng trong content
+const processContentImages = async (content) => {
+  if (!isValidHTML(content)) {
+    throw new Error('Nội dung HTML không hợp lệ');
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const admin = await Admin.findById(decoded.id);
-    if (!admin) {
-      return res.status(403).json({ error: 'Không có quyền admin' });
+  const $ = cheerio.load(content, { xmlMode: false, decodeEntities: false });
+  const imgTags = $('img');
+  console.log(`Found ${imgTags.length} <img> tags in content`);
+
+  const imagePaths = [];
+  const allowedTypes = ['jpeg', 'png', 'jpg', 'gif', 'webp'];
+
+  const promises = Array.from(imgTags).map(async (elem, i) => {
+    let src = $(elem).attr('src');
+    
+    if (!src) {
+      console.warn(`Img tag ${i + 1} has no src, skipping`);
+      return;
     }
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Token không hợp lệ' });
-  }
+
+    if (src.startsWith('data:image/')) {
+      try {
+        const matches = src.match(/^data:image\/([a-z]+);base64,(.+)$/);
+        if (!matches) {
+          console.warn(`Invalid Data URL in img tag ${i + 1}, skipping`);
+          return;
+        }
+
+        const ext = matches[1].toLowerCase();
+        if (!allowedTypes.includes(ext)) {
+          console.warn(`Unsupported image type in Data URL (${ext}) for img tag ${i + 1}, skipping`);
+          return;
+        }
+
+        const data = matches[2];
+        const buffer = Buffer.from(data, 'base64');
+
+        if (buffer.length > 20 * 1024 * 1024) {
+          console.warn(`Data URL in img tag ${i + 1} exceeds 20MB, skipping`);
+          return;
+        }
+
+        const filename = `${uuidv4()}.${ext}`;
+        const filePath = path.join(__dirname, '..', 'public', 'images', filename);
+
+        await fs.writeFile(filePath, buffer);
+        console.log(`Saved image from Data URL to: images/${filename}`);
+        $(elem).attr('src', `images/${filename}`);
+        imagePaths.push(`images/${filename}`);
+      } catch (err) {
+        console.error(`Error processing Data URL in img tag ${i + 1}:`, err);
+      }
+    } else {
+      console.warn(`Img tag ${i + 1} has external or invalid src: ${src}, keeping original`);
+    }
+  });
+
+  await Promise.all(promises);
+  return { processedContent: $.html(), imagePaths };
 };
 
 exports.getAllNews = async (req, res) => {
@@ -83,16 +140,13 @@ exports.getNewsById = async (req, res) => {
     const isAdmin = !!req.headers.authorization;
     let news;
 
-    // Kiểm tra xem identifier có phải là ObjectId hợp lệ
     const isObjectId = mongoose.isValidObjectId(identifier);
 
     if (isAdmin) {
-      // Admin: Không tăng views
       news = isObjectId
         ? await News.findById(identifier)
         : await News.findOne({ slug: identifier });
     } else {
-      // Non-admin: Tăng views
       news = isObjectId
         ? await News.findByIdAndUpdate(
             identifier,
@@ -152,7 +206,9 @@ exports.createNews = async (req, res) => {
     if (!thumbnail) {
       return res.status(400).json({ error: 'Không tìm thấy file thumbnail' });
     }
-    const thumbnailUrl = `/images/${thumbnail.filename}`;
+    const thumbnailUrl = `images/${thumbnail.filename}`;
+
+    const { processedContent, imagePaths } = await processContentImages(content);
 
     const finalSlug = slug || (await generateSlug(title));
 
@@ -169,7 +225,7 @@ exports.createNews = async (req, res) => {
       publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
       views: parseInt(views, 10) || 0,
       status: status || 'show',
-      content,
+      content: processedContent,
     });
 
     await newNews.save();
@@ -199,19 +255,21 @@ exports.updateNews = async (req, res) => {
 
     const files = req.files || {};
     const thumbnail = files['thumbnail'] && files['thumbnail'].length > 0 ? files['thumbnail'][0] : null;
+    const thumbnailUrl = thumbnail ? `images/${thumbnail.filename}` : undefined;
+
+    const { processedContent, imagePaths } = await processContentImages(content);
 
     const updateData = {
       title,
       slug: slug ? await generateSlug(slug, isObjectId ? identifier : null) : undefined,
-      thumbnailUrl: thumbnail ? `/images/${thumbnail.filename}` : undefined,
+      thumbnailUrl,
       thumbnailCaption: thumbnailCaption || undefined,
       publishedAt: publishedAt ? new Date(publishedAt) : undefined,
       views: parseInt(views, 10) || undefined,
       status: status || undefined,
-      content,
+      content: processedContent,
     };
 
-    // Loại bỏ các trường undefined
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
 
     const updatedNews = await News.findOneAndUpdate(
@@ -222,6 +280,12 @@ exports.updateNews = async (req, res) => {
 
     if (!updatedNews) {
       return res.status(404).json({ error: 'Không tìm thấy tin tức để cập nhật' });
+    }
+
+    // Xóa hình ảnh cũ nếu có thumbnail mới
+    if (thumbnail && updatedNews.thumbnailUrl && updateData.thumbnailUrl && updatedNews.thumbnailUrl !== updateData.thumbnailUrl) {
+      const oldThumbnailPath = path.join(__dirname, '..', updatedNews.thumbnailUrl);
+      await fs.unlink(oldThumbnailPath).catch(err => console.error('Error deleting old thumbnail:', err));
     }
 
     res.json({
@@ -247,6 +311,25 @@ exports.deleteNews = async (req, res) => {
     if (!deletedNews) {
       return res.status(404).json({ message: 'Không tìm thấy tin tức để xóa' });
     }
+
+    // Xóa file thumbnail
+    if (deletedNews.thumbnailUrl) {
+      const thumbnailPath = path.join(__dirname, '..', deletedNews.thumbnailUrl);
+      await fs.unlink(thumbnailPath).catch(err => console.error('Error deleting thumbnail:', err));
+    }
+
+    // Xóa các file hình ảnh trong content
+    const $ = cheerio.load(deletedNews.content);
+    const deletePromises = Array.from($('img')).map(async (elem) => {
+      const src = $(elem).attr('src');
+      if (src && src.startsWith('images/')) {
+        const imgPath = path.join(__dirname, '..', src);
+        await fs.unlink(imgPath).catch(err => console.error(`Error deleting content image ${src}:`, err));
+      }
+    });
+
+    await Promise.all(deletePromises);
+
     res.json({ message: 'Xóa tin tức thành công' });
   } catch (err) {
     console.error(`DELETE /api/news/${req.params.identifier} error:`, err);
@@ -286,5 +369,4 @@ module.exports = {
   updateNews: exports.updateNews,
   deleteNews: exports.deleteNews,
   toggleNewsVisibility: exports.toggleNewsVisibility,
-  verifyAdmin,
 };

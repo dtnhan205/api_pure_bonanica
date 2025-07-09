@@ -14,8 +14,9 @@ const storage = multer.diskStorage({
     cb(null, imageUploadDir);
   },
   filename: (req, file, cb) => {
-    const filename = file.originalname; // Giữ tên file gốc
-    console.log(`Using original filename: ${filename}`);
+    const ext = path.extname(file.originalname).toLowerCase();
+    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`; // Tên file duy nhất
+    console.log(`Generated filename: ${filename}`);
     cb(null, filename);
   },
 });
@@ -33,7 +34,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Cấu hình multer
 const upload = multer({
   storage,
   fileFilter,
@@ -45,27 +45,22 @@ const upload = multer({
   }
 });
 
-// Middleware cho news endpoints
 const newsUpload = upload.fields([
-  { name: 'thumbnail', maxCount: 1 },
-  { name: 'contentImages', maxCount: 10 }
+  { name: 'thumbnail', maxCount: 1 }
 ]);
 
-// Middleware cho product endpoints
 const productUpload = upload.array('images', 10);
 
-// Middleware tùy chỉnh để bỏ qua multer nếu không có form-data
 const optionalUpload = (req, res, next) => {
   if (!req.headers['content-type'] || !req.headers['content-type'].includes('multipart/form-data')) {
     console.log('No multipart/form-data, skipping multer');
     return next();
   }
-  // Chọn middleware dựa trên route
   const middleware = req.path.includes('/news') ? newsUpload : productUpload;
   middleware(req, res, (err) => {
     if (err) {
       console.warn(`Multer error caught in optionalUpload: ${err.message}`);
-      req.files = []; // Đặt req.files rỗng để controller xử lý
+      req.files = [];
       next();
     } else {
       next();
@@ -76,7 +71,7 @@ const optionalUpload = (req, res, next) => {
 const handleMulterError = (err, req, res, next) => {
   console.error('Multer error:', err.message, err.stack);
   if (err instanceof multer.MulterError) {
-    return res.status(400).json({ error: `Lỗi upload: ${err.message}` });
+    return res.status(400).json({ error: `Lỗi upload file: ${err.message}` });
   } else if (err) {
     return res.status(400).json({ error: err.message });
   }
@@ -86,5 +81,6 @@ const handleMulterError = (err, req, res, next) => {
 module.exports = {
   upload,
   optionalUpload,
-  handleMulterError
+  handleMulterError,
+  newsUpload,
 };
