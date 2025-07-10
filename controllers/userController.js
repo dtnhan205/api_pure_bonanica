@@ -316,10 +316,10 @@ const verifyToken = (req, res, next) => {
 
 const getUser = async (req, res) => {
   try {
-    const userId = req.query.id; // Lấy id từ query parameter
+    const userId = req.query.id; // Lấy id từ query parameter, gán cho biến userId
     console.log('Received userId:', userId); // Debug
     if (!userId) {
-      return res.status(400).json({ message: 'Thiếu tham số id' });
+      return res.status(400).json({ message: 'Thiếu tham số userId' });
     }
     const user = await userModel.findById(userId, { password: 0, passwordResetToken: 0 });
     console.log('User found:', user); // Debug
