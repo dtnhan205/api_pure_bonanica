@@ -15,4 +15,6 @@ router.delete('/:id', authMiddleware, isAdmin, categoryController.deleteCategory
 
 router.put('/:id/toggle-visibility', authMiddleware, isAdmin, categoryController.toggleCategoryVisibility);
 
+router.get('/products', authMiddleware, isAdmin, categoryController.getProductsByCategory);
+
 module.exports = router;

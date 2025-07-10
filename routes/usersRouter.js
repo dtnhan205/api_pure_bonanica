@@ -4,36 +4,35 @@ const userController = require('../controllers/userController');
 const { googleAuth, googleAuthCallback } = require('../controllers/googleAuthController');
 const { authMiddleware, isAdmin } = require('../middlewares/auth');
 
-
 // Đăng ký
 router.post('/register', userController.register);
 
-// Login
+// Đăng nhập
 router.post('/login', userController.login);
 
-// Forgot password
+// Quên mật khẩu
 router.post('/forgot-password', userController.forgotPassword);
 
-// Reset password
+// Đặt lại mật khẩu
 router.post('/reset-password/:token', userController.resetPassword);
 
-// Get user info (requires token)
+// Lấy thông tin người dùng (yêu cầu token)
 router.get('/userinfo', authMiddleware, userController.getUser);
 
-// Get all users
-router.get('/',authMiddleware,isAdmin, userController.getAllUsers);
+// Lấy tất cả người dùng (yêu cầu token và quyền admin)
+router.get('/', authMiddleware, isAdmin, userController.getAllUsers);
 
-// Get user by ID
-router.get('/:id',authMiddleware,isAdmin, userController.getUserById);
+// Lấy thông tin người dùng theo ID (yêu cầu token và quyền admin)
+router.get('/:id', authMiddleware, isAdmin, userController.getUserById);
 
-// Update user
-router.put('/update/:id',authMiddleware, userController.verifyToken, userController.updateUser);
+// Cập nhật thông tin người dùng (yêu cầu token, admin hoặc chính người dùng)
+router.put('/update/:id', authMiddleware, userController.updateUser);
 
-// Delete user
-router.delete('/:id',authMiddleware,isAdmin, userController.verifyToken, userController.deleteUser);
+// Xóa người dùng (yêu cầu token và quyền admin)
+router.delete('/:id', authMiddleware, isAdmin, userController.deleteUser);
 
-// Change password
-router.put('/change-password/:id', userController.verifyToken, userController.changePassword);
+// Đổi mật khẩu (yêu cầu token, admin hoặc chính người dùng)
+router.put('/change-password/:id', authMiddleware, userController.changePassword);
 
 // Đăng nhập bằng Google
 router.get('/google', googleAuth);

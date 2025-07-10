@@ -137,6 +137,23 @@ const toggleCategoryVisibility = async (req, res) => {
   }
 };
 
+// Get products by category ID
+const getProductsByCategory = async (req, res) => {
+  const { id_category } = req.query;
+  if (!id_category || !mongoose.Types.ObjectId.isValid(id_category)) {
+    console.warn(`Invalid or missing category ID: ${id_category}`);
+    return res.status(400).json({ message: 'ID danh mục không hợp lệ' });
+  }
+  try {
+    const products = await Product.find({ id_category });
+    console.log(`Products found for category ${id_category}:`, products); // Debug
+    res.json(products); // Always return array, even if empty
+  } catch (error) {
+    console.error(`GET /api/products?id_category=${id_category} error:`, error);
+    res.status(500).json({ message: 'Lỗi máy chủ' });
+  }
+};
+
 module.exports = {
   createCategory,
   getAllCategories,
@@ -144,4 +161,5 @@ module.exports = {
   updateCategory,
   deleteCategory,
   toggleCategoryVisibility,
+  getProductsByCategory,
 };

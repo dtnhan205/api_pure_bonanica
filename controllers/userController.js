@@ -316,12 +316,19 @@ const verifyToken = (req, res, next) => {
 
 const getUser = async (req, res) => {
   try {
-    const user = await userModel.findById(req.userId, { password: 0, passwordResetToken: 0 });
+    const userId = req.query.id; // Lấy id từ query parameter
+    console.log('Received userId:', userId); // Debug
+    if (!userId) {
+      return res.status(400).json({ message: 'Thiếu tham số id' });
+    }
+    const user = await userModel.findById(userId, { password: 0, passwordResetToken: 0 });
+    console.log('User found:', user); // Debug
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
     res.json(user);
   } catch (error) {
+    console.error('Lỗi khi lấy thông tin người dùng:', error);
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
