@@ -4,6 +4,6 @@ const emailController = require('../controllers/emailController');
 const { authMiddleware, isAdmin } = require('../middlewares/auth');
 
 
-router.post('/sendEmail',authMiddleware, emailController.sendEmail);
+router.post('/sendEmail', emailController.sendEmail);
 
 module.exports = router;

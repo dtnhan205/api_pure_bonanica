@@ -11,7 +11,7 @@ router.use((req, res, next) => {
 });
 
 // Route để tạo thanh toán mới
-router.post('/create',authMiddleware, async (req, res, next) => {
+router.post('/create', async (req, res, next) => {
   try {
     await PaymentController.createPayment(req, res);
   } catch (error) {
@@ -20,7 +20,7 @@ router.post('/create',authMiddleware, async (req, res, next) => {
 });
 
 // Route để kiểm tra và verify thanh toán
-router.post('/check-payment',authMiddleware, async (req, res, next) => {
+router.post('/check-payment', async (req, res, next) => {
   try {
     await PaymentController.checkPaymentStatus(req, res);
   } catch (error) {
@@ -29,7 +29,7 @@ router.post('/check-payment',authMiddleware, async (req, res, next) => {
 });
 
 // Route để lấy thông tin thanh toán theo userId
-router.post('/get-by-user',authMiddleware, async (req, res, next) => {
+router.post('/get-by-user', async (req, res, next) => {
   try {
     await PaymentController.getPaymentsByUserId(req, res);
   } catch (error) {

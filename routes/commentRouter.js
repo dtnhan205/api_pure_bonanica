@@ -4,16 +4,16 @@ const commentController = require('../controllers/commentController');
 const { authMiddleware, isAdmin } = require('../middlewares/auth');
 
 
-router.post('/',authMiddleware, commentController.createComment);
+router.post('/', commentController.createComment);
 
-router.get('/',authMiddleware,isAdmin, commentController.getAllCommentsForAdmin);
+router.get('/', commentController.getAllCommentsForAdmin);
 
 router.get('/product/:productId', commentController.getCommentsByProduct);
 
-router.put('/:commentId',authMiddleware, commentController.updateComment);
+router.put('/:commentId', commentController.updateComment);
 
-router.put('/toggle-visibility/:commentId',authMiddleware,isAdmin, commentController.updateCommentStatus);
+router.put('/toggle-visibility/:commentId', commentController.updateCommentStatus);
 
-router.delete('/:commentId',authMiddleware, commentController.deleteComment);
+router.delete('/:commentId', commentController.deleteComment);
 
 module.exports = router; 
