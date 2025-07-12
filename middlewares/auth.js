@@ -12,19 +12,26 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dinhthenhan');
+    console.log("Decoded token:", decoded); // Debug
     const user = await User.findById(decoded.id).select('-password');
 
     if (!user) {
+      console.log("User not found for id:", decoded.id); // Debug
       return res.status(401).json({ error: 'Người dùng không tồn tại' });
     }
 
     req.user = user;
+    console.log("Assigned req.user:", user); // Debug
     next();
   } catch (err) {
+    console.error("Lỗi trong authMiddleware:", err); // Debug
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ error: 'Token đã hết hạn' });
     }
-    return res.status(401).json({ error: 'Token không hợp lệ' });
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Token không hợp lệ' });
+    }
+    return res.status(500).json({ error: 'Lỗi server trong authMiddleware', details: err.message });
   }
 };
 

@@ -11,15 +11,15 @@ router.get('/', brandController.getAllBrands);
 router.get('/:id', brandController.getBrandById);
 
 // Tạo brand mới
-router.post('/', upload.single('logoImg'), handleMulterError, brandController.createBrand);
+router.post('/', authMiddleware, isAdmin, upload.single('logoImg'), handleMulterError, brandController.createBrand);
 
 // Cập nhật brand
-router.put('/:id',upload.single('logoImg'), handleMulterError, brandController.updateBrand);
+router.put('/:id', authMiddleware, isAdmin, upload.single('logoImg'), handleMulterError, brandController.updateBrand);
 
 // Xóa brand
-router.delete('/:id', brandController.deleteBrand);
+router.delete('/:id', authMiddleware, isAdmin, brandController.deleteBrand);
 
 // Chuyển đổi trạng thái hiển thị
-router.put('/:id/toggle-visibility',  brandController.toggleBrandVisibility);
+router.put('/:id/toggle-visibility', authMiddleware, isAdmin, brandController.toggleBrandVisibility);
 
 module.exports = router;

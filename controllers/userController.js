@@ -360,21 +360,61 @@ const getUserById = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
+    console.log("Updating user:", { userId, body: req.body });
+
+    // Kiểm tra quyền truy cập
     if (req.userId !== userId && req.user.role !== 'admin') {
+      console.log("Access denied:", { userId, requester: req.userId, role: req.user.role });
       return res.status(403).json({ message: 'Bạn không có quyền cập nhật người dùng này' });
     }
+
     const { username, phone, email, address, birthday, status, role } = req.body;
+
+    // Kiểm tra email trùng lặp
+    if (email) {
+      const existingUser = await userModel.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
+        console.log("Email already exists:", email);
+        return res.status(409).json({ message: 'Email đã tồn tại' });
+      }
+    }
+
+    // Tạo object updateData chỉ chứa các trường được gửi
+    const updateData = {};
+    if (username !== undefined) updateData.username = username;
+    if (phone !== undefined) updateData.phone = phone;
+    if (email !== undefined) updateData.email = email;
+    if (address !== undefined) updateData.address = address;
+    if (birthday !== undefined) updateData.birthday = birthday;
+    if (req.user.role === 'admin') {
+      if (status !== undefined) updateData.status = status;
+      if (role !== undefined) updateData.role = role;
+    }
+
+    // Cập nhật user
     const user = await userModel.findByIdAndUpdate(
       userId,
-      { username, phone, email, address, birthday, status, role },
-      { new: true, select: '-password -passwordResetToken' }
+      updateData,
+      { new: true, runValidators: true, select: '-password -passwordResetToken' }
     );
+
     if (!user) {
+      console.log("User not found:", userId);
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
-    res.json({ message: 'Cập nhật thành công', user });
+
+    console.log("User updated successfully:", user);
+    return res.status(200).json({ message: 'Cập nhật thành công', user });
   } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
+    console.error("Error in updateUser:", error);
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'Email đã tồn tại' });
+    }
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message).join(', ');
+      return res.status(400).json({ message: 'Dữ liệu không hợp lệ', errors });
+    }
+    return res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
 

@@ -7,9 +7,9 @@ const { authMiddleware, isAdmin } = require('../middlewares/auth');
 router.get('/', newsController.getAllNews);
 router.get('/hottest', newsController.getHottestNews);
 router.get('/:identifier', newsController.getNewsById);
-router.post('/', newsUpload, handleMulterError, newsController.createNews);
-router.put('/:identifier', newsUpload, handleMulterError, newsController.updateNews);
-router.delete('/:identifier', newsController.deleteNews);
-router.put('/:identifier/toggle-visibility', newsController.toggleNewsVisibility);
+router.post('/', authMiddleware, isAdmin, newsUpload, handleMulterError, newsController.createNews);
+router.put('/:identifier', authMiddleware, isAdmin, newsUpload, handleMulterError, newsController.updateNews);
+router.delete('/:identifier', authMiddleware, isAdmin, newsController.deleteNews);
+router.put('/:identifier/toggle-visibility', authMiddleware, isAdmin, newsController.toggleNewsVisibility);
 
 module.exports = router;
