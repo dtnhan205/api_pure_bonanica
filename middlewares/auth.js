@@ -5,6 +5,7 @@ const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log("No token provided in headers:", req.headers);
     return res.status(401).json({ error: 'Không có token xác thực' });
   }
 
@@ -21,7 +22,10 @@ const authMiddleware = async (req, res, next) => {
     }
 
     req.user = user;
-    console.log("Assigned req.user:", user); // Debug
+    console.log("Assigned req.user:", {
+      id: user._id.toString(),
+      role: user.role,
+    }); // Debug
     next();
   } catch (err) {
     console.error("Lỗi trong authMiddleware:", err); // Debug
@@ -37,6 +41,7 @@ const authMiddleware = async (req, res, next) => {
 
 const isAdmin = (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
+    console.log("Access denied in isAdmin:", { user: req.user ? req.user.role : null });
     return res.status(403).json({ error: 'Chỉ admin có quyền truy cập' });
   }
   next();

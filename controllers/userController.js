@@ -356,7 +356,6 @@ const getUserById = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
-
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -388,18 +387,25 @@ const updateUser = async (req, res) => {
       }
     }
 
-    // Tạo object updateData chỉ chứa các trường được gửi
+    // Tạo object updateData chỉ chứa các trường hợp lệ
     const updateData = {};
-    if (username !== undefined) updateData.username = username;
-    if (phone !== undefined) updateData.phone = phone;
-    if (email !== undefined) updateData.email = email;
-    if (address !== undefined) updateData.address = address;
-    if (birthday !== undefined) updateData.birthday = birthday;
+    if (username && username.trim()) updateData.username = username.trim();
+    if (email && email.trim()) updateData.email = email.trim();
+    if (phone && phone.trim()) updateData.phone = phone.trim();
+    if (address && address.trim()) updateData.address = address.trim();
+    if (birthday && !isNaN(new Date(birthday).getTime())) updateData.birthday = new Date(birthday);
 
     // Chỉ admin mới được cập nhật status và role
     if (req.user.role === 'admin') {
       if (status !== undefined) updateData.status = status;
       if (role !== undefined) updateData.role = role;
+    }
+
+    // Nếu không có trường nào để cập nhật, trả về thành công ngay
+    if (Object.keys(updateData).length === 0) {
+      console.log("No changes to update for user:", userId);
+      const user = await userModel.findById(userId).select('-password -passwordResetToken');
+      return res.status(200).json({ message: 'Không có thay đổi để cập nhật', user });
     }
 
     // Cập nhật user
