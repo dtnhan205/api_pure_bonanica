@@ -8,40 +8,48 @@ const updateImage = async (type, files, res) => {
   try {
     let paths = [];
     if (Array.isArray(files)) {
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: 'Không có file nào được tải lên' });
+      }
       paths = files.map(file => `images/${file.filename}`);
     } else if (files) {
       paths = [`images/${files.filename}`];
     } else {
-      return res.status(400).json({ error: 'Không có file được tải lên' });
+      return res.status(400).json({ error: 'Không có file nào được tải lên' });
     }
 
     // Xóa hình cũ nếu tồn tại
-    const oldImages = await Interface.find({ type });
-    for (const oldImage of oldImages) {
-      const oldPath = path.join(__dirname, '..', oldImage.path);
-      await fs.unlink(oldPath).catch(err => console.error(`Error deleting old image ${oldImage.path}:`, err));
+    const oldImages = await Interface.findOne({ type });
+    if (oldImages) {
+      for (const oldPath of oldImages.paths) {
+        const fullPath = path.join(__dirname, '..', oldPath);
+        await fs.unlink(fullPath).catch(err => console.error(`Error deleting old image ${oldPath}:`, err));
+      }
+      await Interface.deleteOne({ type });
     }
-    await Interface.deleteMany({ type });
 
     // Lưu hình mới
-    const newImages = paths.map(path => new Interface({ type, path }).save());
-    await Promise.all(newImages);
+    const newDoc = new Interface({ type, paths });
+    await newDoc.save();
 
-    res.json({ message: `Cập nhật ${type} thành công`, paths });
+    console.log(`Updated ${type} successfully:`, paths);
+    res.status(200).json({ message: `Cập nhật ${type} thành công`, paths });
   } catch (err) {
+    console.error(`Error updating ${type}:`, err);
     res.status(500).json({ error: 'Lỗi server' });
   }
 };
 
 const getImages = async (type, res) => {
   try {
-    const images = await Interface.find({ type });
-    if (!images || images.length === 0) {
+    const images = await Interface.findOne({ type });
+    if (!images || images.paths.length === 0) {
       return res.status(404).json({ error: `Không tìm thấy hình ảnh loại ${type}` });
     }
-    const paths = images.map(img => img.path);
-    res.json({ type, paths });
+    const paths = images.paths;
+    res.status(200).json({ type, paths });
   } catch (err) {
+    console.error(`Error fetching ${type}:`, err);
     res.status(500).json({ error: 'Lỗi server' });
   }
 };
