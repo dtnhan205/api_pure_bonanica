@@ -360,11 +360,20 @@ const getUserById = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    console.log("Updating user:", { userId, body: req.body });
+    console.log("Updating user:", {
+      userId,
+      body: req.body,
+      requesterId: req.user._id.toString(),
+      role: req.user.role,
+    });
 
     // Kiểm tra quyền truy cập
-    if (req.userId !== userId && req.user.role !== 'admin') {
-      console.log("Access denied:", { userId, requester: req.userId, role: req.user.role });
+    if (req.user._id.toString() !== userId && req.user.role !== 'admin') {
+      console.log("Access denied:", {
+        userId,
+        requesterId: req.user._id.toString(),
+        role: req.user.role,
+      });
       return res.status(403).json({ message: 'Bạn không có quyền cập nhật người dùng này' });
     }
 
@@ -386,6 +395,8 @@ const updateUser = async (req, res) => {
     if (email !== undefined) updateData.email = email;
     if (address !== undefined) updateData.address = address;
     if (birthday !== undefined) updateData.birthday = birthday;
+
+    // Chỉ admin mới được cập nhật status và role
     if (req.user.role === 'admin') {
       if (status !== undefined) updateData.status = status;
       if (role !== undefined) updateData.role = role;
