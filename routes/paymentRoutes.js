@@ -36,6 +36,14 @@ router.post('/get-by-user',authMiddleware, async (req, res, next) => {
     next(error);
   }
 });
+// Route mới để lấy thông tin thanh toán (tên người bank, thời gian, số tiền, paymentCode, nội dung)
+router.post('/get-payments', authMiddleware, isAdmin, async (req, res, next) => {
+  try {
+    await PaymentController.getPayments(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Middleware xử lý lỗi toàn cục
 router.use((error, req, res, next) => {

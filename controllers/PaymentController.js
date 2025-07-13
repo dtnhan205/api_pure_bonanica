@@ -1,6 +1,7 @@
 const axios = require('axios');
 const Payment = require('../models/Payment');
 const Order = require('../models/order');
+const User = require('../models/user');
 const moment = require('moment-timezone');
 const mongoose = require('mongoose');
 const Joi = require('joi');
@@ -139,7 +140,6 @@ const schemas = {
       return value;
     })
   }),
-
   verifyPayment: Joi.object({
     paymentCode: Joi.string().required().pattern(/^thanhtoan\d{5}$/).messages({
       'string.pattern.base': 'Mã thanh toán không hợp lệ',
@@ -151,7 +151,6 @@ const schemas = {
       'any.required': 'Thiếu số tiền'
     })
   }),
-
   checkPaymentStatus: Joi.object({
     paymentCode: Joi.string().required().pattern(/^thanhtoan\d{5}$/).messages({
       'string.pattern.base': 'Mã thanh toán không hợp lệ',
@@ -163,11 +162,24 @@ const schemas = {
       'any.required': 'Thiếu số tiền'
     })
   }),
-
   getPaymentsByUserId: Joi.object({
     userId: Joi.string().required().custom((value, helpers) => {
       if (!mongoose.Types.ObjectId.isValid(value)) {
         return helpers.error('any.invalid', { message: 'UserId không hợp lệ' });
+      }
+      return value;
+    })
+  }),
+  getPayments: Joi.object({
+    userId: Joi.string().optional().custom((value, helpers) => {
+      if (value && !mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.error('any.invalid', { message: 'UserId không hợp lệ' });
+      }
+      return value;
+    }),
+    orderId: Joi.string().optional().custom((value, helpers) => {
+      if (value && !mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.error('any.invalid', { message: 'OrderId không hợp lệ' });
       }
       return value;
     })
@@ -387,6 +399,76 @@ exports.getPaymentsByUserId = async (req, res) => {
       status: 'success',
       message: 'Lấy thông tin thanh toán thành công',
       data: payments
+    });
+  } catch (error) {
+    return handleError(res, error);
+  }
+};
+// Hàm getPayments đã cập nhật
+exports.getPayments = async (req, res) => {
+  try {
+    // Kiểm tra và validate req.body, nếu không có thì bỏ qua
+    const { error } = schemas.getPayments.validate(req.body || {});
+    if (error) return handleError(res, new Error(error.details[0].message), 400);
+
+    const { userId, orderId } = req.body || {}; // Mặc định là undefined nếu req.body không tồn tại
+
+    // Xây dựng query
+    const query = {};
+    if (userId) {
+      utils.validateObjectId(userId, 'userId');
+      const orders = await Order.find({ user: userId }).select('_id');
+      if (!orders.length) {
+        return res.status(200).json({
+          status: 'success',
+          message: 'Không tìm thấy đơn hàng nào cho người dùng này',
+          data: []
+        });
+      }
+      query.orderId = { $in: orders.map(order => order._id) };
+    }
+    if (orderId) {
+      utils.validateObjectId(orderId, 'orderId');
+      query.orderId = orderId;
+    }
+    // Nếu không có userId hay orderId, lấy tất cả thanh toán
+    if (!userId && !orderId) {
+      query.orderId = { $exists: true }; // Lấy tất cả thanh toán có orderId hợp lệ
+    }
+
+    // Lấy danh sách thanh toán với populate orderId để lấy user
+    const payments = await Payment.find(query)
+      .populate({
+        path: 'orderId',
+        select: 'user',
+        populate: {
+          path: 'user',
+          select: 'username'
+        }
+      })
+      .select('paymentCode amount transactionDate description status orderId')
+      .lean();
+
+    // Xử lý dữ liệu trả về với log debug
+    const result = payments.map(payment => {
+      console.log('Payment data:', payment); // Debug để kiểm tra dữ liệu
+      return {
+        paymentCode: payment.paymentCode,
+        amount: payment.amount,
+        transactionDate: payment.transactionDate
+          ? moment.tz(payment.transactionDate, 'Asia/Ho_Chi_Minh').format('DD/MM/YYYY HH:mm:ss')
+          : null,
+        bankUserName: payment.orderId?.user?.username || bankApiService.extractBankUserName(payment.description) || 'Không xác định',
+        description: payment.description || 'Không có nội dung chuyển khoản',
+        status: payment.status,
+        orderId: payment.orderId?._id
+      };
+    });
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Lấy thông tin thanh toán thành công',
+      data: result
     });
   } catch (error) {
     return handleError(res, error);
