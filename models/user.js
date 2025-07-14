@@ -28,7 +28,6 @@ const userSchema = new mongoose.Schema({
     default: '',
     validate: {
       validator: function(value) {
-        // Chỉ kiểm tra minlength nếu password bắt buộc và không rỗng
         if (this.googleId || value === '') return true;
         return value.length >= 8;
       },
@@ -36,7 +35,20 @@ const userSchema = new mongoose.Schema({
     }
   },
   address: { type: String, default: '', trim: true },
+  temporaryAddress1: { // Địa chỉ tạm thời 1
+    addressLine: { type: String, default: '', trim: true },
+    ward: { type: String, default: '', trim: true },
+    district: { type: String, default: '', trim: true },
+    cityOrProvince: { type: String, default: '', trim: true }
+  },
+  temporaryAddress2: { // Địa chỉ tạm thời 2
+    addressLine: { type: String, default: '', trim: true },
+    ward: { type: String, default: '', trim: true },
+    district: { type: String, default: '', trim: true },
+    cityOrProvince: { type: String, default: '', trim: true }
+  },
   listOrder: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
+  favoriteProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   birthday: { type: Date, default: null },
   status: {
     type: String,
@@ -60,7 +72,6 @@ const userSchema = new mongoose.Schema({
   },
 }, { versionKey: false });
 
-// Tự động băm mật khẩu trước khi lưu (chỉ áp dụng nếu có password)
 userSchema.pre('save', async function (next) {
   if (this.isModified('password') && this.password && this.password.length > 0) {
     this.password = await bcrypt.hash(this.password, 10);

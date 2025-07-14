@@ -1,6 +1,7 @@
 const userModel = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const axios = require('axios');
 require('dotenv').config();
 
@@ -316,19 +317,46 @@ const verifyToken = (req, res, next) => {
 
 const getUser = async (req, res) => {
   try {
-    const userId = req.query.id; // Lấy id từ query parameter, gán cho biến userId
-    console.log('Received userId:', userId); // Debug
+    const userId = req.query.id;
+    console.log('Received userId:', userId);
     if (!userId) {
       return res.status(400).json({ message: 'Thiếu tham số userId' });
     }
-    const user = await userModel.findById(userId, { password: 0, passwordResetToken: 0 });
-    console.log('User found:', user); // Debug
+    const user = await userModel.findById(userId, {
+      password: 0,
+      passwordResetToken: 0,
+      emailVerificationToken: 0
+    });
+    console.log('User found:', user);
     if (!user) {
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
     }
-    res.json(user);
+    res.json(user); // Bao gồm temporaryAddress
   } catch (error) {
     console.error('Lỗi khi lấy thông tin người dùng:', error);
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+};
+
+const getTemporaryAddresses = async (req, res) => {
+  try {
+    const userId = req.user._id; // Lấy từ token
+    const user = await userModel.findById(userId, {
+      temporaryAddress1: 1,
+      temporaryAddress2: 1,
+      _id: 0
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    res.json({
+      temporaryAddress1: user.temporaryAddress1,
+      temporaryAddress2: user.temporaryAddress2
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy địa chỉ tạm thời:', error);
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
@@ -353,6 +381,102 @@ const getUserById = async (req, res) => {
     }
     res.json(user);
   } catch (error) {
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+};
+const addFavoriteProduct = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { productId } = req.body;
+
+    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: 'ProductId không hợp lệ' });
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    if (!user.favoriteProducts.includes(productId)) {
+      user.favoriteProducts.push(productId);
+      await user.save();
+    }
+
+    res.json({ message: 'Thêm sản phẩm yêu thích thành công', favoriteProducts: user.favoriteProducts });
+  } catch (error) {
+    console.error('Lỗi khi thêm sản phẩm yêu thích:', error);
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+};
+const removeFavoriteProduct = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { productId } = req.params;
+
+    if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: 'ProductId không hợp lệ' });
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    const index = user.favoriteProducts.indexOf(productId);
+    if (index !== -1) {
+      user.favoriteProducts.splice(index, 1);
+      await user.save();
+    }
+
+    res.json({ message: 'Xóa sản phẩm yêu thích thành công', favoriteProducts: user.favoriteProducts });
+  } catch (error) {
+    console.error('Lỗi khi xóa sản phẩm yêu thích:', error);
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+};
+
+const getFavoriteProducts = async (req, res) => {
+  try {
+    console.log(`[${new Date().toISOString()}] Request context for /favorite-products:`, {
+      user: req.user,
+      userId: req.user ? req.user._id : 'undefined',
+      params: req.params,
+      query: req.query,
+      headers: req.headers,
+      originalUrl: req.originalUrl,
+    });
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: 'Người dùng không được xác thực' });
+    }
+
+    const userId = req.user._id;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'User ID không hợp lệ', received: userId });
+    }
+
+    const user = await userModel
+      .findById(userId)
+      .populate({
+        path: 'favoriteProducts',
+        select: 'name images active', // Lấy trực tiếp active thay vì isActive
+        populate: { path: 'id_category', select: 'status' } // Populate id_category và status
+      });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    // Thêm isActive vào response dựa trên logic virtual nếu cần
+    const favoriteProducts = user.favoriteProducts.map(product => ({
+      ...product.toObject(),
+      isActive: product.isActive // Sử dụng virtual field
+    }));
+
+    res.json({ favoriteProducts });
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Lỗi khi lấy sản phẩm yêu thích:`, error);
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
@@ -438,7 +562,7 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    if (req.userId !== userId && req.user.role !== 'admin') {
+    if (req.user._id.toString() !== userId && req.user.role !== 'admin') { // Thay req.userId
       return res.status(403).json({ message: 'Bạn không có quyền xóa người dùng này' });
     }
     const user = await userModel.findByIdAndDelete(userId);
@@ -455,7 +579,7 @@ const changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
     const userId = req.params.id;
-    if (req.userId !== userId && req.user.role !== 'admin') {
+    if (req.user._id.toString() !== userId && req.user.role !== 'admin') { // Thay req.userId
       return res.status(403).json({ message: 'Bạn không có quyền đổi mật khẩu' });
     }
     const user = await userModel.findById(userId);
@@ -525,4 +649,8 @@ module.exports = {
   updateUser,
   deleteUser,
   changePassword,
+  getTemporaryAddresses,
+  addFavoriteProduct,
+  removeFavoriteProduct,
+  getFavoriteProducts,
 };

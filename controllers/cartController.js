@@ -471,7 +471,7 @@ exports.checkout = async (req, res) => {
         discount = coupon.discountValue;
       }
 
-      discount = Math.min(discount, subtotal); // Đảm bảo discount không vượt quá subtotal
+      discount = Math.min(discount, subtotal);
       coupon.usedCount = (coupon.usedCount || 0) + 1;
       await coupon.save();
       appliedCoupon = coupon;
@@ -480,7 +480,27 @@ exports.checkout = async (req, res) => {
     const total = subtotal - discount;
 
     // Tạo paymentCode duy nhất
-    const paymentCode = `thanhtoan${Math.floor(10000 + Math.random() * 90000)}`; // Ví dụ: thanhtoan28369
+    const paymentCode = `thanhtoan${Math.floor(10000 + Math.random() * 90000)}`;
+
+    // Tạo địa chỉ từ yêu cầu
+    const newAddress = {
+      addressLine,
+      ward,
+      district,
+      cityOrProvince
+    };
+
+    // Kiểm tra xem địa chỉ có trùng với temporaryAddress1 hoặc temporaryAddress2
+    const isExistingAddress = (
+      (user.temporaryAddress1.addressLine === addressLine &&
+       user.temporaryAddress1.ward === ward &&
+       user.temporaryAddress1.district === district &&
+       user.temporaryAddress1.cityOrProvince === cityOrProvince) ||
+      (user.temporaryAddress2.addressLine === addressLine &&
+       user.temporaryAddress2.ward === ward &&
+       user.temporaryAddress2.district === district &&
+       user.temporaryAddress2.cityOrProvince === cityOrProvince)
+    );
 
     // Tạo đơn hàng
     const order = {
@@ -494,21 +514,30 @@ exports.checkout = async (req, res) => {
       subtotal,
       discount,
       total,
-      address: {
-        addressLine,
-        ward,
-        district,
-        cityOrProvince,
-      },
+      address: newAddress,
       sdt,
       paymentMethod,
       note,
       coupon: appliedCoupon ? appliedCoupon._id : null,
       paymentStatus: 'pending',
-      shippingStatus: 'pending', // Thêm trạng thái vận chuyển mặc định
+      shippingStatus: 'pending',
     };
 
     const newOrder = await Order.create(order);
+
+    // Cập nhật temporaryAddress nếu địa chỉ là mới
+    if (!isExistingAddress) {
+      // Đẩy temporaryAddress1 sang temporaryAddress2
+      user.temporaryAddress2 = { ...user.temporaryAddress1 };
+      // Gán địa chỉ mới vào temporaryAddress1
+      user.temporaryAddress1 = newAddress;
+      user.listOrder.push(newOrder._id); // Cập nhật listOrder
+      await user.save();
+    } else {
+      // Chỉ cập nhật listOrder nếu địa chỉ đã tồn tại
+      user.listOrder.push(newOrder._id);
+      await user.save();
+    }
 
     // Cập nhật số lượng tồn kho
     for (const item of validItems) {
@@ -529,11 +558,11 @@ exports.checkout = async (req, res) => {
       { path: 'coupon' }
     ]);
 
-    // Trả về phản hồi với paymentCode để sử dụng trong PaymentOnline
+    // Trả về phản hồi với paymentCode
     res.json({
       message: 'Thanh toán thành công',
       order: newOrder,
-      paymentCode, // Trả về paymentCode để frontend sử dụng
+      paymentCode,
       warning: invalidItems.length > 0
         ? `Đã loại bỏ ${invalidItems.length} sản phẩm không hợp lệ khỏi giỏ hàng`
         : undefined,
