@@ -4,7 +4,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/user');
 const cheerio = require('cheerio');
-const cloudinary = require('../middlewares/cloudinary');
+const cloudinary = require('../config/cloudinary');
 
 // Hàm tạo slug duy nhất
 const generateSlug = async (title, currentNewsId = null) => {
