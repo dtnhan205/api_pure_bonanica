@@ -4,7 +4,7 @@ const Brand = require('../models/brand');
 // Get all brands
 exports.getAllBrands = async (req, res) => {
   try {
-    const brands = await Brand.find({ status: 'show' }).select('-__v');
+    const brands = await Brand.find().select('-__v');
     if (!brands.length) {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu nào' });
     }
