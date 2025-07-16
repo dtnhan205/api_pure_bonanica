@@ -1,35 +1,31 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('./cloudinary'); 
 
-const imageUploadDir = path.join(__dirname, '..', 'public', 'images');
-if (!fs.existsSync(imageUploadDir)) {
-  fs.mkdirSync(imageUploadDir, { recursive: true });
-  fs.chmodSync(imageUploadDir, 0o755);
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    console.log(`Saving file to: ${imageUploadDir}`);
-    cb(null, imageUploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`; // Tên file duy nhất
-    console.log(`Generated filename: ${filename}`);
-    cb(null, filename);
-  },
+// Cloudinary storage
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    const folder = req.path.includes('/news') ? 'news_thumbnails' : 'product_images';
+    const ext = path.extname(file.originalname).toLowerCase().replace('.', '') || 'jpg';
+    return {
+      folder,
+      format: ext,
+      public_id: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+    };
+  }
 });
 
+// Lọc file hợp lệ (chỉ ảnh)
 const fileFilter = (req, file, cb) => {
-  console.log(`Processing file: ${file.originalname}, mimetype: ${file.mimetype}, size: ${file.size || 'undefined'} bytes`);
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml'];
   const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
   const ext = path.extname(file.originalname).toLowerCase();
+
   if (allowedTypes.includes(file.mimetype) && allowedExts.includes(ext)) {
     cb(null, true);
   } else {
-    console.warn(`Invalid file type or extension: ${file.originalname}`);
     cb(new Error('Chỉ hỗ trợ file ảnh (jpg, jpeg, png, gif, webp, svg)'), false);
   }
 };
@@ -37,50 +33,46 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { 
+  limits: {
     fileSize: 20 * 1024 * 1024, // 20MB
+    files: 20,
     fields: 100,
-    parts: 120,
-    files: 20
+    parts: 120
   }
 });
 
-const newsUpload = upload.fields([
-  { name: 'thumbnail', maxCount: 1 }
-]);
-
+// Giữ nguyên các hàm dùng cho route cũ
+const newsUpload = upload.fields([{ name: 'thumbnail', maxCount: 1 }]);
 const productUpload = upload.array('images', 10);
 
+// Tự chọn middleware dựa trên URL
 const optionalUpload = (req, res, next) => {
-  if (!req.headers['content-type'] || !req.headers['content-type'].includes('multipart/form-data')) {
-    console.log('No multipart/form-data, skipping multer');
+  if (!req.headers['content-type']?.includes('multipart/form-data')) {
     return next();
   }
+
   const middleware = req.path.includes('/news') ? newsUpload : productUpload;
+
   middleware(req, res, (err) => {
     if (err) {
-      console.warn(`Multer error caught in optionalUpload: ${err.message}`);
-      req.files = [];
-      next();
-    } else {
-      next();
+      console.warn('Lỗi khi xử lý upload:', err.message);
+      req.files = []; // giữ structure để tránh lỗi router
     }
+    next();
   });
 };
 
+// Middleware lỗi multer
 const handleMulterError = (err, req, res, next) => {
-  console.error('Multer error:', err.message, err.stack);
-  if (err instanceof multer.MulterError) {
+  if (err instanceof multer.MulterError || err.message.includes('file')) {
     return res.status(400).json({ error: `Lỗi upload file: ${err.message}` });
-  } else if (err) {
-    return res.status(400).json({ error: err.message });
   }
-  next();
+  next(err);
 };
 
 module.exports = {
   upload,
   optionalUpload,
   handleMulterError,
-  newsUpload,
+  newsUpload
 };

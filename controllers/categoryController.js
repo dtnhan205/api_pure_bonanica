@@ -106,7 +106,6 @@ const deleteCategory = async (req, res) => {
 const toggleCategoryVisibility = async (req, res) => {
   const { id } = req.params;
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-    console.warn(`Invalid or missing category ID: ${id}`);
     return res.status(400).json({ message: 'ID danh mục không hợp lệ' });
   }
 
@@ -116,11 +115,28 @@ const toggleCategoryVisibility = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy danh mục' });
     }
 
+    // Nếu đang muốn ẨN danh mục
+    if (category.status === 'show') {
+      const products = await Product.find({ id_category: id });
+      if (products.length > 0) {
+        // Kiểm tra tổng stock của tất cả sản phẩm
+        const hasStock = products.some(product =>
+          Array.isArray(product.option) && product.option.some(opt => opt.stock > 0)
+        );
+        if (hasStock) {
+          return res.status(400).json({
+            message: 'Không thể ẩn danh mục vì vẫn còn sản phẩm có tồn kho!'
+          });
+        }
+      }
+    }
+
+    // Chuyển trạng thái
     const newStatus = category.status === 'show' ? 'hidden' : 'show';
     category.status = newStatus;
     await category.save();
 
-    // Cập nhật trường active của các sản phẩm liên quan
+    // Cập nhật active cho sản phẩm liên quan
     const updateValue = newStatus === 'hidden' ? false : true;
     await Product.updateMany(
       { id_category: id },
