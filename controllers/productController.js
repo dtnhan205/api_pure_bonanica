@@ -202,7 +202,7 @@ exports.createProduct = async (req, res) => {
 
     const slug = await generateSlug(name);
     const imagePaths = req.files && req.files.length > 0 
-      ? req.files.map(file => `images/${file.filename}`)
+      ? req.files.map(file => file.path)
       : [];
 
     let parsedOption = [];
@@ -336,7 +336,7 @@ exports.updateProduct = async (req, res) => {
 
     // Xử lý file upload
     if (req.files && req.files.length > 0) {
-      updateData.images = req.files.map(file => `images/${file.filename}`);
+      updateData.images = req.files.map(file => file.path);
     }
 
     // Loại bỏ các trường undefined

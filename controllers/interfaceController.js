@@ -7,13 +7,14 @@ const imageDir = path.join(__dirname, '..', 'public', 'images');
 const updateImage = async (type, files, res) => {
   try {
     let paths = [];
+
     if (Array.isArray(files)) {
       if (!files || files.length === 0) {
         return res.status(400).json({ error: 'Không có file nào được tải lên' });
       }
-      paths = files.map(file => `images/${file.filename}`);
+      paths = files.map(file => file.path); // ✅ Dùng link đầy đủ từ Cloudinary
     } else if (files) {
-      paths = [`images/${files.filename}`];
+      paths = [files.path]; // ✅
     } else {
       return res.status(400).json({ error: 'Không có file nào được tải lên' });
     }
@@ -21,11 +22,7 @@ const updateImage = async (type, files, res) => {
     // Xóa hình cũ nếu tồn tại
     const oldImages = await Interface.findOne({ type });
     if (oldImages) {
-      for (const oldPath of oldImages.paths) {
-        const fullPath = path.join(__dirname, '..', oldPath);
-        await fs.unlink(fullPath).catch(err => console.error(`Error deleting old image ${oldPath}:`, err));
-      }
-      await Interface.deleteOne({ type });
+      await Interface.deleteOne({ type }); // ❌ KHÔNG cần xóa file vật lý vì dùng Cloudinary
     }
 
     // Lưu hình mới
@@ -39,6 +36,7 @@ const updateImage = async (type, files, res) => {
     res.status(500).json({ error: 'Lỗi server' });
   }
 };
+
 
 const getImages = async (type, res) => {
   try {

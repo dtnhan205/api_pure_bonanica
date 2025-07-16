@@ -55,7 +55,7 @@ exports.createBrand = async (req, res) => {
       _id: new mongoose.Types.ObjectId(),
       name,
       status: status || 'show',
-      logoImg: `images/${req.file.filename}`
+      logoImg: `images/${req.file.path}`
     });
 
     await newBrand.save();
@@ -84,7 +84,7 @@ exports.updateBrand = async (req, res) => {
     const updateData = { name, status };
 
     if (req.file) {
-      updateData.logoImg = `images/${req.file.filename}`;
+      updateData.logoImg = `images/${req.file.path}`;
     }
 
     const updatedBrand = await Brand.findByIdAndUpdate(
