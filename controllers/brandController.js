@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Brand = require('../models/brand');
+const Product = require('../models/product');
 
 // Get all brands
 exports.getAllBrands = async (req, res) => {
@@ -18,7 +19,10 @@ exports.getAllBrands = async (req, res) => {
 // Get brand by ID
 exports.getBrandById = async (req, res) => {
   const { id } = req.params;
-
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.warn(`Invalid brand ID: ${id}`);
+    return res.status(400).json({ message: 'ID thương hiệu không hợp lệ' });
+  }
   try {
     const brand = await Brand.findById(id).select('-__v');
     if (!brand) {
@@ -75,7 +79,10 @@ exports.createBrand = async (req, res) => {
 // Update a brand by ID
 exports.updateBrand = async (req, res) => {
   const { id } = req.params;
-
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.warn(`Invalid brand ID: ${id}`);
+    return res.status(400).json({ message: 'ID thương hiệu không hợp lệ' });
+  }
   try {
     console.log('Received body:', req.body);
     console.log('Received file:', req.file);
@@ -94,7 +101,7 @@ exports.updateBrand = async (req, res) => {
     );
 
     if (!updatedBrand) {
-      return res.status(404).json({ message: 'Không tìm thấy thương hiệu để cập終わ nhật' });
+      return res.status(404).json({ message: 'Không tìm thấy thương hiệu để cập nhật' });
     }
 
     res.json({
@@ -110,7 +117,10 @@ exports.updateBrand = async (req, res) => {
 // Delete a brand by ID
 exports.deleteBrand = async (req, res) => {
   const { id } = req.params;
-
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    console.warn(`Invalid brand ID: ${id}`);
+    return res.status(400).json({ message: 'ID thương hiệu không hợp lệ' });
+  }
   try {
     const deletedBrand = await Brand.findByIdAndDelete(id);
     if (!deletedBrand) {
@@ -126,6 +136,10 @@ exports.deleteBrand = async (req, res) => {
 // Toggle brand visibility
 exports.toggleBrandVisibility = async (req, res) => {
   const { id } = req.params;
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    console.warn(`Invalid brand ID: ${id}`);
+    return res.status(400).json({ message: 'ID thương hiệu không hợp lệ' });
+  }
 
   try {
     const brand = await Brand.findById(id).select('-__v');
@@ -133,13 +147,54 @@ exports.toggleBrandVisibility = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu' });
     }
 
-    brand.status = brand.status === 'show' ? 'hidden' : 'show';
-    await brand.save();
+    // Nhận trạng thái mới từ body hoặc query
+    const { status } = req.body; // Hoặc req.query nếu bạn gửi qua query
+    if (!status || !['show', 'hidden'].includes(status)) {
+      return res.status(400).json({ message: 'Trạng thái không hợp lệ, phải là "show" hoặc "hidden"' });
+    }
 
-    res.json({
-      message: `Thương hiệu đã được ${brand.status === 'show' ? 'hiển thị' : 'ẩn'}`,
-      brand
-    });
+    // Nếu chuyển sang hidden, kiểm tra tồn kho và cập nhật active
+    if (status === 'hidden' && brand.status !== 'hidden') {
+      const products = await Product.find({ id_brand: id });
+      let warning = null;
+      if (products.length > 0) {
+        const hasStock = products.some(product =>
+          Array.isArray(product.option) && product.option.some(opt => opt.stock > 0)
+        );
+        if (hasStock) {
+          warning = 'Cảnh báo: Thương hiệu được ẩn mặc dù vẫn còn sản phẩm có tồn kho!';
+        }
+
+        // Cập nhật active: false cho sản phẩm liên quan
+        await Product.updateMany(
+          { id_brand: id },
+          { $set: { active: false } }
+        );
+      }
+      brand.status = status;
+      await brand.save();
+
+      res.json({
+        message: `Thương hiệu đã được đặt trạng thái ${status === 'show' ? 'hiển thị' : 'ẩn'}`,
+        brand,
+        warning
+      });
+    }
+
+    // Nếu chuyển sang show, cập nhật active: true cho sản phẩm
+    if (status === 'show' && brand.status !== 'show') {
+      await Product.updateMany(
+        { id_brand: id },
+        { $set: { active: true } }
+      );
+      brand.status = status;
+      await brand.save();
+
+      res.json({
+        message: `Thương hiệu đã được đặt trạng thái ${status === 'show' ? 'hiển thị' : 'ẩn'}`,
+        brand
+      });
+    }
   } catch (err) {
     console.error(`PUT /api/brands/${id}/toggle-visibility error:`, err);
     res.status(500).json({ error: 'Lỗi máy chủ' });
