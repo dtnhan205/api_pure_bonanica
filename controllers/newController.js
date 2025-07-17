@@ -93,7 +93,7 @@ const processContentImages = async (content) => {
 
 exports.getAllNews = async (req, res) => {
   try {
-    const newsList = await News.find({ status: 'show' }).sort({ publishedAt: -1 });
+    const newsList = await News.find().sort({ publishedAt: -1 });
     if (newsList.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy tin tức nào' });
     }
