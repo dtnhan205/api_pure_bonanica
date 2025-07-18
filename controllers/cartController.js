@@ -4,7 +4,8 @@ const Product = require('../models/product');
 const User = require('../models/user');
 const Order = require('../models/order');
 const Coupon = require('../models/coupon');
-
+const axios = require('axios');
+require('dotenv').config();
 
 exports.getAllCarts = async (req, res) => {
   try {
@@ -550,6 +551,142 @@ exports.checkout = async (req, res) => {
     // Xóa giỏ hàng sau khi thanh toán
     cart.items = [];
     await cart.save();
+
+    // Gửi email xác nhận đơn hàng
+    try {
+      // FIX: Properly extract and format the authorization token
+      const authHeader = req.headers.authorization;
+      console.log('Authorization header:', authHeader);
+
+      if (!authHeader) {
+        console.warn('Không tìm thấy authorization header khi gửi email');
+      }
+
+      const itemsHtml = validItems.map(item => {
+        const product = item.product;
+        const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
+        const price = option.discount_price > 0 ? option.discount_price : option.price;
+        return `
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 10px 0;">
+              <img src="${product.images[0] || 'https://via.placeholder.com/50'}" alt="${product.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+            </td>
+            <td style="padding: 10px 0; color: #333; font-size: 14px;">${product.name} (${option.value})</td>
+            <td style="padding: 10px 0; color: #333; font-size: 14px; text-align: center;">${item.quantity}</td>
+            <td style="padding: 10px 0; color: #333; font-size: 14px; text-align: right;">${(price * item.quantity).toLocaleString('vi-VN')} VNĐ</td>
+          </tr>
+        `;
+      }).join('');
+
+      // FIX: Create proper headers object
+      const emailHeaders = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add authorization header if it exists
+      if (authHeader) {
+        emailHeaders['Authorization'] = authHeader;
+      }
+
+      const emailResponse = await axios.post('http://localhost:10000/api/email/sendEmail', {
+        username: user.username,
+        email: user.email,
+        subject: `Xác nhận đơn hàng #${newOrder._id} từ Pure-Botanica 🌿`,
+        html: `
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 0;">
+            <div style="text-align: center; background-color: #357E38; padding: 20px; border-radius: 8px 8px 0 0;">
+              <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0;">Xác nhận đơn hàng</h1>
+            </div>
+            <div style="background-color: #ffffff; padding: 30px 25px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+              <h3 style="color: #333; font-size: 18px; font-weight: 600; margin: 0 0 15px;">Xin chào ${user.username},</h3>
+              <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                Cảm ơn bạn đã mua sắm tại <strong>Pure-Botanica</strong>! Đơn hàng #${newOrder._id} của bạn đã được đặt thành công. Dưới đây là chi tiết đơn hàng:
+              </p>
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                  <tr style="background-color: #f5f5f5;">
+                    <th style="padding: 10px; color: #333; font-size: 14px; text-align: left;">Hình ảnh</th>
+                    <th style="padding: 10px; color: #333; font-size: 14px; text-align: left;">Sản phẩm</th>
+                    <th style="padding: 10px; color: #333; font-size: 14px; text-align: center;">Số lượng</th>
+                    <th style="padding: 10px; color: #333; font-size: 14px; text-align: right;">Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHtml}
+                </tbody>
+              </table>
+              <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 10px;">
+                <strong>Tổng phụ:</strong> ${subtotal.toLocaleString('vi-VN')} VNĐ
+              </p>
+              ${discount > 0 ? `
+                <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 10px;">
+                  <strong>Giảm giá (${couponCode}):</strong> -${discount.toLocaleString('vi-VN')} VNĐ
+                </p>
+              ` : ''}
+              <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                <strong>Tổng cộng:</strong> ${total.toLocaleString('vi-VN')} VNĐ
+              </p>
+              <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                <strong>Mã thanh toán:</strong> ${paymentCode}
+              </p>
+              <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                <strong>Địa chỉ giao hàng:</strong> ${addressLine}, ${ward}, ${district}, ${cityOrProvince}
+              </p>
+              <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                <strong>Số điện thoại:</strong> ${sdt}
+              </p>
+              <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                <strong>Phương thức thanh toán:</strong> ${paymentMethod}
+              </p>
+              ${note ? `
+                <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                  <strong>Ghi chú:</strong> ${note}
+                </p>
+              ` : ''}
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://purebotanica.com/orders/${newOrder._id}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Theo dõi đơn hàng</a>
+              </div>
+              <p style="color: #777; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">
+                Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a>.
+              </p>
+            </div>
+            <div style="text-align: center; padding: 20px 0; color: #666; font-size: 12px;">
+              <p style="margin: 0 0 10px;">Theo dõi chúng tôi:</p>
+              <div style="margin-bottom: 15px;">
+                <a href="https://facebook.com/purebotanica" style="margin: 0 5px;">
+                  <img src="https://img.icons8.com/color/24/000000/facebook-new.png" alt="Facebook" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://instagram.com/purebotanica" style="margin: 0 5px;">
+                  <img src="https://img.icons8.com/color/24/000000/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
+                </a>
+              </div>
+              <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
+              <p style="margin: 0;">
+                Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
+                <a href="https://purebotanica.com" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+              </p>
+            </div>
+          </div>
+        `,
+      }, {
+        headers: emailHeaders
+      });
+
+      console.log(`Đã gửi email xác nhận đơn hàng tới: ${user.email}`);
+    } catch (emailError) {
+      console.error(`Lỗi gửi email xác nhận đơn hàng cho ${user.email}:`, emailError.message);
+      
+      // FIX: Better error logging
+      if (emailError.response) {
+        console.error('Response status:', emailError.response.status);
+        console.error('Response data:', emailError.response.data);
+        console.error('Response headers:', emailError.response.headers);
+      } else if (emailError.request) {
+        console.error('Request made but no response received:', emailError.request);
+      } else {
+        console.error('Error setting up request:', emailError.message);
+      }
+    }
 
     // Populate dữ liệu cho phản hồi
     await newOrder.populate([
