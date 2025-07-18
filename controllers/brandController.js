@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Brand = require('../models/brand');
 const Product = require('../models/product');
+const Category = require('../models/category');
 
 // Get all brands
 exports.getAllBrands = async (req, res) => {
@@ -63,9 +64,29 @@ exports.createBrand = async (req, res) => {
     });
 
     await newBrand.save();
+
+    // Nếu trạng thái là hidden, đặt active: false cho sản phẩm liên quan
+    if (newBrand.status === 'hidden') {
+      const products = await Product.find({ id_brand: newBrand._id });
+      let warning = null;
+      if (products.length > 0) {
+        const hasStock = products.some(product =>
+          Array.isArray(product.option) && product.option.some(opt => opt.stock > 0)
+        );
+        if (hasStock) {
+          warning = 'Cảnh báo: Thương hiệu được ẩn mặc dù vẫn còn sản phẩm có tồn kho!';
+        }
+        await Product.updateMany(
+          { id_brand: newBrand._id },
+          { $set: { active: false } }
+        );
+      }
+    }
+
     res.status(201).json({
       message: 'Tạo thương hiệu thành công',
-      brand: newBrand
+      brand: newBrand,
+      warning
     });
   } catch (err) {
     console.error('POST /api/brands error:', err);
@@ -104,9 +125,40 @@ exports.updateBrand = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu để cập nhật' });
     }
 
+    // Kiểm tra trạng thái và cập nhật sản phẩm liên quan
+    let warning = null;
+    if (updatedBrand.status === 'hidden') {
+      const products = await Product.find({ id_brand: id });
+      if (products.length > 0) {
+        const hasStock = products.some(product =>
+          Array.isArray(product.option) && product.option.some(opt => opt.stock > 0)
+        );
+        if (hasStock) {
+          warning = 'Cảnh báo: Thương hiệu được ẩn mặc dù vẫn còn sản phẩm có tồn kho!';
+        }
+        await Product.updateMany(
+          { id_brand: id },
+          { $set: { active: false } }
+        );
+      }
+    } else if (updatedBrand.status === 'show') {
+      const products = await Product.find({ id_brand: id });
+      for (const product of products) {
+        if (product.id_category) {
+          const category = await Category.findById(product.id_category);
+          if (category && category.status === 'show') {
+            await Product.findByIdAndUpdate(product._id, { $set: { active: true } });
+          } else {
+            await Product.findByIdAndUpdate(product._id, { $set: { active: false } });
+          }
+        }
+      }
+    }
+
     res.json({
       message: 'Cập nhật thương hiệu thành công',
-      brand: updatedBrand
+      brand: updatedBrand,
+      warning
     });
   } catch (err) {
     console.error(`PUT /api/brands/${id} error:`, err);
@@ -126,6 +178,11 @@ exports.deleteBrand = async (req, res) => {
     if (!deletedBrand) {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu để xóa' });
     }
+    // Cập nhật các sản phẩm liên quan khi xóa thương hiệu
+    await Product.updateMany(
+      { id_brand: id },
+      { $set: { active: false } }
+    );
     res.json({ message: 'Xóa thương hiệu thành công' });
   } catch (err) {
     console.error(`DELETE /api/brands/${id} error:`, err);
@@ -147,13 +204,13 @@ exports.toggleBrandVisibility = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy thương hiệu' });
     }
 
-    // Nhận trạng thái mới từ body hoặc query
-    const { status } = req.body; // Hoặc req.query nếu bạn gửi qua query
+    // Nhận trạng thái mới từ body
+    const { status } = req.body;
     if (!status || !['show', 'hidden'].includes(status)) {
       return res.status(400).json({ message: 'Trạng thái không hợp lệ, phải là "show" hoặc "hidden"' });
     }
 
-    // Nếu chuyển sang hidden, kiểm tra tồn kho và cập nhật active
+    // Nếu chuyển sang hidden
     if (status === 'hidden' && brand.status !== 'hidden') {
       const products = await Product.find({ id_brand: id });
       let warning = null;
@@ -179,14 +236,22 @@ exports.toggleBrandVisibility = async (req, res) => {
         brand,
         warning
       });
+      return;
     }
 
-    // Nếu chuyển sang show, cập nhật active: true cho sản phẩm
+    // Nếu chuyển sang show
     if (status === 'show' && brand.status !== 'show') {
-      await Product.updateMany(
-        { id_brand: id },
-        { $set: { active: true } }
-      );
+      const products = await Product.find({ id_brand: id });
+      for (const product of products) {
+        if (product.id_category) {
+          const category = await Category.findById(product.id_category);
+          if (category && category.status === 'show') {
+            await Product.findByIdAndUpdate(product._id, { $set: { active: true } });
+          } else {
+            await Product.findByIdAndUpdate(product._id, { $set: { active: false } });
+          }
+        }
+      }
       brand.status = status;
       await brand.save();
 

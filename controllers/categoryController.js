@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Category = require('../models/category');
 const Product = require('../models/product');
+const Brand = require('../models/brand');
 
 // Create category
 const createCategory = async (req, res) => {
@@ -102,7 +103,7 @@ const deleteCategory = async (req, res) => {
   }
 };
 
-// Toggle Category visibility (Chuyển đổi giữa hidden và show)
+// Toggle Category visibility
 const toggleCategoryVisibility = async (req, res) => {
   const { id } = req.params;
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
@@ -137,11 +138,21 @@ const toggleCategoryVisibility = async (req, res) => {
     await category.save();
 
     // Cập nhật active cho sản phẩm liên quan
-    const updateValue = newStatus === 'hidden' ? false : true;
-    await Product.updateMany(
-      { id_category: id },
-      { $set: { active: updateValue } }
-    );
+    const products = await Product.find({ id_category: id });
+    for (const product of products) {
+      if (newStatus === 'hidden') {
+        // Nếu danh mục ẩn, đặt sản phẩm thành false
+        await Product.findByIdAndUpdate(product._id, { $set: { active: false } });
+      } else if (newStatus === 'show' && product.id_brand) {
+        // Nếu danh mục show, kiểm tra trạng thái Brand
+        const brand = await Brand.findById(product.id_brand);
+        if (brand && brand.status === 'show') {
+          await Product.findByIdAndUpdate(product._id, { $set: { active: true } });
+        } else {
+          await Product.findByIdAndUpdate(product._id, { $set: { active: false } });
+        }
+      }
+    }
 
     res.json({
       message: `Danh mục đã được ${newStatus === 'show' ? 'hiển thị' : 'ẩn'}`,
