@@ -2,10 +2,19 @@ const userModel = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
-const axios = require('axios');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const SALT_ROUNDS = 10;
+
+// Cấu hình nodemailer
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // Sử dụng App Password nếu bật 2FA
+  },
+});
 
 const register = async (req, res) => {
   try {
@@ -35,7 +44,7 @@ const register = async (req, res) => {
       address: address || '',
       birthday: birthday ? new Date(birthday) : null,
       listOrder: Array.isArray(listOrder) ? listOrder : [],
-      status: 'active', // Set status to active
+      status: 'active',
       role: 'user',
     });
 
@@ -44,9 +53,9 @@ const register = async (req, res) => {
 
     // Send welcome email
     try {
-      await axios.post('http://localhost:10000/api/email/sendEmail', {
-        username,
-        email,
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
         subject: `Chào mừng ${username} đến với Pure-Botanica!`,
         html: `
           <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 0;">
@@ -186,14 +195,14 @@ const forgotPassword = async (req, res) => {
     // Send password reset email
     try {
       const resetUrl = `http://localhost:3000/user/resetpass/${resetToken}`;
-      await axios.post('http://localhost:10000/api/email/sendEmail', {
-        username: user.username,
-        email,
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
         subject: 'Đặt lại mật khẩu của bạn 🌿',
         html: `
           <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
             <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0;">
-              <h1 style="color: #357E38; font-size: 26px; font WEIGHT: 600; margin: 0;">Đặt lại mật khẩu</h1>
+              <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Đặt lại mật khẩu</h1>
             </div>
             <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
               <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${user.username},</h3>
@@ -257,9 +266,9 @@ const resetPassword = async (req, res) => {
 
     // Send confirmation email
     try {
-      await axios.post('http://localhost:10000/api/email/sendEmail', {
-        username: user.username,
-        email: user.email,
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
         subject: 'Mật khẩu của bạn đã được đặt lại 🌿',
         html: `
           <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
@@ -290,6 +299,69 @@ const resetPassword = async (req, res) => {
     res.status(200).json({ message: 'Đặt lại mật khẩu thành công!' });
   } catch (error) {
     console.error('Lỗi đặt lại mật khẩu:', error);
+    res.status(500).json({ message: 'Lỗi server', error: error.message });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.params.id;
+    if (req.user._id.toString() !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Bạn không có quyền đổi mật khẩu' });
+    }
+    const user = await userModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Mật khẩu cũ không đúng' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: 'Mật khẩu mới phải có ít nhất 8 ký tự' });
+    }
+
+    // Hash new password
+    user.password = newPassword; // Middleware will hash it
+    await user.save();
+
+    // Send confirmation email
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: 'Mật khẩu của bạn đã được thay đổi 🌿',
+        html: `
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+            <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0;">
+              <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Mật khẩu đã được thay đổi</h1>
+            </div>
+            <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
+              <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${user.username},</h3>
+              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                Mật khẩu của bạn đã được thay đổi thành công. Nếu bạn không thực hiện hành động này, vui lòng liên hệ hỗ trợ ngay lập tức.
+              </p>
+              <div style="text-align: center; margin: 25px 0;">
+                <a href="https://purebotanica.com/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay!</a>
+              </div>
+            </div>
+            <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
+              <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
+              <p style="margin: 0;">Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a></p>
+            </div>
+          </div>
+        `,
+      });
+      console.log(`Đã gửi email thông báo tới: ${user.email}`);
+    } catch (emailError) {
+      console.error(`Lỗi gửi email thông báo cho ${user.email}:`, emailError.message);
+    }
+
+    res.json({ message: 'Đổi mật khẩu thành công' });
+  } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
@@ -384,6 +456,7 @@ const getUserById = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
+
 const addFavoriteProduct = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -409,6 +482,7 @@ const addFavoriteProduct = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
+
 const removeFavoriteProduct = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -460,8 +534,8 @@ const getFavoriteProducts = async (req, res) => {
       .findById(userId)
       .populate({
         path: 'favoriteProducts',
-        select: 'name images active', // Lấy trực tiếp active thay vì isActive
-        populate: { path: 'id_category', select: 'status' } // Populate id_category và status
+        select: 'name images active',
+        populate: { path: 'id_category', select: 'status' }
       });
 
     if (!user) {
@@ -471,7 +545,7 @@ const getFavoriteProducts = async (req, res) => {
     // Thêm isActive vào response dựa trên logic virtual nếu cần
     const favoriteProducts = user.favoriteProducts.map(product => ({
       ...product.toObject(),
-      isActive: product.isActive // Sử dụng virtual field
+      isActive: product.isActive
     }));
 
     res.json({ favoriteProducts });
@@ -480,6 +554,7 @@ const getFavoriteProducts = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
 };
+
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -562,7 +637,7 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    if (req.user._id.toString() !== userId && req.user.role !== 'admin') { // Thay req.userId
+    if (req.user._id.toString() !== userId && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Bạn không có quyền xóa người dùng này' });
     }
     const user = await userModel.findByIdAndDelete(userId);
@@ -570,68 +645,6 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: 'Người dùng không tồn tại' });
     }
     res.json({ message: 'Xóa người dùng thành công' });
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi server', error: error.message });
-  }
-};
-
-const changePassword = async (req, res) => {
-  try {
-    const { oldPassword, newPassword } = req.body;
-    const userId = req.params.id;
-    if (req.user._id.toString() !== userId && req.user.role !== 'admin') { // Thay req.userId
-      return res.status(403).json({ message: 'Bạn không có quyền đổi mật khẩu' });
-    }
-    const user = await userModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
-    }
-
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Mật khẩu cũ không đúng' });
-    }
-
-    if (newPassword.length < 8) {
-      return res.status(400).json({ message: 'Mật khẩu mới phải có ít nhất 8 ký tự' });
-    }
-
-    // Hash new password
-    user.password = newPassword; // Middleware will hash it
-    await user.save();
-
-    // Send confirmation email
-    try {
-      await axios.post('http://localhost:10000/api/email/sendEmail', {
-        username: user.username,
-        email: user.email,
-        subject: 'Mật khẩu của bạn đã được thay đổi 🌿',
-        html: `
-          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
-            <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0;">
-              <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Mật khẩu đã được thay đổi</h1>
-            </div>
-            <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
-              <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${user.username},</h3>
-              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
-                Mật khẩu của bạn đã được thay đổi thành công. Nếu bạn không thực hiện hành động này, vui lòng liên hệ hỗ trợ ngay lập tức.
-              </p>
-              <div style="text-align: center; margin: 25px 0;">
-                <a href="https://purebotanica.com/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay!</a>
-              </div>
-            </div>
-            <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
-              <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
-              <p style="margin: 0;">Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a></p>
-            </div>
-          </div>
-        `,
-      });
-    } catch (emailError) {
-      console.error(`Lỗi gửi email thông báo cho ${user.email}:`, emailError.message);
-    }
-
-    res.json({ message: 'Đổi mật khẩu thành công' });
   } catch (error) {
     res.status(500).json({ message: 'Lỗi server', error: error.message });
   }
