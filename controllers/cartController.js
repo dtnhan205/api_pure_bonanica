@@ -4,77 +4,13 @@ const Product = require('../models/product');
 const User = require('../models/user');
 const Order = require('../models/order');
 const Coupon = require('../models/coupon');
-const Payment = require('../models/vnPay'); // Thêm model Payment
 const axios = require('axios');
-const querystring = require('qs'); // Thêm querystring
-const crypto = require('crypto'); // Thêm crypto
+const VnpayController = require('./vnpayController'); // Import VnpayController
 require('dotenv').config();
 
-// Hàm sortObject từ vnpayController
-function sortObject(obj) {
-  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
-    console.error('sortObject received invalid input:', obj);
-    return {};
-  }
-
-  let sorted = {};
-  let str = [];
-  let key;
-  for (key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      str.push(encodeURIComponent(key));
-    }
-  }
-  str.sort();
-  for (key = 0; key < str.length; key++) {
-    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, '+');
-  }
-  return sorted;
-}
-
-// VNPay service từ vnpayController
-const vnpayService = {
-  createPaymentUrl: (req, paymentCode, amount, orderId) => {
-    let date = new Date();
-    let createDate = moment.tz(date, 'Asia/Ho_Chi_Minh').format('YYYYMMDDHHmmss');
-    let ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress || '127.0.0.1';
-
-    let vnp_Params = {
-      vnp_Version: '2.1.0',
-      vnp_Command: 'pay',
-      vnp_TmnCode: process.env.VNP_TMN_CODE,
-      vnp_Amount: amount * 100,
-      vnp_CreateDate: createDate,
-      vnp_CurrCode: 'VND',
-      vnp_IpAddr: ipAddr,
-      vnp_Locale: 'vn',
-      vnp_OrderInfo: `Thanh toan don hang #${orderId} - ${paymentCode}`,
-      vnp_OrderType: 'other',
-      vnp_ReturnUrl: process.env.VNP_RETURN_URL,
-      vnp_TxnRef: paymentCode
-    };
-
-    console.log('vnp_Params before signing:', JSON.stringify(vnp_Params, null, 2));
-
-    vnp_Params = sortObject(vnp_Params);
-    let signData = querystring.stringify(vnp_Params, { encode: false });
-    console.log('Sign Data:', signData);
-
-    let hmac = crypto.createHmac('sha512', process.env.VNP_HASH_SECRET);
-    let vnp_SecureHash = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-    console.log('Generated vnp_SecureHash:', vnp_SecureHash);
-
-    vnp_Params['vnp_SecureHash'] = vnp_SecureHash;
-    let paymentUrl = process.env.VNP_URL + '?' + querystring.stringify(vnp_Params, { encode: false });
-    console.log('Generated Payment URL:', paymentUrl);
-
-    return paymentUrl;
-  }
-};
-
-// Các hàm khác giữ nguyên
 exports.getAllCarts = async (req, res) => {
   try {
+    // Lấy tất cả giỏ hàng và populate thông tin người dùng và sản phẩm
     const carts = await Cart.find()
       .populate({
         path: 'user',
@@ -89,6 +25,7 @@ exports.getAllCarts = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng nào' });
     }
 
+    // Format dữ liệu trả về
     const formattedCarts = carts.map(cart => {
       const items = cart.items.map(item => {
         const product = item.product;
@@ -451,6 +388,12 @@ exports.checkout = async (req, res) => {
       return res.status(400).json({ error: 'Vui lòng cung cấp phương thức thanh toán' });
     }
 
+    // Kiểm tra phương thức thanh toán hợp lệ
+    const validPaymentMethods = ['cod', 'vnpay'];
+    if (!validPaymentMethods.includes(paymentMethod)) {
+      return res.status(400).json({ error: 'Phương thức thanh toán không hợp lệ. Chỉ hỗ trợ "cod" hoặc "vnpay".' });
+    }
+
     // Kiểm tra người dùng
     const user = await User.findById(userId);
     if (!user) {
@@ -608,22 +551,24 @@ exports.checkout = async (req, res) => {
       await product.save();
     }
 
-    // Xử lý thanh toán VNPay nếu được chọn
+    // Xử lý thanh toán qua VNPay nếu phương thức là 'vnpay'
     let paymentUrl = null;
-    if (paymentMethod.toLowerCase() === 'vnpay') {
+    if (paymentMethod === 'vnpay') {
       try {
-        const payment = new Payment({ paymentCode, orderId: newOrder._id, amount: total });
-        await payment.save();
-        paymentUrl = vnpayService.createPaymentUrl(req, paymentCode, total, newOrder._id);
-      } catch (vnpayError) {
-        console.error('Lỗi khi tạo thanh toán VNPay:', vnpayError.stack);
-        return res.status(500).json({ error: 'Lỗi khi tạo thanh toán VNPay', details: vnpayError.message });
+        const paymentResponse = await VnpayController.createPayment({
+          ...req,
+          body: { amount: total, orderId: newOrder._id }
+        });
+        if (paymentResponse.status === 'success') {
+          paymentUrl = paymentResponse.data.paymentUrl;
+        } else {
+          throw new Error(paymentResponse.message || 'Lỗi khi tạo URL thanh toán VNPay');
+        }
+      } catch (error) {
+        console.error('Lỗi khi tạo thanh toán VNPay:', error.stack);
+        return res.status(500).json({ error: 'Lỗi khi tạo thanh toán VNPay', details: error.message });
       }
     }
-
-    // Xóa giỏ hàng sau khi thanh toán
-    cart.items = [];
-    await cart.save();
 
     // Gửi email xác nhận đơn hàng
     try {
@@ -706,17 +651,17 @@ exports.checkout = async (req, res) => {
                 <strong>Số điện thoại:</strong> ${sdt}
               </p>
               <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-                <strong>Phương thức thanh toán:</strong> ${paymentMethod}
+                <strong>Phương thức thanh toán:</strong> ${paymentMethod === 'vnpay' ? 'VNPay' : 'Thanh toán khi nhận hàng (COD)'}
               </p>
+              ${paymentUrl && paymentMethod === 'vnpay' ? `
+                <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                  <strong>Link thanh toán:</strong> <a href="${paymentUrl}" style="color: #357E38; text-decoration: none;">Nhấn để thanh toán qua VNPay</a>
+                </p>
+              ` : ''}
               ${note ? `
                 <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
                   <strong>Ghi chú:</strong> ${note}
                 </p>
-              ` : ''}
-              ${paymentUrl ? `
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${paymentUrl}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Thanh toán qua VNPay</a>
-                </div>
               ` : ''}
               <div style="text-align: center; margin: 30px 0;">
                 <a href="https://purebotanica.com/orders/${newOrder._id}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Theo dõi đơn hàng</a>
@@ -761,6 +706,10 @@ exports.checkout = async (req, res) => {
       }
     }
 
+    // Xóa giỏ hàng sau khi thanh toán
+    cart.items = [];
+    await cart.save();
+
     // Populate dữ liệu cho phản hồi
     await newOrder.populate([
       { path: 'items.product' },
@@ -770,7 +719,7 @@ exports.checkout = async (req, res) => {
 
     // Trả về phản hồi với paymentCode và paymentUrl (nếu có)
     res.json({
-      message: 'Đã tạo đơn hàng thành công',
+      message: 'Thanh toán thành công',
       order: newOrder,
       paymentCode,
       paymentUrl: paymentUrl || undefined,
@@ -800,6 +749,7 @@ exports.updatePrice = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
+edy
     }
 
     const cart = await Cart.findOne({ user: userId }).populate({
