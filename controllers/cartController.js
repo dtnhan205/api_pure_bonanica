@@ -4,12 +4,77 @@ const Product = require('../models/product');
 const User = require('../models/user');
 const Order = require('../models/order');
 const Coupon = require('../models/coupon');
+const Payment = require('../models/vnPay'); // Thêm model Payment
 const axios = require('axios');
+const querystring = require('qs'); // Thêm querystring
+const crypto = require('crypto'); // Thêm crypto
 require('dotenv').config();
 
+// Hàm sortObject từ vnpayController
+function sortObject(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+    console.error('sortObject received invalid input:', obj);
+    return {};
+  }
+
+  let sorted = {};
+  let str = [];
+  let key;
+  for (key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, '+');
+  }
+  return sorted;
+}
+
+// VNPay service từ vnpayController
+const vnpayService = {
+  createPaymentUrl: (req, paymentCode, amount, orderId) => {
+    let date = new Date();
+    let createDate = moment.tz(date, 'Asia/Ho_Chi_Minh').format('YYYYMMDDHHmmss');
+    let ipAddr = req.headers['x-forwarded-for'] || req.connection.remoteAddress || '127.0.0.1';
+
+    let vnp_Params = {
+      vnp_Version: '2.1.0',
+      vnp_Command: 'pay',
+      vnp_TmnCode: process.env.VNP_TMN_CODE,
+      vnp_Amount: amount * 100,
+      vnp_CreateDate: createDate,
+      vnp_CurrCode: 'VND',
+      vnp_IpAddr: ipAddr,
+      vnp_Locale: 'vn',
+      vnp_OrderInfo: `Thanh toan don hang #${orderId} - ${paymentCode}`,
+      vnp_OrderType: 'other',
+      vnp_ReturnUrl: process.env.VNP_RETURN_URL,
+      vnp_TxnRef: paymentCode
+    };
+
+    console.log('vnp_Params before signing:', JSON.stringify(vnp_Params, null, 2));
+
+    vnp_Params = sortObject(vnp_Params);
+    let signData = querystring.stringify(vnp_Params, { encode: false });
+    console.log('Sign Data:', signData);
+
+    let hmac = crypto.createHmac('sha512', process.env.VNP_HASH_SECRET);
+    let vnp_SecureHash = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
+    console.log('Generated vnp_SecureHash:', vnp_SecureHash);
+
+    vnp_Params['vnp_SecureHash'] = vnp_SecureHash;
+    let paymentUrl = process.env.VNP_URL + '?' + querystring.stringify(vnp_Params, { encode: false });
+    console.log('Generated Payment URL:', paymentUrl);
+
+    return paymentUrl;
+  }
+};
+
+// Các hàm khác giữ nguyên
 exports.getAllCarts = async (req, res) => {
   try {
-    // Lấy tất cả giỏ hàng và populate thông tin người dùng và sản phẩm
     const carts = await Cart.find()
       .populate({
         path: 'user',
@@ -24,7 +89,6 @@ exports.getAllCarts = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng nào' });
     }
 
-    // Format dữ liệu trả về
     const formattedCarts = carts.map(cart => {
       const items = cart.items.map(item => {
         const product = item.product;
@@ -301,7 +365,6 @@ exports.removeItem = async (req, res) => {
       return res.status(400).json({ error: 'cartId, productId hoặc optionId không hợp lệ' });
     }
 
-    // Find the cart by cartId and verify it belongs to the user
     const cart = await Cart.findOne({ _id: cartId, user: userId });
     if (!cart) {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng hoặc giỏ hàng không thuộc về người dùng' });
@@ -528,14 +591,11 @@ exports.checkout = async (req, res) => {
 
     // Cập nhật temporaryAddress nếu địa chỉ là mới
     if (!isExistingAddress) {
-      // Đẩy temporaryAddress1 sang temporaryAddress2
       user.temporaryAddress2 = { ...user.temporaryAddress1 };
-      // Gán địa chỉ mới vào temporaryAddress1
       user.temporaryAddress1 = newAddress;
-      user.listOrder.push(newOrder._id); // Cập nhật listOrder
+      user.listOrder.push(newOrder._id);
       await user.save();
     } else {
-      // Chỉ cập nhật listOrder nếu địa chỉ đã tồn tại
       user.listOrder.push(newOrder._id);
       await user.save();
     }
@@ -548,13 +608,25 @@ exports.checkout = async (req, res) => {
       await product.save();
     }
 
+    // Xử lý thanh toán VNPay nếu được chọn
+    let paymentUrl = null;
+    if (paymentMethod.toLowerCase() === 'vnpay') {
+      try {
+        const payment = new Payment({ paymentCode, orderId: newOrder._id, amount: total });
+        await payment.save();
+        paymentUrl = vnpayService.createPaymentUrl(req, paymentCode, total, newOrder._id);
+      } catch (vnpayError) {
+        console.error('Lỗi khi tạo thanh toán VNPay:', vnpayError.stack);
+        return res.status(500).json({ error: 'Lỗi khi tạo thanh toán VNPay', details: vnpayError.message });
+      }
+    }
+
     // Xóa giỏ hàng sau khi thanh toán
     cart.items = [];
     await cart.save();
 
     // Gửi email xác nhận đơn hàng
     try {
-      // FIX: Properly extract and format the authorization token
       const authHeader = req.headers.authorization;
       console.log('Authorization header:', authHeader);
 
@@ -578,12 +650,10 @@ exports.checkout = async (req, res) => {
         `;
       }).join('');
 
-      // FIX: Create proper headers object
       const emailHeaders = {
         'Content-Type': 'application/json'
       };
 
-      // Add authorization header if it exists
       if (authHeader) {
         emailHeaders['Authorization'] = authHeader;
       }
@@ -643,6 +713,11 @@ exports.checkout = async (req, res) => {
                   <strong>Ghi chú:</strong> ${note}
                 </p>
               ` : ''}
+              ${paymentUrl ? `
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${paymentUrl}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Thanh toán qua VNPay</a>
+                </div>
+              ` : ''}
               <div style="text-align: center; margin: 30px 0;">
                 <a href="https://purebotanica.com/orders/${newOrder._id}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Theo dõi đơn hàng</a>
               </div>
@@ -675,8 +750,6 @@ exports.checkout = async (req, res) => {
       console.log(`Đã gửi email xác nhận đơn hàng tới: ${user.email}`);
     } catch (emailError) {
       console.error(`Lỗi gửi email xác nhận đơn hàng cho ${user.email}:`, emailError.message);
-      
-      // FIX: Better error logging
       if (emailError.response) {
         console.error('Response status:', emailError.response.status);
         console.error('Response data:', emailError.response.data);
@@ -695,11 +768,12 @@ exports.checkout = async (req, res) => {
       { path: 'coupon' }
     ]);
 
-    // Trả về phản hồi với paymentCode
+    // Trả về phản hồi với paymentCode và paymentUrl (nếu có)
     res.json({
-      message: 'Thanh toán thành công',
+      message: 'Đã tạo đơn hàng thành công',
       order: newOrder,
       paymentCode,
+      paymentUrl: paymentUrl || undefined,
       warning: invalidItems.length > 0
         ? `Đã loại bỏ ${invalidItems.length} sản phẩm không hợp lệ khỏi giỏ hàng`
         : undefined,
