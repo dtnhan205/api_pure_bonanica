@@ -18,6 +18,7 @@ const authRouter = require('./routes/authRoutes');
 const paymentRouter = require('./routes/paymentRoutes');
 const interfaceRouter = require('./routes/interfaceRouter');
 const contactRouter = require('./routes/contactRouter');
+const vnPayRouter = require('./routes/vnpayRoutes');
 require('dotenv').config();
 
 // Kiểm tra biến môi trường bắt buộc
@@ -30,35 +31,25 @@ for (const env of requiredEnv) {
 }
 
 // Log biến môi trường (ẩn thông tin nhạy cảm)
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
-console.log('PORT:', process.env.PORT);
-console.log('JWT_SECRET:', '****');
-console.log('EMAIL_USER:', process.env.EMAIL_USER);
-console.log('EMAIL_PASS:', '****');
-console.log('BASE_URL:', process.env.BASE_URL);
-console.log('ALLOWED_ORIGINS:', process.env.ALLOWED_ORIGINS);
-console.log('SESSION_SECRET:', '****');
+// console.log('MONGODB_URI:', process.env.MONGODB_URI);
+// console.log('PORT:', process.env.PORT);
+// console.log('JWT_SECRET:', '****');
+// console.log('EMAIL_USER:', process.env.EMAIL_USER);
+// console.log('EMAIL_PASS:', '****');
+// console.log('BASE_URL:', process.env.BASE_URL);
+// console.log('ALLOWED_ORIGINS:', process.env.ALLOWED_ORIGINS);
+// console.log('SESSION_SECRET:', '****');
 
 const app = express();
 
-// Cấu hình CORS
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000', 'http://localhost:3801', 'http://localhost:3001', 'http://localhost:3002'];
-
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Cho phép tất cả origin
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200,
 }));
+
 
 app.use(express.json());
 
@@ -120,6 +111,7 @@ app.use('/api/brands', brandRouter);
 app.use('/api/payments', paymentRouter);
 app.use('/api/interfaces', interfaceRouter);
 app.use('/api/contacts', contactRouter);
+app.use('/api/vnpay', vnPayRouter);
 app.use(express.static('public'));
 app.use('/api', authRouter);
 
