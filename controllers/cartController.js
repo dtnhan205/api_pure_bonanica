@@ -5,12 +5,11 @@ const User = require('../models/user');
 const Order = require('../models/order');
 const Coupon = require('../models/coupon');
 const axios = require('axios');
-const VnpayController = require('./vnpayController'); // Import VnpayController
+const VnpayController = require('./vnpayController');
 require('dotenv').config();
 
 exports.getAllCarts = async (req, res) => {
   try {
-    // Lấy tất cả giỏ hàng và populate thông tin người dùng và sản phẩm
     const carts = await Cart.find()
       .populate({
         path: 'user',
@@ -25,7 +24,6 @@ exports.getAllCarts = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng nào' });
     }
 
-    // Format dữ liệu trả về
     const formattedCarts = carts.map(cart => {
       const items = cart.items.map(item => {
         const product = item.product;
@@ -246,7 +244,7 @@ exports.updateQuantity = async (req, res) => {
       return res.status(404).json({ error: 'Sản phẩm không tồn tại' });
     }
 
-    const option = product.option.find(opt => opt._id.toString() === optionId.toString());
+    const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
     if (!option) {
       return res.status(404).json({ error: 'Biến thể sản phẩm không tồn tại' });
     }
@@ -389,9 +387,9 @@ exports.checkout = async (req, res) => {
     }
 
     // Kiểm tra phương thức thanh toán hợp lệ
-    const validPaymentMethods = ['cod', 'vnpay'];
+    const validPaymentMethods = ['cod', 'vnpay', 'bank'];
     if (!validPaymentMethods.includes(paymentMethod)) {
-      return res.status(400).json({ error: 'Phương thức thanh toán không hợp lệ. Chỉ hỗ trợ "cod" hoặc "vnpay".' });
+      return res.status(400).json({ error: 'Phương thức thanh toán không hợp lệ. Chỉ hỗ trợ "cod", "vnpay" hoặc "bank".' });
     }
 
     // Kiểm tra người dùng
@@ -603,6 +601,10 @@ exports.checkout = async (req, res) => {
         emailHeaders['Authorization'] = authHeader;
       }
 
+      const paymentMethodDisplay = paymentMethod === 'vnpay' ? 'VNPay' : 
+                                  paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 
+                                  'Chuyển khoản ngân hàng';
+
       const emailResponse = await axios.post('http://localhost:10000/api/email/sendEmail', {
         username: user.username,
         email: user.email,
@@ -651,7 +653,7 @@ exports.checkout = async (req, res) => {
                 <strong>Số điện thoại:</strong> ${sdt}
               </p>
               <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-                <strong>Phương thức thanh toán:</strong> ${paymentMethod === 'vnpay' ? 'VNPay' : 'Thanh toán khi nhận hàng (COD)'}
+                <strong>Phương thức thanh toán:</strong> ${paymentMethodDisplay}
               </p>
               ${paymentUrl && paymentMethod === 'vnpay' ? `
                 <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
@@ -749,7 +751,6 @@ exports.updatePrice = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
-edy
     }
 
     const cart = await Cart.findOne({ user: userId }).populate({
