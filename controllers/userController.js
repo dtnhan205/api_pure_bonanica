@@ -577,6 +577,13 @@ const updateUser = async (req, res) => {
 
     const { username, phone, email, address, birthday, status, role } = req.body;
 
+    // Lấy thông tin user hiện tại để so sánh trạng thái
+    const currentUser = await userModel.findById(userId);
+    if (!currentUser) {
+      console.log("User not found:", userId);
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
     // Kiểm tra email trùng lặp
     if (email) {
       const existingUser = await userModel.findOne({ email, _id: { $ne: userId } });
@@ -617,6 +624,115 @@ const updateUser = async (req, res) => {
     if (!user) {
       console.log("User not found:", userId);
       return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    // Kiểm tra nếu admin thay đổi trạng thái từ active thành inactive
+    if (req.user.role === 'admin' && 
+        currentUser.status === 'active' && 
+        updateData.status === 'inactive') {
+      
+      // Gửi email thông báo khóa tài khoản
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: 'Thông báo tạm khóa tài khoản Pure-Botanica ⚠️',
+          html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+              <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #e74c3c;">
+                <h1 style="color: #e74c3c; font-size: 26px; font-weight: 600; margin: 0;">Tài khoản bị tạm khóa</h1>
+              </div>
+              <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
+                <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${user.username},</h3>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                  Chúng tôi rất tiếc phải thông báo rằng tài khoản của bạn đã bị <strong>tạm khóa</strong> do vi phạm chính sách của Pure-Botanica.
+                </p>
+                <div style="background-color: #fff5f5; border-left: 4px solid #e74c3c; padding: 15px; margin: 20px 0;">
+                  <p style="color: #721c24; font-size: 15px; margin: 0 0 10px; font-weight: 600;">Lý do khóa tài khoản:</p>
+                  <p style="color: #721c24; font-size: 14px; margin: 0;">Vi phạm chính sách giao hàng - Bom hàng (không nhận hàng sau khi đặt)</p>
+                </div>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 15px 0;">
+                  Hành vi "bom hàng" (đặt hàng nhưng không nhận) gây ảnh hưởng nghiêm trọng đến hoạt động kinh doanh và các khách hàng khác.
+                </p>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 15px 0;">
+                  Nếu bạn cho rằng có sự nhầm lẫn hoặc muốn khiếu nại về quyết định này, vui lòng liên hệ với chúng tôi qua email hoặc hotline hỗ trợ.
+                </p>
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="mailto:purebotanicastore@gmail.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500; margin-right: 10px;">Liên hệ hỗ trợ</a>
+                </div>
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                  <p style="color: #6c757d; font-size: 14px; margin: 0 0 10px; font-weight: 600;">Chính sách của Pure-Botanica:</p>
+                  <ul style="color: #6c757d; font-size: 13px; margin: 0; padding-left: 20px;">
+                    <li style="margin-bottom: 5px;">Khách hàng cần nhận hàng đúng thời gian đã hẹn</li>
+                    <li style="margin-bottom: 5px;">Thông báo hủy đơn trước ít nhất 2 giờ nếu có thay đổi</li>
+                    <li style="margin-bottom: 5px;">Tài khoản sẽ bị khóa nếu vi phạm liên tiếp</li>
+                  </ul>
+                </div>
+                <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
+                  Cảm ơn bạn đã hiểu và tuân thủ chính sách của chúng tôi.
+                </p>
+              </div>
+              <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
+                <p style="margin: 0 0 10px;">Liên hệ hỗ trợ:</p>
+                <p style="margin: 0 0 5px;">Email: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a></p>
+                <p style="margin: 0 0 15px;">Website: <a href="https://purebotanica.com" style="color: #357E38; text-decoration: none;">purebotanica.com</a></p>
+                <p style="margin: 0;">© 2025 Pure-Botanica. All rights reserved.</p>
+              </div>
+            </div>
+          `,
+        });
+        console.log(`Đã gửi email thông báo khóa tài khoản tới: ${user.email}`);
+      } catch (emailError) {
+        console.error(`Lỗi gửi email thông báo khóa tài khoản cho ${user.email}:`, emailError.message);
+        // Không return lỗi vì việc cập nhật user đã thành công
+      }
+    }
+
+    // Kiểm tra nếu admin mở khóa tài khoản (từ inactive thành active)
+    if (req.user.role === 'admin' && 
+        currentUser.status === 'inactive' && 
+        updateData.status === 'active') {
+      
+      // Gửi email thông báo mở khóa tài khoản
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: user.email,
+          subject: 'Tài khoản Pure-Botanica đã được kích hoạt lại 🎉',
+          html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+              <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #27ae60;">
+                <h1 style="color: #27ae60; font-size: 26px; font-weight: 600; margin: 0;">Tài khoản đã được kích hoạt</h1>
+              </div>
+              <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
+                <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${user.username},</h3>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                  Chúng tôi vui mừng thông báo rằng tài khoản của bạn đã được <strong>kích hoạt lại</strong> và bạn có thể sử dụng bình thường.
+                </p>
+                <div style="background-color: #f0f9ff; border-left: 4px solid #27ae60; padding: 15px; margin: 20px 0;">
+                  <p style="color: #155724; font-size: 15px; margin: 0; font-weight: 600;">Bạn có thể đăng nhập và mua sắm ngay bây giờ!</p>
+                </div>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 15px 0;">
+                  Để tránh việc tài khoản bị khóa lại, vui lòng tuân thủ các chính sách của Pure-Botanica khi đặt hàng.
+                </p>
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="https://purebotanica.com/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay</a>
+                </div>
+                <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
+                  Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
+                </p>
+              </div>
+              <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
+                <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
+                <p style="margin: 0;">Email: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a></p>
+              </div>
+            </div>
+          `,
+        });
+        console.log(`Đã gửi email thông báo mở khóa tài khoản tới: ${user.email}`);
+      } catch (emailError) {
+        console.error(`Lỗi gửi email thông báo mở khóa tài khoản cho ${user.email}:`, emailError.message);
+      }
     }
 
     console.log("User updated successfully:", user);
