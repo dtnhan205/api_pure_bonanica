@@ -211,7 +211,7 @@ exports.addToCart = async (req, res) => {
 
 exports.updateQuantity = async (req, res) => {
   try {
-    const userId = req.query.userId || req.body.userId;
+    const userId = req.query.userId || req.body.userId || req.user?.id; // Sử dụng req.user nếu có
     const { productId, optionId, quantity } = req.body;
 
     // Kiểm tra các trường bắt buộc
@@ -242,13 +242,16 @@ exports.updateQuantity = async (req, res) => {
     }
 
     // Tìm sản phẩm và kiểm tra option
-    const product = await Product.findById(productId).select('option');
+    const Product = mongoose.model('Product');
+    const product = await Product.findById(productId).lean(); // Sử dụng lean() để lấy dữ liệu thô
     if (!product) {
       return res.status(404).json({ error: 'Sản phẩm không tồn tại' });
     }
 
-    const option = product.option.id(optionId); // Sử dụng id() để tìm option dựa trên _id
+    console.log('Product options:', product.option); // Debug: Xem mảng option
+    const option = product.option.find(opt => opt._id && opt._id.toString() === optionId);
     if (!option) {
+      console.log(`Option not found for optionId: ${optionId}, available options:`, product.option.map(opt => opt._id));
       return res.status(404).json({ error: 'Biến thể sản phẩm không tồn tại' });
     }
 
@@ -257,12 +260,10 @@ exports.updateQuantity = async (req, res) => {
     }
 
     // Tìm giỏ hàng
+    const Cart = mongoose.model('Cart');
     const cart = await Cart.findOne({ user: userId }).populate({
       path: 'items.product',
       select: 'name images option'
-    }).populate({
-      path: 'items.optionId',
-      select: '_id stock value price discount_price'
     });
     if (!cart) {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
@@ -273,7 +274,7 @@ exports.updateQuantity = async (req, res) => {
     console.log('Request data:', requestData);
     console.log('Cart items:', cart.items.map(item => ({
       productId: item.product ? item.product._id.toString() : null,
-      optionId: item.optionId ? item.optionId._id.toString() : null,
+      optionId: item.optionId ? item.optionId.toString() : null,
       quantity: item.quantity
     })));
 
@@ -285,8 +286,8 @@ exports.updateQuantity = async (req, res) => {
           return false;
         }
         const matchProduct = item.product._id.toString() === productId;
-        const matchOption = item.optionId._id.toString() === optionId;
-        console.log(`Checking item - productId: ${item.product._id.toString()}, optionId: ${item.optionId._id.toString()}, matchProduct: ${matchProduct}, matchOption: ${matchOption}`);
+        const matchOption = item.optionId.toString() === optionId;
+        console.log(`Checking item - productId: ${item.product._id.toString()}, optionId: ${item.optionId.toString()}, matchProduct: ${matchProduct}, matchOption: ${matchOption}`);
         return matchProduct && matchOption;
       }
     );
@@ -300,13 +301,10 @@ exports.updateQuantity = async (req, res) => {
     cart.items[itemIndex].quantity = quantity;
     await cart.save();
 
-    // Populate lại dữ liệu sản phẩm và option sau khi cập nhật
+    // Populate lại dữ liệu sản phẩm sau khi cập nhật
     await cart.populate({
       path: 'items.product',
       select: 'name images option'
-    }).populate({
-      path: 'items.optionId',
-      select: '_id stock value price discount_price'
     });
 
     res.json(cart);

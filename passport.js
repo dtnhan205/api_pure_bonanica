@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-const User = mongoose.model('users');
+const User = mongoose.model('user');
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
