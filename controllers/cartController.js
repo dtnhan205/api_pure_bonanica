@@ -265,34 +265,12 @@ exports.updateQuantity = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
     }
 
-    // Làm sạch các mục không hợp lệ trong cart.items nhưng giữ lại giỏ hàng
-    const invalidItems = cart.items.filter(item => !item.product || !item.option || !item.option._id);
-    if (invalidItems.length > 0) {
-      console.log('Invalid items found and will be removed:', invalidItems);
-      cart.items = cart.items.filter(item => item.product && item.option && item.option._id);
-      if (cart.items.length === 0) {
-        console.log('All items removed, adding new item');
-        cart.items.push({
-          product: productId,
-          option: {
-            _id: optionId,
-            stock: option.stock,
-            value: option.value,
-            price: option.price,
-            discount_price: option.discount_price || 0
-          },
-          quantity
-        });
-      }
-      await cart.save();
-    }
-
     // Debug: Log dữ liệu yêu cầu và cart.items
     const requestData = { productId, optionId, quantity };
     console.log('Request data:', requestData);
     console.log('Cart items:', cart.items.map(item => ({
-      productId: item.product ? item.product._id?.toString() : null,
-      optionId: item.option?._id?.toString() || null,
+      productId: item.product ? item.product._id.toString() : null,
+      optionId: item.option ? item.option._id.toString() : null,
       quantity: item.quantity
     })));
 
@@ -311,23 +289,12 @@ exports.updateQuantity = async (req, res) => {
     );
 
     if (itemIndex === -1) {
-      // Thêm mới mục vào giỏ hàng nếu không tìm thấy
-      console.log(`No match found, adding new item to cart: productId=${productId}, optionId=${optionId}`);
-      cart.items.push({
-        product: productId,
-        option: {
-          _id: optionId,
-          stock: option.stock,
-          value: option.value,
-          price: option.price,
-          discount_price: option.discount_price || 0
-        },
-        quantity
-      });
-    } else {
-      // Cập nhật số lượng cho mục đã tìm thấy
-      cart.items[itemIndex].quantity = quantity;
+      console.log(`No match found for productId: ${productId}, optionId: ${optionId}`);
+      return res.status(404).json({ error: 'Không tìm thấy sản phẩm trong giỏ' });
     }
+
+    // Cập nhật số lượng
+    cart.items[itemIndex].quantity = quantity;
     await cart.save();
 
     // Populate lại dữ liệu sản phẩm sau khi cập nhật
