@@ -775,17 +775,18 @@ exports.updatePrice = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
     const { couponCode } = req.body;
 
+    // Validate userId
     if (!userId) {
-      return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
+      return res.status(400).json({ success: false, error: 'Thiếu userId trong yêu cầu' });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'userId không hợp lệ' });
+      return res.status(400).json({ success: false, error: 'userId không hợp lệ' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: 'Người dùng không tồn tại' });
+      return res.status(404).json({ success: false, error: 'Người dùng không tồn tại' });
     }
 
     const cart = await Cart.findOne({ user: userId }).populate({
@@ -794,14 +795,15 @@ exports.updatePrice = async (req, res) => {
     });
 
     if (!cart || cart.items.length === 0) {
-      return res.status(404).json({ error: 'Giỏ hàng trống' });
+      return res.status(404).json({ success: false, error: 'Giỏ hàng trống' });
     }
 
+    // Filter valid and invalid items
     const invalidItems = cart.items.filter(item => !item.product || !item.product.option.find(opt => opt._id.toString() === item.optionId.toString()));
     const validItems = cart.items.filter(item => item.product && item.product.option.find(opt => opt._id.toString() === item.optionId.toString()));
 
     if (validItems.length === 0) {
-      return res.status(400).json({ error: 'Giỏ hàng không chứa sản phẩm hợp lệ' });
+      return res.status(400).json({ success: false, error: 'Giỏ hàng không chứa sản phẩm hợp lệ' });
     }
 
     if (invalidItems.length > 0) {
@@ -810,6 +812,7 @@ exports.updatePrice = async (req, res) => {
       await cart.save();
     }
 
+    // Calculate subtotal
     let subtotal = validItems.reduce((acc, item) => {
       const product = item.product;
       const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
@@ -818,48 +821,59 @@ exports.updatePrice = async (req, res) => {
     }, 0);
 
     let discount = 0;
+    let message = 'Giá đã được cập nhật';
 
     if (couponCode) {
       const coupon = await Coupon.findOne({ code: { $regex: `^${couponCode}$`, $options: 'i' } });
       if (!coupon) {
-        return res.status(400).json({ error: 'Mã giảm giá không tồn tại' });
+        return res.status(400).json({ success: false, error: 'Mã giảm giá không tồn tại' });
       }
 
       if (!coupon.isActive) {
-        return res.status(400).json({ error: 'Mã giảm giá không còn hoạt động' });
+        return res.status(400).json({ success: false, error: 'Mã giảm giá không còn hoạt động' });
       }
 
       if (coupon.expiryDate && new Date() > coupon.expiryDate) {
-        return res.status(400).json({ error: 'Mã giảm giá đã hết hạn' });
+        return res.status(400).json({ success: false, error: 'Mã giảm giá đã hết hạn' });
       }
 
       if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
-        return res.status(400).json({ error: `Đơn hàng phải có giá trị tối thiểu ${coupon.minOrderValue} để sử dụng mã này` });
+        return res.status(400).json({ success: false, error: `Đơn hàng phải có giá trị tối thiểu ${coupon.minOrderValue} để sử dụng mã này` });
       }
 
       if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-        return res.status(400).json({ error: 'Mã giảm giá đã đạt giới hạn sử dụng' });
+        return res.status(400).json({ success: false, error: 'Mã giảm giá đã đạt giới hạn sử dụng' });
       }
 
+      // Apply discount
       if (coupon.discountType === 'percentage') {
         discount = (subtotal * coupon.discountValue) / 100;
       } else if (coupon.discountType === 'fixed') {
         discount = coupon.discountValue;
       }
 
-      discount = Math.min(discount, subtotal);
+      discount = Math.min(discount, subtotal); // Ensure discount doesn't exceed subtotal
+      message = 'Mã giảm giá đã được áp dụng thành công';
+      // Optionally increment usedCount if needed (uncomment if required)
+      // await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: 1 } });
     }
 
     const total = subtotal - discount;
 
     res.json({
+      success: true,
+      message,
       subtotal,
       discount,
-      total
+      total,
+      cart: {
+        _id: cart._id,
+        items: validItems,
+      }
     });
   } catch (error) {
     console.error('Lỗi khi cập nhật giá:', error.stack);
-    res.status(500).json({ error: 'Lỗi khi cập nhật giá', details: error.message });
+    res.status(500).json({ success: false, error: 'Lỗi khi cập nhật giá', details: error.message });
   }
 };
 
