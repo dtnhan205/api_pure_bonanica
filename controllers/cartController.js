@@ -214,6 +214,7 @@ exports.updateQuantity = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
     const { productId, optionId, quantity } = req.body;
 
+    // Kiểm tra các trường bắt buộc
     if (!userId) {
       return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
     }
@@ -234,17 +235,19 @@ exports.updateQuantity = async (req, res) => {
       return res.status(400).json({ error: 'Số lượng phải là số nguyên lớn hơn 0' });
     }
 
+    // Tìm người dùng
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
-    const product = await Product.findById(productId);
+    // Tìm sản phẩm và kiểm tra option
+    const product = await Product.findById(productId).select('option');
     if (!product) {
       return res.status(404).json({ error: 'Sản phẩm không tồn tại' });
     }
 
-    const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
+    const option = product.option.find(opt => opt._id.toString() === optionId);
     if (!option) {
       return res.status(404).json({ error: 'Biến thể sản phẩm không tồn tại' });
     }
@@ -253,25 +256,86 @@ exports.updateQuantity = async (req, res) => {
       return res.status(400).json({ error: `Biến thể ${option.value} chỉ còn ${option.stock} trong kho, không đủ số lượng yêu cầu` });
     }
 
-    const cart = await Cart.findOne({ user: userId });
+    // Tìm giỏ hàng
+    const cart = await Cart.findOne({ user: userId }).populate({
+      path: 'items.product',
+      select: 'name images option'
+    });
     if (!cart) {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
     }
 
-    const item = cart.items.find(item => 
-      item.product.toString() === productId && item.optionId.toString() === optionId
-    );
-
-    if (!item) {
-      return res.status(404).json({ error: 'Không tìm thấy sản phẩm trong giỏ' });
+    // Làm sạch các mục không hợp lệ trong cart.items nhưng giữ lại giỏ hàng
+    const invalidItems = cart.items.filter(item => !item.product || !item.option || !item.option._id);
+    if (invalidItems.length > 0) {
+      console.log('Invalid items found and will be removed:', invalidItems);
+      cart.items = cart.items.filter(item => item.product && item.option && item.option._id);
+      if (cart.items.length === 0) {
+        console.log('All items removed, adding new item');
+        cart.items.push({
+          product: productId,
+          option: {
+            _id: optionId,
+            stock: option.stock,
+            value: option.value,
+            price: option.price,
+            discount_price: option.discount_price || 0
+          },
+          quantity
+        });
+      }
+      await cart.save();
     }
 
-    item.quantity = quantity;
+    // Debug: Log dữ liệu yêu cầu và cart.items
+    const requestData = { productId, optionId, quantity };
+    console.log('Request data:', requestData);
+    console.log('Cart items:', cart.items.map(item => ({
+      productId: item.product ? item.product._id?.toString() : null,
+      optionId: item.option?._id?.toString() || null,
+      quantity: item.quantity
+    })));
+
+    // Tìm và cập nhật item trong giỏ hàng
+    const itemIndex = cart.items.findIndex(
+      (item) => {
+        if (!item.product || !item.option || !item.option._id) {
+          console.log(`Invalid item skipped: product=${item.product}, option=${item.option}`);
+          return false;
+        }
+        const matchProduct = item.product._id.toString() === productId;
+        const matchOption = item.option._id.toString() === optionId;
+        console.log(`Checking item - productId: ${item.product._id.toString()}, optionId: ${item.option._id.toString()}, matchProduct: ${matchProduct}, matchOption: ${matchOption}`);
+        return matchProduct && matchOption;
+      }
+    );
+
+    if (itemIndex === -1) {
+      // Thêm mới mục vào giỏ hàng nếu không tìm thấy
+      console.log(`No match found, adding new item to cart: productId=${productId}, optionId=${optionId}`);
+      cart.items.push({
+        product: productId,
+        option: {
+          _id: optionId,
+          stock: option.stock,
+          value: option.value,
+          price: option.price,
+          discount_price: option.discount_price || 0
+        },
+        quantity
+      });
+    } else {
+      // Cập nhật số lượng cho mục đã tìm thấy
+      cart.items[itemIndex].quantity = quantity;
+    }
     await cart.save();
+
+    // Populate lại dữ liệu sản phẩm sau khi cập nhật
     await cart.populate({
       path: 'items.product',
       select: 'name images option'
     });
+
     res.json(cart);
   } catch (error) {
     console.error('Lỗi cập nhật số lượng:', error.stack);
