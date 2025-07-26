@@ -231,8 +231,8 @@ exports.updateQuantity = async (req, res) => {
       return res.status(400).json({ error: 'productId hoặc optionId không hợp lệ' });
     }
 
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-      return res.status(400).json({ error: 'Số lượng phải là số nguyên lớn hơn 0' });
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      return res.status(400).json({ error: 'Số lượng phải là số nguyên lớn hơn hoặc bằng 1' });
     }
 
     // Tìm người dùng
@@ -247,7 +247,7 @@ exports.updateQuantity = async (req, res) => {
       return res.status(404).json({ error: 'Sản phẩm không tồn tại' });
     }
 
-    const option = product.option.find(opt => opt._id.toString() === optionId);
+    const option = product.option.id(optionId); // Sử dụng id() để tìm option dựa trên _id
     if (!option) {
       return res.status(404).json({ error: 'Biến thể sản phẩm không tồn tại' });
     }
@@ -260,6 +260,9 @@ exports.updateQuantity = async (req, res) => {
     const cart = await Cart.findOne({ user: userId }).populate({
       path: 'items.product',
       select: 'name images option'
+    }).populate({
+      path: 'items.optionId',
+      select: '_id stock value price discount_price'
     });
     if (!cart) {
       return res.status(404).json({ error: 'Không tìm thấy giỏ hàng' });
@@ -270,20 +273,20 @@ exports.updateQuantity = async (req, res) => {
     console.log('Request data:', requestData);
     console.log('Cart items:', cart.items.map(item => ({
       productId: item.product ? item.product._id.toString() : null,
-      optionId: item.option ? item.option._id.toString() : null,
+      optionId: item.optionId ? item.optionId._id.toString() : null,
       quantity: item.quantity
     })));
 
     // Tìm và cập nhật item trong giỏ hàng
     const itemIndex = cart.items.findIndex(
       (item) => {
-        if (!item.product || !item.option || !item.option._id) {
-          console.log(`Invalid item skipped: product=${item.product}, option=${item.option}`);
+        if (!item.product || !item.optionId) {
+          console.log(`Invalid item skipped: product=${item.product}, optionId=${item.optionId}`);
           return false;
         }
         const matchProduct = item.product._id.toString() === productId;
-        const matchOption = item.option._id.toString() === optionId;
-        console.log(`Checking item - productId: ${item.product._id.toString()}, optionId: ${item.option._id.toString()}, matchProduct: ${matchProduct}, matchOption: ${matchOption}`);
+        const matchOption = item.optionId._id.toString() === optionId;
+        console.log(`Checking item - productId: ${item.product._id.toString()}, optionId: ${item.optionId._id.toString()}, matchProduct: ${matchProduct}, matchOption: ${matchOption}`);
         return matchProduct && matchOption;
       }
     );
@@ -297,10 +300,13 @@ exports.updateQuantity = async (req, res) => {
     cart.items[itemIndex].quantity = quantity;
     await cart.save();
 
-    // Populate lại dữ liệu sản phẩm sau khi cập nhật
+    // Populate lại dữ liệu sản phẩm và option sau khi cập nhật
     await cart.populate({
       path: 'items.product',
       select: 'name images option'
+    }).populate({
+      path: 'items.optionId',
+      select: '_id stock value price discount_price'
     });
 
     res.json(cart);
