@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const commentSchema = new mongoose.Schema({
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -16,6 +15,12 @@ const commentSchema = new mongoose.Schema({
       type: String,
       required: true
     },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
     createdAt: {
       type: Date,
       default: Date.now 
@@ -24,10 +29,10 @@ const commentSchema = new mongoose.Schema({
       type: Date 
     },
     status: {
-    type: String,
-    enum: ['show', 'hidden'],
-    default: 'show'
-  }
+      type: String,
+      enum: ['show', 'hidden'],
+      default: 'show'
+    }
   }, { versionKey: false });
 
-module.exports = mongoose.model('Comment', commentSchema); 
+module.exports = mongoose.model('Comment', commentSchema);

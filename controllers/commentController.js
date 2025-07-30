@@ -5,10 +5,14 @@ const User = require('../models/user');
 // Tạo bình luận mới cho sản phẩm
 exports.createComment = async (req, res) => {
   try {
-    const { userId, productId, content } = req.body;
+    const { userId, productId, content, rating } = req.body;
 
-    if (!userId || !productId || !content) {
-      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc: userId, productId hoặc content' });
+    if (!userId || !productId || !content || !rating) {
+      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc: userId, productId, content hoặc rating' });
+    }
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Đánh giá sao phải nằm trong khoảng từ 1 đến 5' });
     }
 
     const user = await User.findById(userId);
@@ -25,6 +29,7 @@ exports.createComment = async (req, res) => {
       user: userId,
       product: productId,
       content,
+      rating,
       status: 'show' // Mặc định trạng thái là show khi tạo mới
     });
 
@@ -84,10 +89,14 @@ exports.getCommentsByProduct = async (req, res) => {
 exports.updateComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { userId, content } = req.body;
+    const { userId, content, rating } = req.body;
 
-    if (!userId || !commentId || !content) {
-      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc: userId, commentId hoặc content' });
+    if (!userId || !commentId || !content || rating === undefined) {
+      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc: userId, commentId, content hoặc rating' });
+    }
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Đánh giá sao phải nằm trong khoảng từ 1 đến 5' });
     }
 
     const user = await User.findById(userId);
@@ -105,6 +114,7 @@ exports.updateComment = async (req, res) => {
     }
 
     comment.content = content;
+    comment.rating = rating;
     comment.updatedAt = new Date();
     await comment.save();
 
