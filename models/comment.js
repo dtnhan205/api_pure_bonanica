@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const replySchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "user", // Sửa từ "User" thành "user"
     required: true,
   },
   content: {
@@ -20,7 +20,7 @@ const commentSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "user", // Sửa từ "User" thành "user"
       required: true,
     },
     product: {
@@ -50,7 +50,7 @@ const commentSchema = new mongoose.Schema(
       enum: ["show", "hidden"],
       default: "show",
     },
-    replies: [replySchema], // Thêm mảng phản hồi
+    replies: [replySchema],
   },
   { versionKey: false }
 );
