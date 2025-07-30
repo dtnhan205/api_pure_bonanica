@@ -44,8 +44,9 @@ exports.createComment = async (req, res) => {
 
     // Populate thông tin user và product
     await comment.populate([
-      { path: "user", select: "username email" },
+      { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
+      { path: "replies.user", select: "username email role" },
     ]);
 
     res.status(201).json({ message: "Tạo bình luận thành công", comment });
@@ -61,8 +62,11 @@ exports.createComment = async (req, res) => {
 exports.getAllCommentsForAdmin = async (req, res) => {
   try {
     const comments = await Comment.find()
-      .populate("user", "username email")
-      .populate("product", "name price images")
+      .populate([
+        { path: "user", select: "username email role" },
+        { path: "product", select: "name price images" },
+        { path: "replies.user", select: "username email role" },
+      ])
       .sort({ createdAt: -1 });
 
     res.json(comments);
@@ -85,8 +89,11 @@ exports.getCommentsByProduct = async (req, res) => {
 
     // Chỉ lấy các bình luận có status: show cho người dùng thông thường
     const comments = await Comment.find({ product: productId, status: "show" })
-      .populate("user", "username email")
-      .populate("product", "name price images")
+      .populate([
+        { path: "user", select: "username email role" },
+        { path: "product", select: "name price images" },
+        { path: "replies.user", select: "username email role" },
+      ])
       .sort({ createdAt: -1 });
 
     res.json(comments);
@@ -145,8 +152,9 @@ exports.updateComment = async (req, res) => {
 
     // Populate thông tin user và product
     await comment.populate([
-      { path: "user", select: "username email" },
+      { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
+      { path: "replies.user", select: "username email role" },
     ]);
 
     res.json({ message: "Cập nhật bình luận thành công", comment });
@@ -203,8 +211,9 @@ exports.updateCommentStatus = async (req, res) => {
     // Populate thông tin user và product
     try {
       await comment.populate([
-        { path: "user", select: "username email" },
+        { path: "user", select: "username email role" },
         { path: "product", select: "name price images" },
+        { path: "replies.user", select: "username email role" },
       ]);
     } catch (populateError) {
       console.warn("Cảnh báo: Lỗi khi populate dữ liệu:", populateError.message);
@@ -260,6 +269,7 @@ exports.deleteComment = async (req, res) => {
   }
 };
 
+// Thêm phản hồi từ admin
 exports.replyToComment = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -292,8 +302,9 @@ exports.replyToComment = async (req, res) => {
 
     // Populate thông tin user và product
     await comment.populate([
-      { path: "user", select: "username email" },
+      { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
+      { path: "replies.user", select: "username email role" },
     ]);
 
     res.json({ message: "Phản hồi đã được gửi", comment });
@@ -318,7 +329,7 @@ exports.replyToReply = async (req, res) => {
       });
     }
 
-    const comment = await Comment.findById(commentId).populate("replies.user", "role");
+    const comment = await Comment.findById(commentId).populate("replies.user", "username email role");
     if (!comment) {
       return res.status(404).json({ error: "Bình luận không tồn tại" });
     }
@@ -348,7 +359,7 @@ exports.replyToReply = async (req, res) => {
     await comment.save();
 
     await comment.populate([
-      { path: "user", select: "username email" },
+      { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
       { path: "replies.user", select: "username email role" },
     ]);
