@@ -309,51 +309,53 @@ exports.replyToComment = async (req, res) => {
 exports.replyToReply = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const { content, replyIndex } = req.body; // replyIndex là chỉ số của phản hồi từ admin
-    const user = req.user; // Lấy thông tin người dùng từ authMiddleware
+    const { content, replyIndex } = req.body;
+    const user = req.user;
 
     if (!user || !commentId || !content || replyIndex === undefined) {
-      return res
-        .status(400)
-        .json({
-          error: "Thiếu thông tin bắt buộc: user, commentId, content hoặc replyIndex",
-        });
+      return res.status(400).json({
+        error: "Thiếu thông tin bắt buộc: user, commentId, content hoặc replyIndex",
+      });
     }
 
-    const comment = await Comment.findById(commentId);
+    const comment = await Comment.findById(commentId).populate("replies.user", "role");
     if (!comment) {
       return res.status(404).json({ error: "Bình luận không tồn tại" });
     }
 
-    // Kiểm tra xem replyIndex có hợp lệ và phản hồi gốc từ admin
-    if (
-      !comment.replies[replyIndex] ||
-      comment.replies[replyIndex].user.toString() !== user.id
-    ) {
-      return res
-        .status(400)
-        .json({ error: "Phản hồi gốc không hợp lệ hoặc không phải từ admin" });
+    // Kiểm tra xem người dùng có phải là người tạo bình luận gốc
+    if (comment.user.toString() !== user.id) {
+      return res.status(403).json({ error: "Chỉ người tạo bình luận gốc được phép trả lời" });
     }
 
-    // Thêm phản hồi từ user như một reply lồng nhau (nếu cần thiết, tùy chỉnh logic)
+    // Kiểm tra replyIndex hợp lệ và phản hồi gốc từ admin
+    if (
+      !comment.replies ||
+      replyIndex < 0 ||
+      replyIndex >= comment.replies.length ||
+      comment.replies[replyIndex].user.role !== "admin"
+    ) {
+      return res.status(400).json({
+        error: "Phản hồi gốc không hợp lệ hoặc không phải từ admin",
+      });
+    }
+
     comment.replies.push({
       user: user.id,
-      content: content,
-      parentReplyIndex: replyIndex, // Thêm trường để theo dõi phản hồi nào được trả lời
+      content: content.trim(),
+      parentReplyIndex: replyIndex,
     });
     await comment.save();
 
-    // Populate thông tin user và product
     await comment.populate([
       { path: "user", select: "username email" },
       { path: "product", select: "name price images" },
+      { path: "replies.user", select: "username email role" },
     ]);
 
     res.json({ message: "Phản hồi từ user đã được gửi", comment });
   } catch (error) {
     console.error("Lỗi khi gửi phản hồi từ user:", error.stack);
-    res
-      .status(500)
-      .json({ error: "Lỗi khi gửi phản hồi từ user", details: error.message });
+    res.status(500).json({ error: "Lỗi khi gửi phản hồi từ user", details: error.message });
   }
 };
