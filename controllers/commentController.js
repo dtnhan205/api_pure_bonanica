@@ -1,6 +1,7 @@
 const Comment = require("../models/comment");
 const Product = require("../models/product");
 const User = require("../models/user");
+const Order = require("../models/order");
 
 // Tạo bình luận mới cho sản phẩm
 exports.createComment = async (req, res) => {
@@ -11,8 +12,7 @@ exports.createComment = async (req, res) => {
       return res
         .status(400)
         .json({
-          error:
-            "Thiếu thông tin bắt buộc: userId, productId, content hoặc rating",
+          error: "Thiếu thông tin bắt buộc: userId, productId, content hoặc rating",
         });
     }
 
@@ -32,17 +32,29 @@ exports.createComment = async (req, res) => {
       return res.status(404).json({ error: "Sản phẩm không tồn tại" });
     }
 
+    // Kiểm tra xem người dùng đã mua sản phẩm và đơn hàng đã thanh toán
+    const order = await Order.findOne({
+      user: userId,
+      "items.product": productId,
+      paymentStatus: "paid",
+    });
+
+    if (!order) {
+      return res
+        .status(403)
+        .json({ error: "Bạn chỉ có thể đánh giá sản phẩm sau khi mua và thanh toán thành công" });
+    }
+
     const comment = new Comment({
       user: userId,
       product: productId,
       content,
       rating,
-      status: "show", // Mặc định trạng thái là show khi tạo mới
+      status: "show",
     });
 
     await comment.save();
 
-    // Populate thông tin user và product
     await comment.populate([
       { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
@@ -87,7 +99,6 @@ exports.getCommentsByProduct = async (req, res) => {
       return res.status(400).json({ error: "Thiếu productId trong yêu cầu" });
     }
 
-    // Chỉ lấy các bình luận có status: show cho người dùng thông thường
     const comments = await Comment.find({ product: productId, status: "show" })
       .populate([
         { path: "user", select: "username email role" },
@@ -118,8 +129,7 @@ exports.updateComment = async (req, res) => {
       return res
         .status(400)
         .json({
-          error:
-            "Thiếu thông tin bắt buộc: userId, commentId, content hoặc rating",
+          error: "Thiếu thông tin bắt buộc: userId, commentId, content hoặc rating",
         });
     }
 
@@ -150,7 +160,6 @@ exports.updateComment = async (req, res) => {
     comment.updatedAt = new Date();
     await comment.save();
 
-    // Populate thông tin user và product
     await comment.populate([
       { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
@@ -171,16 +180,14 @@ exports.updateCommentStatus = async (req, res) => {
   try {
     const { commentId } = req.params;
     const { status } = req.body;
-    const user = req.user; // Lấy thông tin người dùng từ authMiddleware
+    const user = req.user;
 
-    // Kiểm tra các trường bắt buộc
     if (!user || !commentId || !status) {
       return res
         .status(400)
         .json({ error: "Thiếu thông tin bắt buộc: user, commentId hoặc status" });
     }
 
-    // Chuẩn hóa trạng thái
     const normalizedStatus = status.trim().toLowerCase();
     if (!["show", "hidden"].includes(normalizedStatus)) {
       return res
@@ -190,25 +197,21 @@ exports.updateCommentStatus = async (req, res) => {
         });
     }
 
-    // Kiểm tra quyền admin dựa trên role
     if (user.role !== "admin") {
       return res
         .status(403)
         .json({ error: "Bạn không có quyền thay đổi trạng thái bình luận" });
     }
 
-    // Tìm bình luận
     const comment = await Comment.findById(commentId);
     if (!comment) {
       return res.status(404).json({ error: "Bình luận không tồn tại" });
     }
 
-    // Cập nhật trạng thái
     comment.status = normalizedStatus;
     comment.updatedAt = new Date();
     await comment.save();
 
-    // Populate thông tin user và product
     try {
       await comment.populate([
         { path: "user", select: "username email role" },
@@ -274,7 +277,7 @@ exports.replyToComment = async (req, res) => {
   try {
     const { commentId } = req.params;
     const { content } = req.body;
-    const user = req.user; // Lấy thông tin người dùng từ authMiddleware
+    const user = req.user;
 
     if (!user || !commentId || !content) {
       return res
@@ -282,7 +285,6 @@ exports.replyToComment = async (req, res) => {
         .json({ error: "Thiếu thông tin bắt buộc: user, commentId hoặc content" });
     }
 
-    // Kiểm tra quyền admin
     if (user.role !== "admin") {
       return res
         .status(403)
@@ -300,7 +302,6 @@ exports.replyToComment = async (req, res) => {
     });
     await comment.save();
 
-    // Populate thông tin user và product
     await comment.populate([
       { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
@@ -334,12 +335,10 @@ exports.replyToReply = async (req, res) => {
       return res.status(404).json({ error: "Bình luận không tồn tại" });
     }
 
-    // Kiểm tra xem người dùng có phải là người tạo bình luận gốc
     if (comment.user.toString() !== user.id) {
       return res.status(403).json({ error: "Chỉ người tạo bình luận gốc được phép trả lời" });
     }
 
-    // Kiểm tra replyIndex hợp lệ và phản hồi gốc từ admin
     if (
       !comment.replies ||
       replyIndex < 0 ||
