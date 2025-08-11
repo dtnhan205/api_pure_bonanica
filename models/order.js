@@ -8,7 +8,7 @@ const cartItemSchema = new mongoose.Schema({
   },
   optionId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product.option', // Tham chiếu đến _id của option trong Product
+    ref: 'Product.option',
     required: true
   },
   quantity: {
@@ -16,7 +16,7 @@ const cartItemSchema = new mongoose.Schema({
     default: 1,
     min: 1
   },
-  images: [String] // Giữ lại nếu cần lưu ảnh
+  images: [String]
 });
 
 const orderSchema = new mongoose.Schema({
@@ -71,16 +71,73 @@ const orderSchema = new mongoose.Schema({
     default: 'pending',
     required: true
   },
-  shippingStatus: { 
+  shippingStatus: {
     type: String,
-    enum: ['pending', 'in_transit', 'delivered', 'returned'],
+    enum: ['pending', 'in_transit', 'delivered', 'returned', 'cancelled'],
     default: 'pending',
     required: true
+  },
+  returnStatus: {
+    type: String,
+    enum: ['none', 'requested', 'approved', 'rejected'],
+    default: 'none',
+    required: true
+  },
+  returnRequestDate: {
+    type: Date,
+    default: null
+  },
+  returnReason: {
+    type: String,
+    default: null
+  },
+  // Add new fields for cancellation
+  cancelReason: {
+    type: String,
+    enum: [
+      'Đổi ý không mua nữa',
+      'Muốn thay đổi sản phẩm',
+      'Thay đổi phương thức thanh toán',
+      'Thay đổi địa chỉ giao hàng',
+      'Lý do khác',
+      null
+    ],
+    default: null
+  },
+  cancelNote: {
+    type: String,
+    default: null
+  },
+  cancelledAt: {
+    type: Date,
+    default: null
+  },
+  cancelledBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
+    default: null
   },
   createdAt: {
     type: Date,
     default: Date.now
   }
-}, { versionKey: false });
+}, { 
+  versionKey: false,
+  timestamps: true 
+});
+
+// Add index for better query performance
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ paymentStatus: 1, shippingStatus: 1 });
+
+// Add virtual for cancellation status
+orderSchema.virtual('isCancelled').get(function() {
+  return this.shippingStatus === 'cancelled' && this.paymentStatus === 'cancelled';
+});
+
+// Add method to check if order can be cancelled
+orderSchema.methods.canBeCancelled = function() {
+  return this.shippingStatus === 'pending' && this.paymentStatus === 'pending';
+};
 
 module.exports = mongoose.model('Order', orderSchema);
