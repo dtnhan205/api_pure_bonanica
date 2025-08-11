@@ -359,43 +359,89 @@ exports.confirmOrderReturn = async (req, res) => {
 exports.updateOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { shippingAddress, items, totalPrice } = req.body;
+    const updateData = req.body;
 
     // Validate orderId
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ error: 'orderId không hợp lệ' });
     }
 
-    // Find the order
-    const order = await Order.findById(orderId);
-    if (!order) {
+    // Validate update data
+    const allowedFields = [
+      'shippingStatus', 
+      'paymentStatus', 
+      'returnStatus', 
+      'cancelReason',
+      'shippingAddress', 
+      'items', 
+      'totalPrice'
+    ];
+    
+    const updateFields = {};
+    for (const [key, value] of Object.entries(updateData)) {
+      if (allowedFields.includes(key) && value !== undefined) {
+        updateFields[key] = value;
+      }
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).json({ error: 'Không có dữ liệu hợp lệ để cập nhật' });
+    }
+
+    // Find the order first to validate it exists
+    const existingOrder = await Order.findById(orderId);
+    if (!existingOrder) {
       return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
     }
 
-    // Update fields if provided
-    if (shippingAddress) {
-      order.shippingAddress = shippingAddress;
-    }
-    if (items) {
-      order.items = items.map(item => ({
-        product: item.product,
-        quantity: item.quantity,
-        price: item.price
-      }));
-    }
-    if (totalPrice) {
-      order.totalPrice = totalPrice;
+    // Validate status transitions if applicable
+    if (updateFields.shippingStatus) {
+      const validStatuses = ['pending', 'in_transit', 'delivered', 'returned', 'cancelled'];
+      if (!validStatuses.includes(updateFields.shippingStatus)) {
+        return res.status(400).json({ error: 'Trạng thái vận chuyển không hợp lệ' });
+      }
     }
 
-    // Save the updated order
-    await order.save();
+    if (updateFields.paymentStatus) {
+      const validPaymentStatuses = ['pending', 'completed', 'failed', 'cancelled'];
+      if (!validPaymentStatuses.includes(updateFields.paymentStatus)) {
+        return res.status(400).json({ error: 'Trạng thái thanh toán không hợp lệ' });
+      }
+    }
 
-    // Populate related data
-    await order.populate('items.product').populate('user', 'username email');
+    if (updateFields.returnStatus) {
+      const validReturnStatuses = ['none', 'requested', 'approved', 'rejected'];
+      if (!validReturnStatuses.includes(updateFields.returnStatus)) {
+        return res.status(400).json({ error: 'Trạng thái hoàn hàng không hợp lệ' });
+      }
+    }
 
-    res.json({ message: 'Cập nhật đơn hàng thành công', order });
+    // Update the order
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId, 
+      updateFields, 
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedOrder) {
+      return res.status(404).json({ error: 'Không thể cập nhật đơn hàng' });
+    }
+
+    // ✅ ĐÚNG - Populate sau khi update
+    const populatedOrder = await Order.findById(orderId)
+      .populate('items.product')
+      .populate('user', 'username email');
+
+    res.json({ 
+      message: 'Cập nhật đơn hàng thành công', 
+      order: populatedOrder 
+    });
+
   } catch (error) {
     console.error('Lỗi khi cập nhật đơn hàng:', error.stack);
-    res.status(500).json({ error: 'Lỗi khi cập nhật đơn hàng', details: error.message });
+    res.status(500).json({ 
+      error: 'Lỗi khi cập nhật đơn hàng', 
+      details: error.message 
+    });
   }
 };

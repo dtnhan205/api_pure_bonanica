@@ -100,6 +100,10 @@ const orderSchema = new mongoose.Schema({
       'Thay đổi phương thức thanh toán',
       'Thay đổi địa chỉ giao hàng',
       'Lý do khác',
+     "out_of_stock",
+  "customer_cancelled", 
+  "system_error", 
+     "other", 
       null
     ],
     default: null
