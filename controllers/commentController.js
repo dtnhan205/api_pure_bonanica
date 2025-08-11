@@ -32,6 +32,14 @@ exports.createComment = async (req, res) => {
       return res.status(404).json({ error: "Sản phẩm không tồn tại" });
     }
 
+    // Kiểm tra xem người dùng đã bình luận cho sản phẩm này chưa
+    const existingComment = await Comment.findOne({ user: userId, product: productId });
+    if (existingComment) {
+      return res
+        .status(403)
+        .json({ error: "Bạn đã bình luận cho sản phẩm này rồi. Bạn chỉ có thể trả lời phản hồi từ admin." });
+    }
+
     // Kiểm tra xem người dùng đã mua sản phẩm và đơn hàng đã thanh toán
     const order = await Order.findOne({
       user: userId,
@@ -299,6 +307,7 @@ exports.replyToComment = async (req, res) => {
     comment.replies.push({
       user: user.id,
       content,
+      // Không cần parentReplyIndex cho admin reply (là reply gốc)
     });
     await comment.save();
 
@@ -335,10 +344,12 @@ exports.replyToReply = async (req, res) => {
       return res.status(404).json({ error: "Bình luận không tồn tại" });
     }
 
+    // Chỉ user gốc của bình luận mới được reply
     if (comment.user.toString() !== user.id) {
       return res.status(403).json({ error: "Chỉ người tạo bình luận gốc được phép trả lời" });
     }
 
+    // Kiểm tra replyIndex hợp lệ và phải là reply của admin
     if (
       !comment.replies ||
       replyIndex < 0 ||
@@ -350,6 +361,7 @@ exports.replyToReply = async (req, res) => {
       });
     }
 
+    // Thêm reply của user với parentReplyIndex = replyIndex (chỉ rõ reply cha)
     comment.replies.push({
       user: user.id,
       content: content.trim(),

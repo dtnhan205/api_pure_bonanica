@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const replySchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user", // Sửa từ "User" thành "user"
+    ref: "user", // Tham chiếu đến user đã reply
     required: true,
   },
   content: {
@@ -14,13 +14,17 @@ const replySchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  parentReplyIndex: { // Thêm trường này để chỉ reply con (optional, chỉ cho user reply)
+    type: Number,
+    default: null,
+  },
 });
 
 const commentSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user", // Sửa từ "User" thành "user"
+      ref: "user",
       required: true,
     },
     product: {
@@ -50,7 +54,7 @@ const commentSchema = new mongoose.Schema(
       enum: ["show", "hidden"],
       default: "show",
     },
-    replies: [replySchema],
+    replies: [replySchema], // Mảng replies với hỗ trợ parent
   },
   { versionKey: false }
 );
