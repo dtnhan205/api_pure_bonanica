@@ -327,16 +327,25 @@ exports.replyToComment = async (req, res) => {
   }
 };
 
-// Thêm phản hồi từ user (phản hồi lại admin)
+// Thêm phản hồi từ user (phản hồi lại admin hoặc bất kỳ reply nào)
 exports.replyToReply = async (req, res) => {
   try {
     const { commentId } = req.params;
     const { content, replyIndex } = req.body;
     const user = req.user;
 
-    if (!user || !commentId || !content || replyIndex === undefined) {
+    // Kiểm tra thông tin bắt buộc
+    if (!user || !commentId || !content || replyIndex === undefined || replyIndex === null) {
       return res.status(400).json({
         error: "Thiếu thông tin bắt buộc: user, commentId, content hoặc replyIndex",
+      });
+    }
+
+    // Chuyển replyIndex thành số nguyên và kiểm tra hợp lệ
+    const parsedReplyIndex = parseInt(replyIndex, 10);
+    if (isNaN(parsedReplyIndex) || parsedReplyIndex < 0) {
+      return res.status(400).json({
+        error: "replyIndex không hợp lệ, phải là số nguyên không âm",
       });
     }
 
@@ -345,28 +354,39 @@ exports.replyToReply = async (req, res) => {
       return res.status(404).json({ error: "Bình luận không tồn tại" });
     }
 
-    // Chỉ user gốc của bình luận mới được reply
-    if (comment.user.toString() !== user.id) {
-      return res.status(403).json({ error: "Chỉ người tạo bình luận gốc được phép trả lời" });
-    }
-
-    // Kiểm tra replyIndex hợp lệ và phải là reply của admin
-    if (
-      !comment.replies ||
-      replyIndex < 0 ||
-      replyIndex >= comment.replies.length ||
-      comment.replies[replyIndex].user.role !== "admin"
-    ) {
+    // Kiểm tra mảng replies và độ dài
+    if (!comment.replies || comment.replies.length === 0) {
       return res.status(400).json({
-        error: "Phản hồi gốc không hợp lệ hoặc không phải từ admin",
+        error: "Bình luận không có phản hồi nào để trả lời",
       });
     }
 
-    // Thêm reply của user với parentReplyIndex = replyIndex (chỉ rõ reply cha)
+    if (parsedReplyIndex >= comment.replies.length) {
+      return res.status(400).json({
+        error: "replyIndex vượt quá số lượng phản hồi hiện có",
+      });
+    }
+
+    // Lấy thông tin reply được trả lời
+    const targetReply = comment.replies[parsedReplyIndex];
+    if (!targetReply || !targetReply.user) {
+      return res.status(400).json({
+        error: "Phản hồi mục tiêu không tồn tại hoặc không hợp lệ",
+      });
+    }
+
+    // Chỉ cho phép trả lời nếu reply là từ admin hoặc từ chính người dùng này
+    if (targetReply.user.role !== "admin" && targetReply.user._id.toString() !== user.id) {
+      return res.status(403).json({
+        error: "Bạn chỉ có thể trả lời phản hồi từ admin hoặc từ chính bạn",
+      });
+    }
+
+    // Thêm reply của user với parentReplyIndex hợp lệ
     comment.replies.push({
       user: user.id,
       content: content.trim(),
-      parentReplyIndex: replyIndex,
+      parentReplyIndex: parsedReplyIndex, // Gán parentReplyIndex từ replyIndex hợp lệ
     });
     await comment.save();
 
