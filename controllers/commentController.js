@@ -44,7 +44,8 @@ exports.createComment = async (req, res) => {
     const order = await Order.findOne({
       user: userId,
       "items.product": productId,
-      paymentStatus: "paid",
+      paymentStatus: "completed",
+      shippingStatus: "delivered",
     });
 
     if (!order) {
