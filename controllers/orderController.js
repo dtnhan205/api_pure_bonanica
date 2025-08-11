@@ -235,7 +235,7 @@ exports.cancelOrder = async (req, res) => {
     const validReasons = [
       'Đổi ý không mua nữa',
       'Muốn thay đổi sản phẩm',
-      'Thay đổi phương thức thanh toán', 
+      'Thay đổi phương thức thanh toán',
       'Thay đổi địa chỉ giao hàng',
       'Lý do khác'
     ];
@@ -255,7 +255,7 @@ exports.cancelOrder = async (req, res) => {
     await order.save();
     await order.populate('items.product');
 
-    res.json({ 
+    res.json({
       message: 'Hủy đơn hàng thành công',
       order: {
         ...order.toObject(),
@@ -264,15 +264,15 @@ exports.cancelOrder = async (req, res) => {
         cancelledAt: order.cancelledAt
       }
     });
-
   } catch (error) {
     console.error('Lỗi khi hủy đơn hàng:', error);
     res.status(500).json({ error: 'Lỗi khi hủy đơn hàng' });
   }
 };
+
 exports.requestOrderReturn = async (req, res) => {
   try {
-    const userId = req.user._id; // Lấy từ token xác thực
+    const userId = req.user._id;
     const { orderId } = req.params;
     const { returnReason } = req.body;
 
@@ -323,7 +323,7 @@ exports.requestOrderReturn = async (req, res) => {
 exports.confirmOrderReturn = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const { returnStatus } = req.body; // 'approved' hoặc 'rejected'
+    const { returnStatus } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ error: 'orderId không hợp lệ' });
@@ -353,5 +353,49 @@ exports.confirmOrderReturn = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi xác nhận yêu cầu hoàn hàng:', error.message);
     res.status(500).json({ error: 'Lỗi khi xác nhận yêu cầu hoàn hàng', details: error.message });
+  }
+};
+
+exports.updateOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { shippingAddress, items, totalPrice } = req.body;
+
+    // Validate orderId
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'orderId không hợp lệ' });
+    }
+
+    // Find the order
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
+    }
+
+    // Update fields if provided
+    if (shippingAddress) {
+      order.shippingAddress = shippingAddress;
+    }
+    if (items) {
+      order.items = items.map(item => ({
+        product: item.product,
+        quantity: item.quantity,
+        price: item.price
+      }));
+    }
+    if (totalPrice) {
+      order.totalPrice = totalPrice;
+    }
+
+    // Save the updated order
+    await order.save();
+
+    // Populate related data
+    await order.populate('items.product').populate('user', 'username email');
+
+    res.json({ message: 'Cập nhật đơn hàng thành công', order });
+  } catch (error) {
+    console.error('Lỗi khi cập nhật đơn hàng:', error.stack);
+    res.status(500).json({ error: 'Lỗi khi cập nhật đơn hàng', details: error.message });
   }
 };
