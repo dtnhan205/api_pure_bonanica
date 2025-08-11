@@ -45,6 +45,7 @@ exports.createComment = async (req, res) => {
       user: userId,
       "items.product": productId,
       paymentStatus: "completed",
+      shippingStatus: "delivered",
     });
 
     if (!order) {
