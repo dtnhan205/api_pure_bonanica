@@ -116,22 +116,6 @@ const toggleCategoryVisibility = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy danh mục' });
     }
 
-    // Nếu đang muốn ẨN danh mục
-    if (category.status === 'show') {
-      const products = await Product.find({ id_category: id });
-      if (products.length > 0) {
-        // Kiểm tra tổng stock của tất cả sản phẩm
-        const hasStock = products.some(product =>
-          Array.isArray(product.option) && product.option.some(opt => opt.stock > 0)
-        );
-        if (hasStock) {
-          return res.status(400).json({
-            message: 'Không thể ẩn danh mục vì vẫn còn sản phẩm có tồn kho!'
-          });
-        }
-      }
-    }
-
     // Chuyển trạng thái
     const newStatus = category.status === 'show' ? 'hidden' : 'show';
     category.status = newStatus;
@@ -141,10 +125,8 @@ const toggleCategoryVisibility = async (req, res) => {
     const products = await Product.find({ id_category: id });
     for (const product of products) {
       if (newStatus === 'hidden') {
-        // Nếu danh mục ẩn, đặt sản phẩm thành false
         await Product.findByIdAndUpdate(product._id, { $set: { active: false } });
       } else if (newStatus === 'show' && product.id_brand) {
-        // Nếu danh mục show, kiểm tra trạng thái Brand
         const brand = await Brand.findById(product.id_brand);
         if (brand && brand.status === 'show') {
           await Product.findByIdAndUpdate(product._id, { $set: { active: true } });
