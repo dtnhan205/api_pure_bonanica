@@ -1,25 +1,5 @@
 const mongoose = require("mongoose");
 
-const replySchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "user", // Tham chiếu đến user đã reply
-    required: true,
-  },
-  content: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  parentReplyIndex: { // Thêm trường này để chỉ reply con (optional, chỉ cho user reply)
-    type: Number,
-    default: null,
-  },
-});
-
 const commentSchema = new mongoose.Schema(
   {
     user: {
@@ -42,6 +22,10 @@ const commentSchema = new mongoose.Schema(
       min: 1,
       max: 5,
     },
+    images: {
+      type: [String], 
+      default: [],
+    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -54,7 +38,18 @@ const commentSchema = new mongoose.Schema(
       enum: ["show", "hidden"],
       default: "show",
     },
-    replies: [replySchema], // Mảng replies với hỗ trợ parent
+    adminReply: {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+      },
+      content: {
+        type: String,
+      },
+      createdAt: {
+        type: Date,
+      },
+    },
   },
   { versionKey: false }
 );

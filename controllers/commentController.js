@@ -37,7 +37,7 @@ exports.createComment = async (req, res) => {
     if (existingComment) {
       return res
         .status(403)
-        .json({ error: "Bạn đã bình luận cho sản phẩm này rồi. Bạn chỉ có thể trả lời phản hồi từ admin." });
+        .json({ error: "Bạn đã bình luận cho sản phẩm này rồi." });
     }
 
     // Kiểm tra xem người dùng đã mua sản phẩm và đơn hàng đã thanh toán
@@ -54,12 +54,16 @@ exports.createComment = async (req, res) => {
         .json({ error: "Bạn chỉ có thể đánh giá sản phẩm sau khi mua và thanh toán thành công" });
     }
 
+    // Xử lý hình ảnh được upload
+    const images = req.files ? req.files.map(file => file.path) : [];
+
     const comment = new Comment({
       user: userId,
       product: productId,
       content,
       rating,
       status: "show",
+      images,
     });
 
     await comment.save();
@@ -67,7 +71,7 @@ exports.createComment = async (req, res) => {
     await comment.populate([
       { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
-      { path: "replies.user", select: "username email role" },
+      { path: "adminReply.user", select: "username email role" },
     ]);
 
     res.status(201).json({ message: "Tạo bình luận thành công", comment });
@@ -86,7 +90,7 @@ exports.getAllCommentsForAdmin = async (req, res) => {
       .populate([
         { path: "user", select: "username email role" },
         { path: "product", select: "name price images" },
-        { path: "replies.user", select: "username email role" },
+        { path: "adminReply.user", select: "username email role" },
       ])
       .sort({ createdAt: -1 });
 
@@ -112,7 +116,7 @@ exports.getCommentsByProduct = async (req, res) => {
       .populate([
         { path: "user", select: "username email role" },
         { path: "product", select: "name price images" },
-        { path: "replies.user", select: "username email role" },
+        { path: "adminReply.user", select: "username email role" },
       ])
       .sort({ createdAt: -1 });
 
@@ -164,15 +168,19 @@ exports.updateComment = async (req, res) => {
         .json({ error: "Bạn không có quyền chỉnh sửa bình luận này" });
     }
 
+    // Xử lý hình ảnh được upload
+    const images = req.files && req.files.length > 0 ? req.files.map(file => file.path) : comment.images;
+
     comment.content = content;
     comment.rating = rating;
+    comment.images = images;
     comment.updatedAt = new Date();
     await comment.save();
 
     await comment.populate([
       { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
-      { path: "replies.user", select: "username email role" },
+      { path: "adminReply.user", select: "username email role" },
     ]);
 
     res.json({ message: "Cập nhật bình luận thành công", comment });
@@ -221,15 +229,11 @@ exports.updateCommentStatus = async (req, res) => {
     comment.updatedAt = new Date();
     await comment.save();
 
-    try {
-      await comment.populate([
-        { path: "user", select: "username email role" },
-        { path: "product", select: "name price images" },
-        { path: "replies.user", select: "username email role" },
-      ]);
-    } catch (populateError) {
-      console.warn("Cảnh báo: Lỗi khi populate dữ liệu:", populateError.message);
-    }
+    await comment.populate([
+      { path: "user", select: "username email role" },
+      { path: "product", select: "name price images" },
+      { path: "adminReply.user", select: "username email role" },
+    ]);
 
     res.json({
       message: `Cập nhật trạng thái bình luận thành ${normalizedStatus}`,
@@ -281,8 +285,8 @@ exports.deleteComment = async (req, res) => {
   }
 };
 
-// Thêm phản hồi từ admin
-exports.replyToComment = async (req, res) => {
+// Thêm phản hồi từ admin (chỉ một lần)
+exports.addAdminReply = async (req, res) => {
   try {
     const { commentId } = req.params;
     const { content } = req.body;
@@ -305,100 +309,30 @@ exports.replyToComment = async (req, res) => {
       return res.status(404).json({ error: "Bình luận không tồn tại" });
     }
 
-    comment.replies.push({
-      user: user.id,
-      content,
-      // Không cần parentReplyIndex cho admin reply (là reply gốc)
-    });
-    await comment.save();
-
-    await comment.populate([
-      { path: "user", select: "username email role" },
-      { path: "product", select: "name price images" },
-      { path: "replies.user", select: "username email role" },
-    ]);
-
-    res.json({ message: "Phản hồi đã được gửi", comment });
-  } catch (error) {
-    console.error("Lỗi khi gửi phản hồi:", error.stack);
-    res
-      .status(500)
-      .json({ error: "Lỗi khi gửi phản hồi", details: error.message });
-  }
-};
-
-// Thêm phản hồi từ user (phản hồi lại admin hoặc bất kỳ reply nào)
-exports.replyToReply = async (req, res) => {
-  try {
-    const { commentId } = req.params;
-    const { content, replyIndex } = req.body;
-    const user = req.user;
-
-    // Kiểm tra thông tin bắt buộc
-    if (!user || !commentId || !content || replyIndex === undefined || replyIndex === null) {
-      return res.status(400).json({
-        error: "Thiếu thông tin bắt buộc: user, commentId, content hoặc replyIndex",
-      });
+    if (comment.adminReply && comment.adminReply.content) {
+      return res
+        .status(403)
+        .json({ error: "Bình luận này đã có phản hồi từ admin" });
     }
 
-    // Chuyển replyIndex thành số nguyên và kiểm tra hợp lệ
-    const parsedReplyIndex = parseInt(replyIndex, 10);
-    if (isNaN(parsedReplyIndex) || parsedReplyIndex < 0) {
-      return res.status(400).json({
-        error: "replyIndex không hợp lệ, phải là số nguyên không âm",
-      });
-    }
-
-    const comment = await Comment.findById(commentId).populate("replies.user", "username email role");
-    if (!comment) {
-      return res.status(404).json({ error: "Bình luận không tồn tại" });
-    }
-
-    // Kiểm tra mảng replies và độ dài
-    if (!comment.replies || comment.replies.length === 0) {
-      return res.status(400).json({
-        error: "Bình luận không có phản hồi nào để trả lời",
-      });
-    }
-
-    if (parsedReplyIndex >= comment.replies.length) {
-      return res.status(400).json({
-        error: "replyIndex vượt quá số lượng phản hồi hiện có",
-      });
-    }
-
-    // Lấy thông tin reply được trả lời
-    const targetReply = comment.replies[parsedReplyIndex];
-    if (!targetReply || !targetReply.user) {
-      return res.status(400).json({
-        error: "Phản hồi mục tiêu không tồn tại hoặc không hợp lệ",
-      });
-    }
-
-    // Chỉ cho phép trả lời nếu reply là từ admin hoặc từ chính người dùng này
-    if (targetReply.user.role !== "admin" && targetReply.user._id.toString() !== user.id) {
-      return res.status(403).json({
-        error: "Bạn chỉ có thể trả lời phản hồi từ admin hoặc từ chính bạn",
-      });
-    }
-
-    // Thêm reply của user với parentReplyIndex hợp lệ
-    comment.replies.push({
+    comment.adminReply = {
       user: user.id,
       content: content.trim(),
-      parentReplyIndex: parsedReplyIndex, // Gán parentReplyIndex từ replyIndex hợp lệ
-    });
+      createdAt: new Date(),
+    };
     await comment.save();
 
     await comment.populate([
       { path: "user", select: "username email role" },
       { path: "product", select: "name price images" },
-      { path: "replies.user", select: "username email role" },
+      { path: "adminReply.user", select: "username email role" },
     ]);
 
-    res.json({ message: "Phản hồi từ user đã được gửi", comment });
+    res.json({ message: "Phản hồi từ admin đã được gửi", comment });
   } catch (error) {
-    console.error("Lỗi khi gửi phản hồi từ user:", error.stack);
-    res.status(500).json({ error: "Lỗi khi gửi phản hồi từ user", details: error.message });
+    console.error("Lỗi khi gửi phản hồi từ admin:", error.stack);
+    res
+      .status(500)
+      .json({ error: "Lỗi khi gửi phản hồi từ admin", details: error.message });
   }
 };
