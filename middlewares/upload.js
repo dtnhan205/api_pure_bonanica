@@ -1,13 +1,13 @@
 const multer = require('multer');
 const path = require('path');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const cloudinary = require('../config/cloudinary'); 
+const cloudinary = require('../config/cloudinary');
 
 // Cloudinary storage
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    const folder = req.path.includes('/news') ? 'news_thumbnails' : 'product_images';
+    const folder = file.fieldname === 'contentImages' ? 'news_content' : 'news_thumbnails';
     const ext = path.extname(file.originalname).toLowerCase().replace('.', '') || 'jpg';
     return {
       folder,
@@ -41,8 +41,12 @@ const upload = multer({
   }
 });
 
-// Giữ nguyên các hàm dùng cho route cũ
-const newsUpload = upload.fields([{ name: 'thumbnail', maxCount: 1 }]);
+// Cập nhật middleware cho news để xử lý cả thumbnail và contentImages
+const newsUpload = upload.fields([
+  { name: 'thumbnail', maxCount: 1 },
+  { name: 'contentImages', maxCount: 10 } // Thêm trường contentImages
+]);
+
 const productUpload = upload.array('images', 10);
 
 // Tự chọn middleware dựa trên URL
@@ -56,7 +60,7 @@ const optionalUpload = (req, res, next) => {
   middleware(req, res, (err) => {
     if (err) {
       console.warn('Lỗi khi xử lý upload:', err.message);
-      req.files = []; // giữ structure để tránh lỗi router
+      req.files = []; // Giữ structure để tránh lỗi router
     }
     next();
   });

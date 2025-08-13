@@ -59,7 +59,7 @@ const isValidHTML = (content) => {
   }
 };
 
-const processContentImages = async (content) => {
+const processContentImages = async (content, contentImages = []) => {
   if (!isValidHTML(content)) {
     throw new Error('Nội dung HTML không hợp lệ');
   }
@@ -68,26 +68,49 @@ const processContentImages = async (content) => {
   const imgTags = $('img');
   const imagePaths = [];
 
-  const promises = Array.from(imgTags).map(async (elem, i) => {
+  // Xử lý ảnh Base64 trong nội dung HTML
+  const base64Promises = Array.from(imgTags).map(async (elem, i) => {
     let src = $(elem).attr('src');
     if (!src || !src.startsWith('data:image/')) return;
 
     const matches = src.match(/^data:image\/([a-z]+);base64,(.+)$/);
-    if (!matches) return;
+    if (!matches) {
+      console.warn(`Invalid Base64 format for image ${i + 1}`);
+      return;
+    }
 
     const ext = matches[1].toLowerCase();
     const dataUrl = src;
 
     try {
-      const cloudinaryUrl = await uploadBase64ToCloudinary(dataUrl);
+      const buffer = Buffer.from(matches[2], 'base64');
+      if (buffer.length > 20 * 1024 * 1024) {
+        throw new Error(`Kích thước ảnh ${i + 1} quá lớn (tối đa 20MB)`);
+      }
+      const cloudinaryUrl = await uploadBase64ToCloudinary(dataUrl, 'news_content');
       $(elem).attr('src', cloudinaryUrl);
       imagePaths.push(cloudinaryUrl);
     } catch (err) {
-      console.error(`Error uploading image ${i + 1}:`, err);
+      console.error(`Error uploading Base64 image ${i + 1}:`, err);
+      throw new Error(`Lỗi upload ảnh ${i + 1}: ${err.message}`);
     }
   });
 
-  await Promise.all(promises);
+  // Xử lý ảnh từ contentImages (file upload trực tiếp)
+  const filePromises = contentImages.map(async (file, i) => {
+    try {
+      if (file.size > 20 * 1024 * 1024) {
+        throw new Error(`Kích thước ảnh ${i + 1} quá lớn (tối đa 20MB)`);
+      }
+      const cloudinaryUrl = file.path; // URL từ Cloudinary
+      imagePaths.push(cloudinaryUrl);
+    } catch (err) {
+      console.error(`Error processing content image ${i + 1}:`, err);
+      throw new Error(`Lỗi upload ảnh ${i + 1}: ${err.message}`);
+    }
+  });
+
+  await Promise.all([...base64Promises, ...filePromises]);
   return { processedContent: $.html(), imagePaths };
 };
 
@@ -158,11 +181,14 @@ exports.createNews = async (req, res) => {
     if (!thumbnail || !thumbnail.path) {
       return res.status(400).json({ error: 'Không tìm thấy file thumbnail' });
     }
+    if (thumbnail.size > 20 * 1024 * 1024) {
+      return res.status(400).json({ error: 'Kích thước file thumbnail quá lớn (tối đa 20MB)' });
+    }
 
-    const thumbnailUrl = thumbnail.path;
-    const { processedContent } = await processContentImages(content);
+    const contentImages = req.files?.['contentImages'] || [];
+    const { processedContent, imagePaths } = await processContentImages(content, contentImages);
+
     const finalSlug = slug || await generateSlug(title);
-
     const slugExists = await News.findOne({ slug: finalSlug });
     if (slugExists) {
       return res.status(400).json({ error: `Slug "${finalSlug}" đã tồn tại` });
@@ -171,12 +197,13 @@ exports.createNews = async (req, res) => {
     const newNews = new News({
       title,
       slug: finalSlug,
-      thumbnailUrl,
+      thumbnailUrl: thumbnail.path,
       thumbnailCaption: thumbnailCaption || '',
       publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
       views: parseInt(views, 10) || 0,
       status: status || 'show',
       content: processedContent,
+      contentImageUrls: imagePaths
     });
 
     await newNews.save();
@@ -198,18 +225,19 @@ exports.updateNews = async (req, res) => {
     const { title, slug, thumbnailCaption, publishedAt, views, status, content } = req.body;
 
     const thumbnail = req.files?.['thumbnail']?.[0];
-    const thumbnailUrl = thumbnail?.path;
-    const { processedContent } = await processContentImages(content);
+    const contentImages = req.files?.['contentImages'] || [];
+    const { processedContent, imagePaths } = await processContentImages(content, contentImages);
 
     const updateData = {
       title,
       slug: slug ? await generateSlug(slug, isObjectId ? identifier : null) : undefined,
-      thumbnailUrl,
+      thumbnailUrl: thumbnail?.path,
       thumbnailCaption: thumbnailCaption || undefined,
       publishedAt: publishedAt ? new Date(publishedAt) : undefined,
       views: parseInt(views, 10) || undefined,
       status: status || undefined,
       content: processedContent,
+      contentImageUrls: imagePaths
     };
 
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
