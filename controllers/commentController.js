@@ -8,18 +8,14 @@ exports.createComment = async (req, res) => {
   try {
     const { userId, productId, content, rating } = req.body;
 
-    if (!userId || !productId || !content || !rating) {
-      return res
-        .status(400)
-        .json({
-          error: "Thiếu thông tin bắt buộc: userId, productId, content hoặc rating",
-        });
+    if (!userId || !productId || !content || rating === undefined) {
+      return res.status(400).json({
+        error: "Thiếu thông tin bắt buộc: userId, productId, content hoặc rating",
+      });
     }
 
-    if (rating < 1 || rating > 5) {
-      return res
-        .status(400)
-        .json({ error: "Đánh giá sao phải nằm trong khoảng từ 1 đến 5" });
+    if (isNaN(rating) || rating < 1 || rating > 5 || !Number.isInteger(Number(rating))) {
+      return res.status(400).json({ error: "Đánh giá sao phải là số nguyên từ 1 đến 5" });
     }
 
     const user = await User.findById(userId);
@@ -32,38 +28,46 @@ exports.createComment = async (req, res) => {
       return res.status(404).json({ error: "Sản phẩm không tồn tại" });
     }
 
-    // Kiểm tra xem người dùng đã bình luận cho sản phẩm này chưa
     const existingComment = await Comment.findOne({ user: userId, product: productId });
     if (existingComment) {
-      return res
-        .status(403)
-        .json({ error: "Bạn đã bình luận cho sản phẩm này rồi." });
+      return res.status(403).json({ error: "Bạn đã bình luận cho sản phẩm này rồi." });
     }
 
-    // Kiểm tra xem người dùng đã mua sản phẩm và đơn hàng đã thanh toán
     const order = await Order.findOne({
       user: userId,
       "items.product": productId,
       paymentStatus: "completed",
       shippingStatus: "delivered",
-    });
+      returnStatus: "none", // Ensure no returns
+      cancelReason: null,   // Ensure no cancellations
+    }).select("items");
 
     if (!order) {
-      return res
-        .status(403)
-        .json({ error: "Bạn chỉ có thể đánh giá sản phẩm sau khi mua và thanh toán thành công" });
+      return res.status(403).json({
+        error: "Bạn chỉ có thể đánh giá sản phẩm sau khi mua, thanh toán và nhận hàng thành công",
+      });
     }
 
-    // Xử lý hình ảnh được upload
-    const images = req.files ? req.files.map(file => file.path) : [];
+    const images = req.files
+      ? req.files
+          .filter((file) => file.fieldname === "images")
+          .map((file) => ({ url: file.path, public_id: file.filename }))
+      : [];
+
+    const videos = req.files
+      ? req.files
+          .filter((file) => file.fieldname === "commentVideo")
+          .map((file) => ({ url: file.path, public_id: file.filename }))
+      : [];
 
     const comment = new Comment({
       user: userId,
       product: productId,
-      content,
-      rating,
+      content: content.trim().substring(0, 500), // Sanitize and limit length
+      rating: Number(rating),
       status: "show",
       images,
+      videos,
     });
 
     await comment.save();
@@ -76,10 +80,8 @@ exports.createComment = async (req, res) => {
 
     res.status(201).json({ message: "Tạo bình luận thành công", comment });
   } catch (error) {
-    console.error("Lỗi khi tạo bình luận:", error.stack);
-    res
-      .status(500)
-      .json({ error: "Lỗi khi tạo bình luận", details: error.message });
+    console.error("Lỗi khi tạo bình luận:", error.message);
+    res.status(500).json({ error: "Lỗi khi tạo bình luận", details: error.message });
   }
 };
 
@@ -96,10 +98,8 @@ exports.getAllCommentsForAdmin = async (req, res) => {
 
     res.json(comments);
   } catch (error) {
-    console.error("Lỗi khi lấy tất cả bình luận (admin):", error.stack);
-    res
-      .status(500)
-      .json({ error: "Lỗi khi lấy tất cả bình luận (admin)", details: error.message });
+    console.error("Lỗi khi lấy tất cả bình luận (admin):", error.message);
+    res.status(500).json({ error: "Lỗi khi lấy tất cả bình luận (admin)", details: error.message });
   }
 };
 
@@ -122,13 +122,11 @@ exports.getCommentsByProduct = async (req, res) => {
 
     res.json(comments);
   } catch (error) {
-    console.error("Lỗi khi lấy bình luận theo sản phẩm:", error.stack);
-    res
-      .status(500)
-      .json({
-        error: "Lỗi khi lấy bình luận theo sản phẩm",
-        details: error.message,
-      });
+    console.error("Lỗi khi lấy bình luận theo sản phẩm:", error.message);
+    res.status(500).json({
+      error: "Lỗi khi lấy bình luận theo sản phẩm",
+      details: error.message,
+    });
   }
 };
 
@@ -139,17 +137,13 @@ exports.updateComment = async (req, res) => {
     const { userId, content, rating } = req.body;
 
     if (!userId || !commentId || !content || rating === undefined) {
-      return res
-        .status(400)
-        .json({
-          error: "Thiếu thông tin bắt buộc: userId, commentId, content hoặc rating",
-        });
+      return res.status(400).json({
+        error: "Thiếu thông tin bắt buộc: userId, commentId, content hoặc rating",
+      });
     }
 
-    if (rating < 1 || rating > 5) {
-      return res
-        .status(400)
-        .json({ error: "Đánh giá sao phải nằm trong khoảng từ 1 đến 5" });
+    if (isNaN(rating) || rating < 1 || rating > 5 || !Number.isInteger(Number(rating))) {
+      return res.status(400).json({ error: "Đánh giá sao phải là số nguyên từ 1 đến 5" });
     }
 
     const user = await User.findById(userId);
@@ -163,17 +157,25 @@ exports.updateComment = async (req, res) => {
     }
 
     if (comment.user.toString() !== userId && !user.isAdmin) {
-      return res
-        .status(403)
-        .json({ error: "Bạn không có quyền chỉnh sửa bình luận này" });
+      return res.status(403).json({ error: "Bạn không có quyền chỉnh sửa bình luận này" });
     }
 
-    // Xử lý hình ảnh được upload
-    const images = req.files && req.files.length > 0 ? req.files.map(file => file.path) : comment.images;
+    const images = req.files && req.files.length > 0
+      ? req.files
+          .filter((file) => file.fieldname === "images")
+          .map((file) => ({ url: file.path, public_id: file.filename }))
+      : comment.images;
 
-    comment.content = content;
-    comment.rating = rating;
+    const videos = req.files && req.files.length > 0
+      ? req.files
+          .filter((file) => file.fieldname === "commentVideo")
+          .map((file) => ({ url: file.path, public_id: file.filename }))
+      : comment.videos;
+
+    comment.content = content.trim().substring(0, 500);
+    comment.rating = Number(rating);
     comment.images = images;
+    comment.videos = videos;
     comment.updatedAt = new Date();
     await comment.save();
 
@@ -185,10 +187,8 @@ exports.updateComment = async (req, res) => {
 
     res.json({ message: "Cập nhật bình luận thành công", comment });
   } catch (error) {
-    console.error("Lỗi khi cập nhật bình luận:", error.stack);
-    res
-      .status(500)
-      .json({ error: "Lỗi khi cập nhật bình luận", details: error.message });
+    console.error("Lỗi khi cập nhật bình luận:", error.message);
+    res.status(500).json({ error: "Lỗi khi cập nhật bình luận", details: error.message });
   }
 };
 
@@ -200,24 +200,18 @@ exports.updateCommentStatus = async (req, res) => {
     const user = req.user;
 
     if (!user || !commentId || !status) {
-      return res
-        .status(400)
-        .json({ error: "Thiếu thông tin bắt buộc: user, commentId hoặc status" });
+      return res.status(400).json({ error: "Thiếu thông tin bắt buộc: user, commentId hoặc status" });
     }
 
     const normalizedStatus = status.trim().toLowerCase();
     if (!["show", "hidden"].includes(normalizedStatus)) {
-      return res
-        .status(400)
-        .json({
-          error: 'Trạng thái không hợp lệ, chỉ được phép là "show" hoặc "hidden"',
-        });
+      return res.status(400).json({
+        error: 'Trạng thái không hợp lệ, chỉ được phép là "show" hoặc "hidden"',
+      });
     }
 
     if (user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ error: "Bạn không có quyền thay đổi trạng thái bình luận" });
+      return res.status(403).json({ error: "Bạn không có quyền thay đổi trạng thái bình luận" });
     }
 
     const comment = await Comment.findById(commentId);
@@ -240,10 +234,8 @@ exports.updateCommentStatus = async (req, res) => {
       comment,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật trạng thái bình luận:", error.stack);
-    res
-      .status(500)
-      .json({ error: "Lỗi khi cập nhật trạng thái bình luận", details: error.message });
+    console.error("Lỗi khi cập nhật trạng thái bình luận:", error.message);
+    res.status(500).json({ error: "Lỗi khi cập nhật trạng thái bình luận", details: error.message });
   }
 };
 
@@ -254,9 +246,7 @@ exports.deleteComment = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     if (!userId || !commentId) {
-      return res
-        .status(400)
-        .json({ error: "Thiếu thông tin bắt buộc: userId hoặc commentId" });
+      return res.status(400).json({ error: "Thiếu thông tin bắt buộc: userId hoặc commentId" });
     }
 
     const user = await User.findById(userId);
@@ -270,18 +260,14 @@ exports.deleteComment = async (req, res) => {
     }
 
     if (comment.user.toString() !== userId && !user.isAdmin) {
-      return res
-        .status(403)
-        .json({ error: "Bạn không có quyền xóa bình luận này" });
+      return res.status(403).json({ error: "Bạn không có quyền xóa bình luận này" });
     }
 
     await comment.deleteOne();
     res.json({ message: "Xóa bình luận thành công" });
   } catch (error) {
-    console.error("Lỗi khi xóa bình luận:", error.stack);
-    res
-      .status(500)
-      .json({ error: "Lỗi khi xóa bình luận", details: error.message });
+    console.error("Lỗi khi xóa bình luận:", error.message);
+    res.status(500).json({ error: "Lỗi khi xóa bình luận", details: error.message });
   }
 };
 
@@ -293,15 +279,11 @@ exports.addAdminReply = async (req, res) => {
     const user = req.user;
 
     if (!user || !commentId || !content) {
-      return res
-        .status(400)
-        .json({ error: "Thiếu thông tin bắt buộc: user, commentId hoặc content" });
+      return res.status(400).json({ error: "Thiếu thông tin bắt buộc: user, commentId hoặc content" });
     }
 
     if (user.role !== "admin") {
-      return res
-        .status(403)
-        .json({ error: "Bạn không có quyền gửi phản hồi" });
+      return res.status(403).json({ error: "Bạn không có quyền gửi phản hồi" });
     }
 
     const comment = await Comment.findById(commentId);
@@ -310,14 +292,12 @@ exports.addAdminReply = async (req, res) => {
     }
 
     if (comment.adminReply && comment.adminReply.content) {
-      return res
-        .status(403)
-        .json({ error: "Bình luận này đã có phản hồi từ admin" });
+      return res.status(403).json({ error: "Bình luận này đã có phản hồi từ admin" });
     }
 
     comment.adminReply = {
       user: user.id,
-      content: content.trim(),
+      content: content.trim().substring(0, 500), // Sanitize and limit length
       createdAt: new Date(),
     };
     await comment.save();
@@ -330,9 +310,7 @@ exports.addAdminReply = async (req, res) => {
 
     res.json({ message: "Phản hồi từ admin đã được gửi", comment });
   } catch (error) {
-    console.error("Lỗi khi gửi phản hồi từ admin:", error.stack);
-    res
-      .status(500)
-      .json({ error: "Lỗi khi gửi phản hồi từ admin", details: error.message });
+    console.error("Lỗi khi gửi phản hồi từ admin:", error.message);
+    res.status(500).json({ error: "Lỗi khi gửi phản hồi từ admin", details: error.message });
   }
 };
