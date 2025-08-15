@@ -122,6 +122,17 @@ const bankApiService = {
         return false;
       }
     });
+  },
+
+  extractBankUserName: (description) => {
+    if (!description || typeof description !== 'string') {
+      return null;
+    }
+    // Giả sử description có dạng: "Chuyển khoản từ [Tên] thanhtoan[5 số]"
+    const regex = /Chuyển khoản từ (.+?) thanhtoan\d{5}/i;
+    const match = description.match(regex);
+    console.log('Extracting bank user name from description:', description, 'Match:', match);
+    return match ? match[1].trim() : null;
   }
 };
 
@@ -330,7 +341,7 @@ exports.checkPaymentStatus = async (req, res) => {
       const order = await Order.findById(payment.orderId);
       if (order) {
         order.paymentStatus = 'completed';
-        order.shippingStatus = 'pending'; 
+        order.shippingStatus = 'pending';
         await order.save();
       } else {
         console.warn(`Order not found for payment: ${payment._id}`);
@@ -345,7 +356,7 @@ exports.checkPaymentStatus = async (req, res) => {
           transactionId: matchingTransaction.transactionID,
           orderId: payment.orderId,
           paymentStatus: 'completed',
-          shippingStatus: 'pending', 
+          shippingStatus: 'pending',
         },
       });
     }
@@ -376,7 +387,7 @@ exports.getPaymentsByUserId = async (req, res) => {
 
     utils.validateObjectId(userId, 'userId');
 
-    // Tìm tất cả các đơn hàng của user (thay vì userId)
+    // Tìm tất cả các đơn hàng của user
     const orders = await Order.find({ user: userId }).select('_id');
     console.log('Found orders:', orders); // Debug kết quả truy vấn Order
     if (!orders.length) {
@@ -404,14 +415,15 @@ exports.getPaymentsByUserId = async (req, res) => {
     return handleError(res, error);
   }
 };
-// Hàm getPayments đã cập nhật
+
+// Lấy thông tin thanh toán
 exports.getPayments = async (req, res) => {
   try {
     // Kiểm tra và validate req.body, nếu không có thì bỏ qua
     const { error } = schemas.getPayments.validate(req.body || {});
     if (error) return handleError(res, new Error(error.details[0].message), 400);
 
-    const { userId, orderId } = req.body || {}; // Mặc định là undefined nếu req.body không tồn tại
+    const { userId, orderId } = req.body || {};
 
     // Xây dựng query
     const query = {};
@@ -433,7 +445,7 @@ exports.getPayments = async (req, res) => {
     }
     // Nếu không có userId hay orderId, lấy tất cả thanh toán
     if (!userId && !orderId) {
-      query.orderId = { $exists: true }; // Lấy tất cả thanh toán có orderId hợp lệ
+      query.orderId = { $exists: true };
     }
 
     // Lấy danh sách thanh toán với populate orderId để lấy user
@@ -449,9 +461,9 @@ exports.getPayments = async (req, res) => {
       .select('paymentCode amount transactionDate description status orderId')
       .lean();
 
-    // Xử lý dữ liệu trả về với log debug
+    // Xử lý dữ liệu trả về
     const result = payments.map(payment => {
-      console.log('Payment data:', payment); // Debug để kiểm tra dữ liệu
+      console.log('Payment data:', payment);
       return {
         paymentCode: payment.paymentCode,
         amount: payment.amount,
