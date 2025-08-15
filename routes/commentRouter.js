@@ -8,12 +8,7 @@ router.post('/', authMiddleware, commentUpload, handleMulterError, commentContro
 
 router.get('/', authMiddleware, isAdmin, commentController.getAllCommentsForAdmin);
 
-router.post(
-  "/:commentId/reply",
-  authMiddleware,
-  isAdmin,
-  commentController.addAdminReply
-);
+router.post('/:commentId/reply', authMiddleware, isAdmin, commentController.addAdminReply);
 
 router.get('/product/:productId', commentController.getCommentsByProduct);
 

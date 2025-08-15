@@ -46,16 +46,11 @@ exports.createComment = async (req, res) => {
       });
     }
 
-    const images = req.files
-      ? req.files["images"]
-        ? req.files["images"].map((file) => ({ url: file.path, public_id: file.filename }))
-        : []
+    const images = req.files && req.files["images"]
+      ? req.files["images"].map((file) => ({ url: file.path, public_id: file.filename }))
       : [];
-
-    const videos = req.files
-      ? req.files["commentVideo"]
-        ? req.files["commentVideo"].map((file) => ({ url: file.path, public_id: file.filename }))
-        : []
+    const videos = req.files && req.files["commentVideo"]
+      ? req.files["commentVideo"].map((file) => ({ url: file.path, public_id: file.filename }))
       : [];
 
     const comment = new Comment({
@@ -161,16 +156,12 @@ exports.updateComment = async (req, res) => {
       return res.status(403).json({ error: "Bạn không có quyền chỉnh sửa bình luận này" });
     }
 
-    const images = req.files && req.files.length > 0
-      ? req.files
-          .filter((file) => file.fieldname === "images")
-          .map((file) => ({ url: file.path, public_id: file.filename }))
+    // Xử lý hình ảnh và video mới, giữ nguyên nếu không có file mới
+    const images = req.files && req.files["images"] && req.files["images"].length > 0
+      ? req.files["images"].map((file) => ({ url: file.path, public_id: file.filename }))
       : comment.images;
-
-    const videos = req.files && req.files.length > 0
-      ? req.files
-          .filter((file) => file.fieldname === "commentVideo")
-          .map((file) => ({ url: file.path, public_id: file.filename }))
+    const videos = req.files && req.files["commentVideo"] && req.files["commentVideo"].length > 0
+      ? req.files["commentVideo"].map((file) => ({ url: file.path, public_id: file.filename }))
       : comment.videos;
 
     comment.content = content.trim().substring(0, 500);
@@ -189,6 +180,9 @@ exports.updateComment = async (req, res) => {
     res.json({ message: "Cập nhật bình luận thành công", comment });
   } catch (error) {
     console.error("Lỗi khi cập nhật bình luận:", error.message);
+    if (error instanceof multer.MulterError) {
+      return res.status(400).json({ error: `Lỗi tải tệp: ${error.message}` });
+    }
     res.status(500).json({ error: "Lỗi khi cập nhật bình luận", details: error.message });
   }
 };
