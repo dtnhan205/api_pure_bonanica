@@ -701,7 +701,7 @@ exports.checkout = async (req, res) => {
                 </p>
               ` : ''}
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://purebotanica.com/orders/${newOrder._id}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Theo dõi đơn hàng</a>
+                <a href="https://purebotanica.online/orders/${newOrder._id}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Theo dõi đơn hàng</a>
               </div>
               <p style="color: #777; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">
                 Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a>.
@@ -720,7 +720,7 @@ exports.checkout = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.com" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
               </p>
             </div>
           </div>
