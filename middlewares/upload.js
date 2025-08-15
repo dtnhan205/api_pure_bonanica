@@ -1,8 +1,10 @@
-// upload.js
 const multer = require('multer');
 const path = require('path');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
+
+// Debug log để kiểm tra Multer
+console.log('Multer loaded:', !!multer);
 
 // Cloudinary storage
 const storage = new CloudinaryStorage({
@@ -17,8 +19,7 @@ const storage = new CloudinaryStorage({
     else if (file.fieldname === 'commentVideo') {
       folder = 'comment_videos';
       resource_type = 'video';
-    }
-    else if (file.fieldname === 'orderVideo') {
+    } else if (file.fieldname === 'orderVideo') {
       folder = 'order_videos';
       resource_type = 'video';
     }
@@ -62,6 +63,9 @@ const upload = multer({
   }
 });
 
+// Debug log để kiểm tra upload
+console.log('Upload middleware initialized:', !!upload);
+
 // Cập nhật middleware cho news
 const newsUpload = upload.fields([
   { name: 'thumbnail', maxCount: 1 },
@@ -90,7 +94,7 @@ const optionalUpload = (req, res, next) => {
   let middleware;
   if (req.path.includes('/news')) {
     middleware = newsUpload;
-  } else if (req.path.includes('/comments')) { // Sửa thành '/comments' để khớp với route
+  } else if (req.path.includes('/comments')) {
     middleware = commentUpload;
   } else if (req.path.includes('/order')) {
     middleware = orderUpload;
@@ -101,7 +105,7 @@ const optionalUpload = (req, res, next) => {
   middleware(req, res, (err) => {
     if (err) {
       console.warn('Lỗi khi xử lý upload:', err.message);
-      req.files = []; // Giữ structure để tránh lỗi router
+      req.files = {}; // Đặt thành object rỗng để tránh lỗi
     }
     next();
   });

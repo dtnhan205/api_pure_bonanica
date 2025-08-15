@@ -23,7 +23,11 @@ const commentSchema = new mongoose.Schema(
       max: 5,
     },
     images: {
-      type: [String], 
+      type: [String],
+      default: [],
+    },
+    videos: {
+      type: [String],
       default: [],
     },
     createdAt: {

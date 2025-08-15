@@ -46,10 +46,10 @@ exports.createComment = async (req, res) => {
       });
     }
 
-    const images = req.files && req.files["images"]
+    const images = (req.files && req.files["images"])
       ? req.files["images"].map((file) => ({ url: file.path, public_id: file.filename }))
       : [];
-    const videos = req.files && req.files["commentVideo"]
+    const videos = (req.files && req.files["commentVideo"])
       ? req.files["commentVideo"].map((file) => ({ url: file.path, public_id: file.filename }))
       : [];
 
@@ -156,11 +156,10 @@ exports.updateComment = async (req, res) => {
       return res.status(403).json({ error: "Bạn không có quyền chỉnh sửa bình luận này" });
     }
 
-    // Xử lý hình ảnh và video mới, giữ nguyên nếu không có file mới
-    const images = req.files && req.files["images"] && req.files["images"].length > 0
+    const images = (req.files && req.files["images"] && req.files["images"].length > 0)
       ? req.files["images"].map((file) => ({ url: file.path, public_id: file.filename }))
       : comment.images;
-    const videos = req.files && req.files["commentVideo"] && req.files["commentVideo"].length > 0
+    const videos = (req.files && req.files["commentVideo"] && req.files["commentVideo"].length > 0)
       ? req.files["commentVideo"].map((file) => ({ url: file.path, public_id: file.filename }))
       : comment.videos;
 
@@ -292,7 +291,7 @@ exports.addAdminReply = async (req, res) => {
 
     comment.adminReply = {
       user: user.id,
-      content: content.trim().substring(0, 500), // Sanitize and limit length
+      content: content.trim().substring(0, 500),
       createdAt: new Date(),
     };
     await comment.save();
