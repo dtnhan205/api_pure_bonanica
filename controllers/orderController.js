@@ -272,6 +272,14 @@ exports.cancelOrder = async (req, res) => {
 
 exports.requestOrderReturn = async (req, res) => {
   try {
+    // Apply orderUpload middleware to handle image uploads
+    await new Promise((resolve, reject) => {
+      orderUpload(req, res, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+
     const userId = req.user._id;
     const { orderId } = req.params;
     const { returnReason } = req.body;
@@ -307,9 +315,16 @@ exports.requestOrderReturn = async (req, res) => {
       return res.status(400).json({ error: 'Chỉ có thể yêu cầu hoàn hàng khi đơn hàng đã được giao' });
     }
 
+    // Handle uploaded images for return reason
+    const returnImages = req.files?.orderImages?.map(file => ({
+      url: file.path,
+      public_id: file.filename
+    })) || [];
+
     order.returnStatus = 'requested';
     order.returnRequestDate = now;
     order.returnReason = returnReason;
+    order.returnImages = returnImages; // Store image URLs and public_ids
     await order.save();
 
     await order.populate('items.product');

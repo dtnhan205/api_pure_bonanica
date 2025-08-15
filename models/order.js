@@ -91,7 +91,14 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: null
   },
-  // Add new fields for cancellation
+  returnImages: [{
+    url: { type: String, required: true },
+    public_id: { type: String, required: true }
+  }],
+  returnVideos: [{
+    url: { type: String, required: true },
+    public_id: { type: String, required: true }
+  }],
   cancelReason: {
     type: String,
     enum: [
@@ -100,10 +107,10 @@ const orderSchema = new mongoose.Schema({
       'Thay đổi phương thức thanh toán',
       'Thay đổi địa chỉ giao hàng',
       'Lý do khác',
-     "out_of_stock",
-  "customer_cancelled", 
-  "system_error", 
-     "other", 
+      'out_of_stock',
+      'customer_cancelled',
+      'system_error',
+      'other',
       null
     ],
     default: null
