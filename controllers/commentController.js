@@ -8,7 +8,7 @@ exports.createComment = async (req, res) => {
   try {
     const { userId, productId, content, rating } = req.body;
 
-    if (!userId || !productId || !content || rating === undefined) {
+    if (!userId || !productId || !content || !rating) {
       return res.status(400).json({
         error: "Thiếu thông tin bắt buộc: userId, productId, content hoặc rating",
       });
@@ -33,14 +33,13 @@ exports.createComment = async (req, res) => {
       return res.status(403).json({ error: "Bạn đã bình luận cho sản phẩm này rồi." });
     }
 
+    // Kiểm tra đơn hàng với điều kiện linh hoạt hơn
     const order = await Order.findOne({
       user: userId,
-      "items.product": productId,
+      "items.product": productId, // Sử dụng productId trực tiếp
       paymentStatus: "completed",
       shippingStatus: "delivered",
-      returnStatus: "none", // Ensure no returns
-      cancelReason: null,   // Ensure no cancellations
-    }).select("items");
+    }).lean(); // Sử dụng lean() để tối ưu hiệu suất
 
     if (!order) {
       return res.status(403).json({
@@ -63,7 +62,7 @@ exports.createComment = async (req, res) => {
     const comment = new Comment({
       user: userId,
       product: productId,
-      content: content.trim().substring(0, 500), // Sanitize and limit length
+      content: content.trim().substring(0, 500),
       rating: Number(rating),
       status: "show",
       images,
@@ -81,6 +80,9 @@ exports.createComment = async (req, res) => {
     res.status(201).json({ message: "Tạo bình luận thành công", comment });
   } catch (error) {
     console.error("Lỗi khi tạo bình luận:", error.message);
+    if (error instanceof multer.MulterError) {
+      return res.status(400).json({ error: `Lỗi tải tệp: ${error.message}` });
+    }
     res.status(500).json({ error: "Lỗi khi tạo bình luận", details: error.message });
   }
 };
