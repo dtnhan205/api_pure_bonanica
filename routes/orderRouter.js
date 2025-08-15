@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
 const { authMiddleware, isAdmin } = require('../middlewares/auth');
-const { orderUpload } = require('../controllers/upload'); // Import orderUpload middleware
+const { orderUpload } = require('../middlewares/upload'); // Import orderUpload middleware
 
 // Debugging: Log types to ensure handlers are functions
 console.log('authMiddleware type:', typeof authMiddleware);
