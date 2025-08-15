@@ -1,3 +1,4 @@
+const multer = require('multer');
 const Comment = require("../models/comment");
 const Product = require("../models/product");
 const User = require("../models/user");
@@ -46,11 +47,18 @@ exports.createComment = async (req, res) => {
       });
     }
 
+    // Tạo mảng images và videos với định dạng { url, public_id }
     const images = (req.files && req.files["images"])
-      ? req.files["images"].map((file) => ({ url: file.path, public_id: file.filename }))
+      ? req.files["images"].map((file) => ({
+          url: file.path,
+          public_id: file.filename
+        }))
       : [];
     const videos = (req.files && req.files["commentVideo"])
-      ? req.files["commentVideo"].map((file) => ({ url: file.path, public_id: file.filename }))
+      ? req.files["commentVideo"].map((file) => ({
+          url: file.path,
+          public_id: file.filename
+        }))
       : [];
 
     const comment = new Comment({
@@ -78,51 +86,6 @@ exports.createComment = async (req, res) => {
       return res.status(400).json({ error: `Lỗi tải tệp: ${error.message}` });
     }
     res.status(500).json({ error: "Lỗi khi tạo bình luận", details: error.message });
-  }
-};
-
-// Lấy tất cả bình luận (dành cho admin)
-exports.getAllCommentsForAdmin = async (req, res) => {
-  try {
-    const comments = await Comment.find()
-      .populate([
-        { path: "user", select: "username email role" },
-        { path: "product", select: "name price images" },
-        { path: "adminReply.user", select: "username email role" },
-      ])
-      .sort({ createdAt: -1 });
-
-    res.json(comments);
-  } catch (error) {
-    console.error("Lỗi khi lấy tất cả bình luận (admin):", error.message);
-    res.status(500).json({ error: "Lỗi khi lấy tất cả bình luận (admin)", details: error.message });
-  }
-};
-
-// Lấy tất cả bình luận liên quan đến một sản phẩm
-exports.getCommentsByProduct = async (req, res) => {
-  try {
-    const { productId } = req.params;
-
-    if (!productId) {
-      return res.status(400).json({ error: "Thiếu productId trong yêu cầu" });
-    }
-
-    const comments = await Comment.find({ product: productId, status: "show" })
-      .populate([
-        { path: "user", select: "username email role" },
-        { path: "product", select: "name price images" },
-        { path: "adminReply.user", select: "username email role" },
-      ])
-      .sort({ createdAt: -1 });
-
-    res.json(comments);
-  } catch (error) {
-    console.error("Lỗi khi lấy bình luận theo sản phẩm:", error.message);
-    res.status(500).json({
-      error: "Lỗi khi lấy bình luận theo sản phẩm",
-      details: error.message,
-    });
   }
 };
 
@@ -156,11 +119,18 @@ exports.updateComment = async (req, res) => {
       return res.status(403).json({ error: "Bạn không có quyền chỉnh sửa bình luận này" });
     }
 
+    // Cập nhật images và videos với định dạng { url, public_id }
     const images = (req.files && req.files["images"] && req.files["images"].length > 0)
-      ? req.files["images"].map((file) => ({ url: file.path, public_id: file.filename }))
+      ? req.files["images"].map((file) => ({
+          url: file.path,
+          public_id: file.filename
+        }))
       : comment.images;
     const videos = (req.files && req.files["commentVideo"] && req.files["commentVideo"].length > 0)
-      ? req.files["commentVideo"].map((file) => ({ url: file.path, public_id: file.filename }))
+      ? req.files["commentVideo"].map((file) => ({
+          url: file.path,
+          public_id: file.filename
+        }))
       : comment.videos;
 
     comment.content = content.trim().substring(0, 500);
@@ -186,7 +156,50 @@ exports.updateComment = async (req, res) => {
   }
 };
 
-// Cập nhật trạng thái bình luận (show/hidden) - chỉ dành cho admin
+// Các hàm khác giữ nguyên
+exports.getAllCommentsForAdmin = async (req, res) => {
+  try {
+    const comments = await Comment.find()
+      .populate([
+        { path: "user", select: "username email role" },
+        { path: "product", select: "name price images" },
+        { path: "adminReply.user", select: "username email role" },
+      ])
+      .sort({ createdAt: -1 });
+
+    res.json(comments);
+  } catch (error) {
+    console.error("Lỗi khi lấy tất cả bình luận (admin):", error.message);
+    res.status(500).json({ error: "Lỗi khi lấy tất cả bình luận (admin)", details: error.message });
+  }
+};
+
+exports.getCommentsByProduct = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    if (!productId) {
+      return res.status(400).json({ error: "Thiếu productId trong yêu cầu" });
+    }
+
+    const comments = await Comment.find({ product: productId, status: "show" })
+      .populate([
+        { path: "user", select: "username email role" },
+        { path: "product", select: "name price images" },
+        { path: "adminReply.user", select: "username email role" },
+      ])
+      .sort({ createdAt: -1 });
+
+    res.json(comments);
+  } catch (error) {
+    console.error("Lỗi khi lấy bình luận theo sản phẩm:", error.message);
+    res.status(500).json({
+      error: "Lỗi khi lấy bình luận theo sản phẩm",
+      details: error.message,
+    });
+  }
+};
+
 exports.updateCommentStatus = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -233,7 +246,6 @@ exports.updateCommentStatus = async (req, res) => {
   }
 };
 
-// Xóa bình luận
 exports.deleteComment = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -265,7 +277,6 @@ exports.deleteComment = async (req, res) => {
   }
 };
 
-// Thêm phản hồi từ admin (chỉ một lần)
 exports.addAdminReply = async (req, res) => {
   try {
     const { commentId } = req.params;
