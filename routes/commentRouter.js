@@ -24,4 +24,6 @@ router.put('/toggle-visibility/:commentId', authMiddleware, isAdmin, commentCont
 
 router.delete('/:commentId', authMiddleware, commentController.deleteComment);
 
+router.put('/reply/:commentId', authMiddleware, isAdmin, commentController.updateAdminReply);
+
 module.exports = router;

@@ -319,3 +319,42 @@ exports.addAdminReply = async (req, res) => {
     res.status(500).json({ error: "Lỗi khi gửi phản hồi từ admin", details: error.message });
   }
 };
+exports.updateAdminReply = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { content } = req.body;
+    const user = req.user;
+
+    if (!user || !commentId || !content) {
+      return res.status(400).json({ error: "Thiếu thông tin bắt buộc: user, commentId hoặc content" });
+    }
+
+    if (user.role !== "admin") {
+      return res.status(403).json({ error: "Bạn không có quyền chỉnh sửa phản hồi" });
+    }
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: "Bình luận không tồn tại" });
+    }
+
+    if (!comment.adminReply || !comment.adminReply.content) {
+      return res.status(404).json({ error: "Bình luận này chưa có phản hồi từ admin để chỉnh sửa" });
+    }
+
+    comment.adminReply.content = content.trim().substring(0, 500);
+    comment.adminReply.updatedAt = new Date();
+    await comment.save();
+
+    await comment.populate([
+      { path: "user", select: "username email role" },
+      { path: "product", select: "name price images" },
+      { path: "adminReply.user", select: "username email role" },
+    ]);
+
+    res.json({ message: "Cập nhật phản hồi admin thành công", comment });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật phản hồi admin:", error.message);
+    res.status(500).json({ error: "Lỗi khi cập nhật phản hồi admin", details: error.message });
+  }
+};
