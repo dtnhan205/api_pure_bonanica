@@ -1,3 +1,4 @@
+// upload.js
 const multer = require('multer');
 const path = require('path');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -54,23 +55,23 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 100 * 1024 * 1024, // Tăng lên 100MB để hỗ trợ video
-    files: 20,
+    fileSize: 100 * 1024 * 1024, // 100MB
+    files: 5, // Giới hạn tổng số file là 5 (ảnh + video)
     fields: 100,
     parts: 120
   }
 });
 
-// Cập nhật middleware cho news để xử lý cả thumbnail và contentImages
+// Cập nhật middleware cho news
 const newsUpload = upload.fields([
   { name: 'thumbnail', maxCount: 1 },
   { name: 'contentImages', maxCount: 10 }
 ]);
 
-// Middleware cho comment (ảnh và video)
+// Middleware cho comment (tổng cộng 5 file: ảnh + video)
 const commentUpload = upload.fields([
-  { name: 'images', maxCount: 10 },
-  { name: 'commentVideo', maxCount: 1 }
+  { name: 'images', maxCount: 5 },
+  { name: 'commentVideo', maxCount: 5 }
 ]);
 
 // Middleware cho order (video hoàn hàng)
@@ -80,7 +81,7 @@ const orderUpload = upload.fields([
 
 const productUpload = upload.array('images', 10);
 
-// Tự chọn middleware dựa trên URL
+// Middleware tự chọn dựa trên URL
 const optionalUpload = (req, res, next) => {
   if (!req.headers['content-type']?.includes('multipart/form-data')) {
     return next();
@@ -89,7 +90,7 @@ const optionalUpload = (req, res, next) => {
   let middleware;
   if (req.path.includes('/news')) {
     middleware = newsUpload;
-  } else if (req.path.includes('/comment')) {
+  } else if (req.path.includes('/comments')) { // Sửa thành '/comments' để khớp với route
     middleware = commentUpload;
   } else if (req.path.includes('/order')) {
     middleware = orderUpload;
@@ -108,8 +109,16 @@ const optionalUpload = (req, res, next) => {
 
 // Middleware lỗi multer
 const handleMulterError = (err, req, res, next) => {
-  if (err instanceof multer.MulterError || err.message.includes('file')) {
-    return res.status(400).json({ error: `Lỗi upload file: ${err.message}` });
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'Tệp vượt quá kích thước cho phép (100MB)!' });
+    } else if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({ error: 'Số lượng tệp vượt quá giới hạn (5 tệp)!' });
+    } else {
+      return res.status(400).json({ error: `Lỗi upload file: ${err.message}` });
+    }
+  } else if (err && err.message) {
+    return res.status(400).json({ error: err.message });
   }
   next(err);
 };

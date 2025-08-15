@@ -33,13 +33,12 @@ exports.createComment = async (req, res) => {
       return res.status(403).json({ error: "Bạn đã bình luận cho sản phẩm này rồi." });
     }
 
-    // Kiểm tra đơn hàng với điều kiện linh hoạt hơn
     const order = await Order.findOne({
       user: userId,
-      "items.product": productId, // Sử dụng productId trực tiếp
+      "items.product": productId,
       paymentStatus: "completed",
       shippingStatus: "delivered",
-    }).lean(); // Sử dụng lean() để tối ưu hiệu suất
+    }).lean();
 
     if (!order) {
       return res.status(403).json({
@@ -48,15 +47,15 @@ exports.createComment = async (req, res) => {
     }
 
     const images = req.files
-      ? req.files
-          .filter((file) => file.fieldname === "images")
-          .map((file) => ({ url: file.path, public_id: file.filename }))
+      ? req.files["images"]
+        ? req.files["images"].map((file) => ({ url: file.path, public_id: file.filename }))
+        : []
       : [];
 
     const videos = req.files
-      ? req.files
-          .filter((file) => file.fieldname === "commentVideo")
-          .map((file) => ({ url: file.path, public_id: file.filename }))
+      ? req.files["commentVideo"]
+        ? req.files["commentVideo"].map((file) => ({ url: file.path, public_id: file.filename }))
+        : []
       : [];
 
     const comment = new Comment({
