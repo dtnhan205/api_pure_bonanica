@@ -75,7 +75,7 @@ exports.createContact = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.com" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
               </p>
             </div>
           </div>

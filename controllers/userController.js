@@ -74,7 +74,7 @@ const register = async (req, res) => {
                 <strong style="color: #357E38; font-size: 18px; letter-spacing: 1px; font-weight: 600;">Ducduydeptrai</strong>
               </div>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://purebotanica.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Mua sắm ngay</a>
+                <a href="https://purebotanica.online" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Mua sắm ngay</a>
               </div>
               <p style="color: #777; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">
                 Nếu bạn không thực hiện đăng ký, vui lòng bỏ qua email này.
@@ -93,7 +93,7 @@ const register = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.com" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
               </p>
             </div>
           </div>
@@ -281,7 +281,7 @@ const resetPassword = async (req, res) => {
                 Mật khẩu của bạn đã được đặt lại thành công. Bạn có thể sử dụng mật khẩu mới để đăng nhập.
               </p>
               <div style="text-align: center; margin: 25px 0;">
-                <a href="https://purebotanica.com/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay</a>
+                <a href="https://purebotanica.oneline/user/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay</a>
               </div>
             </div>
             <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
@@ -345,7 +345,7 @@ const changePassword = async (req, res) => {
                 Mật khẩu của bạn đã được thay đổi thành công. Nếu bạn không thực hiện hành động này, vui lòng liên hệ hỗ trợ ngay lập tức.
               </p>
               <div style="text-align: center; margin: 25px 0;">
-                <a href="https://purebotanica.com/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay!</a>
+                <a href="https://purebotanica.oneline/user/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay!</a>
               </div>
             </div>
             <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
@@ -675,7 +675,7 @@ const updateUser = async (req, res) => {
               <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
                 <p style="margin: 0 0 10px;">Liên hệ hỗ trợ:</p>
                 <p style="margin: 0 0 5px;">Email: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a></p>
-                <p style="margin: 0 0 15px;">Website: <a href="https://purebotanica.com" style="color: #357E38; text-decoration: none;">purebotanica.com</a></p>
+                <p style="margin: 0 0 15px;">Website: <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a></p>
                 <p style="margin: 0;">© 2025 Pure-Botanica. All rights reserved.</p>
               </div>
             </div>
@@ -716,7 +716,7 @@ const updateUser = async (req, res) => {
                   Để tránh việc tài khoản bị khóa lại, vui lòng tuân thủ các chính sách của Pure-Botanica khi đặt hàng.
                 </p>
                 <div style="text-align: center; margin: 25px 0;">
-                  <a href="https://purebotanica.com/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay</a>
+                  <a href="https://purebotanica.online/login" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Đăng nhập ngay</a>
                 </div>
                 <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
                   Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
