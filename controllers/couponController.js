@@ -1,197 +1,213 @@
+// controllers/couponController.js
 const Coupon = require('../models/coupon');
 const User = require('../models/user');
+const Joi = require('joi');
 const mongoose = require('mongoose');
 
+// Validation schemas
+const couponValidationSchema = Joi.object({
+  code: Joi.string().min(3).max(20).required(),
+  discountType: Joi.string().valid('percentage', 'fixed').required(),
+  discountValue: Joi.number().min(0).required(),
+  minOrderValue: Joi.number().min(0).default(0),
+  expiryDate: Joi.date().allow(null).optional(),
+  usageLimit: Joi.number().min(1).allow(null).optional(),
+  isActive: Joi.boolean().default(true),
+  userId: Joi.string()
+    .optional()
+    .allow(null)
+    .custom((value, helpers) => {
+      if (value && !mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.error('any.invalid', { message: 'ID người dùng không hợp lệ' });
+      }
+      return value;
+    }),
+});
+
+const singleCouponValidationSchema = Joi.object({
+  userId: Joi.string()
+    .required()
+    .custom((value, helpers) => {
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.error('any.invalid', { message: 'ID người dùng không hợp lệ' });
+      }
+      return value;
+    }),
+  discountType: Joi.string().valid('percentage', 'fixed').required(),
+  discountValue: Joi.number().min(0).required(),
+  minOrderValue: Joi.number().min(0).default(0),
+  expiryDays: Joi.number().min(1).required(),
+  usageLimit: Joi.number().min(1).allow(null).optional(),
+});
+
+const bulkCouponValidationSchema = Joi.object({
+  discountType: Joi.string().valid('percentage', 'fixed').required(),
+  discountValue: Joi.number().min(0).required(),
+  minOrderValue: Joi.number().min(0).default(0),
+  expiryDays: Joi.number().min(1).required(),
+  usageLimit: Joi.number().min(1).allow(null).optional(),
+  target: Joi.string().valid('all', 'selected').required(),
+  userIds: Joi.array()
+    .items(
+      Joi.string().custom((value, helpers) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+          return helpers.error('any.invalid', { message: 'ID người dùng không hợp lệ' });
+        }
+        return value;
+      })
+    )
+    .when('target', {
+      is: 'selected',
+      then: Joi.array().min(1).required(),
+      otherwise: Joi.array().optional().allow(null),
+    }),
+});
+
+// Hàm tạo mã ngẫu nhiên
+const generateCouponCode = async () => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  do {
+    code = Array.from({ length: 8 }, () => characters.charAt(Math.floor(Math.random() * characters.length))).join('');
+    const existingCoupon = await Coupon.findOne({ code });
+    if (!existingCoupon) return code;
+    attempts++;
+    if (attempts >= maxAttempts) {
+      throw new Error('Could not generate unique coupon code after maximum attempts');
+    }
+  } while (true);
+};
+
+// Tạo mã giảm giá
 exports.createCoupon = async (req, res) => {
   try {
-    const {
-      code,
-      discountType,
-      discountValue,
-      minOrderValue,
-      expiryDate,
-      usageLimit,
-      isActive,
-      userId
-    } = req.body;
-
-    if (!code || !discountType || !discountValue) {
-      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc (code, discountType, discountValue)' });
+    const { error, value } = couponValidationSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+      console.warn('Validation error in createCoupon:', error.details);
+      return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
     }
 
-    if (!['percentage', 'fixed'].includes(discountType)) {
-      return res.status(400).json({ error: 'Loại giảm giá phải là percentage hoặc fixed' });
-    }
-
-    if (discountValue <= 0) {
-      return res.status(400).json({ error: 'Giá trị giảm phải lớn hơn 0' });
-    }
-
-    if (expiryDate && isNaN(new Date(expiryDate).getTime())) {
-      return res.status(400).json({ error: 'Ngày hết hạn không hợp lệ' });
-    }
-
-    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'ID người dùng không hợp lệ' });
-    }
-
-    const existingCoupon = await Coupon.findOne({ code: code.toUpperCase() });
+    const existingCoupon = await Coupon.findOne({ code: value.code.toUpperCase() });
     if (existingCoupon) {
       return res.status(400).json({ error: 'Mã giảm giá đã tồn tại' });
     }
 
     const coupon = new Coupon({
-      code: code.toUpperCase(),
-      discountType,
-      discountValue,
-      minOrderValue: minOrderValue || 0,
-      expiryDate: expiryDate ? new Date(expiryDate) : null,
-      usageLimit: usageLimit || null,
-      isActive: isActive !== undefined ? isActive : true,
-      userId: userId || null
+      ...value,
+      code: value.code.toUpperCase(),
+      expiryDate: value.expiryDate ? new Date(value.expiryDate) : null,
     });
 
     await coupon.save();
+    console.log(`Coupon created: ${coupon.code}`);
     res.status(201).json({ message: 'Tạo mã giảm giá thành công', coupon });
   } catch (error) {
-    console.error('Lỗi khi tạo mã giảm giá:', error.stack);
+    console.error('Error in createCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi tạo mã giảm giá', details: error.message });
   }
 };
 
+// Tạo mã giảm giá cho một người dùng
 exports.createSingleCoupon = async (req, res) => {
   try {
-    const { userId, discountType, discountValue, minOrderValue, expiryDays, usageLimit } = req.body;
-
-    if (!userId || !discountType || !discountValue || !expiryDays) {
-      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc (userId, discountType, discountValue, expiryDays)' });
+    const { error, value } = singleCouponValidationSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+      console.warn('Validation error in createSingleCoupon:', error.details);
+      return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'ID người dùng không hợp lệ' });
-    }
-
-    if (!['percentage', 'fixed'].includes(discountType)) {
-      return res.status(400).json({ error: 'Loại giảm giá phải là percentage hoặc fixed' });
-    }
-
-    if (discountValue <= 0) {
-      return res.status(400).json({ error: 'Giá trị giảm phải lớn hơn 0' });
-    }
-
-    if (expiryDays < 1) {
-      return res.status(400).json({ error: 'Số ngày hiệu lực phải lớn hơn hoặc bằng 1' });
-    }
-
-    const user = await User.findById(userId);
+    const user = await User.findById(value.userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
-    const code = `PROMO-${userId}-${Date.now()}`;
-    const existingCoupon = await Coupon.findOne({ code });
-    if (existingCoupon) {
-      return res.status(400).json({ error: `Mã ${code} đã tồn tại` });
-    }
+    const code = await generateCouponCode();
+    const expiryDate = new Date(Date.now() + value.expiryDays * 24 * 60 * 60 * 1000);
 
     const coupon = new Coupon({
       code,
-      discountType,
-      discountValue,
-      minOrderValue: minOrderValue || 0,
-      expiryDate: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000),
-      usageLimit: usageLimit || 1,
+      discountType: value.discountType,
+      discountValue: value.discountValue,
+      minOrderValue: value.minOrderValue || 0,
+      expiryDate,
+      usageLimit: value.usageLimit || 1,
       isActive: true,
-      userId
+      userId: value.userId,
     });
 
     await coupon.save();
+    console.log(`Single coupon created: ${coupon.code} for user ${value.userId}`);
     res.status(201).json({ message: 'Tạo mã giảm giá cho người dùng thành công', coupon });
   } catch (error) {
-    console.error('Lỗi khi tạo mã giảm giá đơn lẻ:', error.stack);
+    console.error('Error in createSingleCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi tạo mã giảm giá đơn lẻ', details: error.message });
   }
 };
 
+// Tạo mã giảm giá hàng loạt
 exports.createBulkCoupons = async (req, res) => {
   try {
-    const { discountType, discountValue, minOrderValue, expiryDays, usageLimit, target, userIds } = req.body;
-
-    if (!discountType || !discountValue || !expiryDays || !target) {
-      return res.status(400).json({ error: 'Thiếu thông tin bắt buộc (discountType, discountValue, expiryDays, target)' });
-    }
-
-    if (!['percentage', 'fixed'].includes(discountType)) {
-      return res.status(400).json({ error: 'Loại giảm giá phải là percentage hoặc fixed' });
-    }
-
-    if (discountValue <= 0) {
-      return res.status(400).json({ error: 'Giá trị giảm phải lớn hơn 0' });
-    }
-
-    if (expiryDays < 1) {
-      return res.status(400).json({ error: 'Số ngày hiệu lực phải lớn hơn hoặc bằng 1' });
-    }
-
-    if (target === 'selected' && (!userIds || !Array.isArray(userIds) || !userIds.length)) {
-      return res.status(400).json({ error: 'Danh sách userIds không hợp lệ hoặc rỗng' });
+    const { error, value } = bulkCouponValidationSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+      console.warn('Validation error in createBulkCoupons:', error.details);
+      return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
     }
 
     let eligibleUsers = [];
-    if (target === 'selected') {
-      eligibleUsers = await User.find({ _id: { $in: userIds } });
-    } else if (target === 'all') {
-      eligibleUsers = await User.find({});
+    if (value.target === 'all') {
+      eligibleUsers = await User.find({}, '_id').lean();
     } else {
-      return res.status(400).json({ error: 'Mục tiêu không hợp lệ (phải là all hoặc selected)' });
+      eligibleUsers = await User.find({ _id: { $in: value.userIds } }, '_id').lean();
+      if (eligibleUsers.length !== value.userIds.length) {
+        return res.status(400).json({ error: 'Một số người dùng không tồn tại' });
+      }
     }
 
     if (!eligibleUsers.length) {
       return res.status(400).json({ error: 'Không có người dùng hợp lệ để tạo mã giảm giá' });
     }
 
+    const expiryDate = new Date(Date.now() + value.expiryDays * 24 * 60 * 60 * 1000);
     const coupons = await Promise.all(
-      eligibleUsers.map(async (user, index) => {
-        const code = `BULK-${Date.now()}-${index + 1}`;
-        const existingCoupon = await Coupon.findOne({ code });
-        if (existingCoupon) {
-          throw new Error(`Mã ${code} đã tồn tại`);
-        }
-        return new Coupon({
+      eligibleUsers.map(async (user) => {
+        const code = await generateCouponCode();
+        return {
           code,
-          discountType,
-          discountValue,
-          minOrderValue: minOrderValue || 0,
-          expiryDate: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000),
-          usageLimit: usageLimit || 1,
+          discountType: value.discountType,
+          discountValue: value.discountValue,
+          minOrderValue: value.minOrderValue || 0,
+          expiryDate,
+          usageLimit: value.usageLimit || 1,
           isActive: true,
-          userId: user._id
-        }).save();
+          userId: user._id,
+        };
       })
     );
 
+    await Coupon.insertMany(coupons);
+    console.log(`Created ${coupons.length} bulk coupons`);
     res.status(201).json({ message: `Tạo ${coupons.length} mã giảm giá thành công`, coupons });
   } catch (error) {
-    console.error('Lỗi khi tạo mã giảm giá hàng loạt:', error.stack);
+    console.error('Error in createBulkCoupons:', error);
     res.status(500).json({ error: 'Lỗi server khi tạo mã giảm giá hàng loạt', details: error.message });
   }
 };
 
+// Cập nhật mã giảm giá
 exports.updateCoupon = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const { error, value } = couponValidationSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+      console.warn('Validation error in updateCoupon:', error.details);
+      return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
+    }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'ID mã giảm giá không hợp lệ' });
-    }
-
-    if (updates.userId && !mongoose.Types.ObjectId.isValid(updates.userId)) {
-      return res.status(400).json({ error: 'ID người dùng không hợp lệ' });
-    }
-
-    if (updates.discountType && !['percentage', 'fixed'].includes(updates.discountType)) {
-      return res.status(400).json({ error: 'Loại giảm giá không hợp lệ' });
     }
 
     const coupon = await Coupon.findById(id);
@@ -199,19 +215,28 @@ exports.updateCoupon = async (req, res) => {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại' });
     }
 
-    Object.assign(coupon, { ...updates, code: updates.code ? updates.code.toUpperCase() : coupon.code });
+    Object.assign(coupon, {
+      ...value,
+      code: value.code ? value.code.toUpperCase() : coupon.code,
+      expiryDate: value.expiryDate ? new Date(value.expiryDate) : coupon.expiryDate,
+    });
+
     await coupon.save();
+    console.log(`Coupon updated: ${coupon.code}`);
     res.json({ message: 'Cập nhật mã giảm giá thành công', coupon });
   } catch (error) {
-    console.error('Lỗi khi cập nhật mã giảm giá:', error.stack);
+    console.error('Error in updateCoupon:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ error: 'Mã giảm giá đã tồn tại' });
+    }
     res.status(500).json({ error: 'Lỗi server khi cập nhật mã giảm giá', details: error.message });
   }
 };
 
+// Xóa mã giảm giá
 exports.deleteCoupon = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'ID mã giảm giá không hợp lệ' });
     }
@@ -221,33 +246,40 @@ exports.deleteCoupon = async (req, res) => {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại' });
     }
 
-    res.json({ message: 'Xóa mã giảm giá thành công', coupon });
+    console.log(`Coupon deleted: ${coupon.code}`);
+    res.json({ message: 'Xóa mã giảm giá thành công' });
   } catch (error) {
-    console.error('Lỗi khi xóa mã giảm giá:', error.stack);
+    console.error('Error in deleteCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi xóa mã giảm giá', details: error.message });
   }
 };
 
+// Lấy danh sách mã giảm giá
 exports.getCoupons = async (req, res) => {
   try {
-    const { page = 1, limit = 10, code, isActive } = req.query;
+    const { page = 1, limit = 9, code, isActive } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-
     const query = {};
-    if (code) query.code = { $regex: code, $options: 'i' };
-    if (isActive !== undefined) query.isActive = isActive === 'true';
+
+    if (code) {
+      query.code = { $regex: code, $options: 'i' };
+    }
+    if (isActive !== undefined) {
+      query.isActive = isActive === 'true';
+    }
 
     const coupons = await Coupon.find(query)
-      .select('-usedCount')
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive userId')
+      .populate('userId', 'email username')
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 })
-      .populate('userId', 'email username');
+      .lean();
 
     const total = await Coupon.countDocuments(query);
 
+    console.log(`Fetched ${coupons.length} coupons for page ${page}`);
     res.json({
-      message: 'Lấy danh sách mã giảm giá thành công',
       coupons,
       pagination: {
         page: parseInt(page),
@@ -257,37 +289,41 @@ exports.getCoupons = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Lỗi khi lấy danh sách mã giảm giá:', error.stack);
+    console.error('Error in getCoupons:', error);
     res.status(500).json({ error: 'Lỗi server khi lấy danh sách mã giảm giá', details: error.message });
   }
 };
 
+// Lấy chi tiết mã giảm giá
 exports.getCouponById = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'ID mã giảm giá không hợp lệ' });
     }
 
     const coupon = await Coupon.findById(id)
-      .select('-usedCount')
-      .populate('userId', 'email username');
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive userId')
+      .populate('userId', 'email username')
+      .lean();
+
     if (!coupon) {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại' });
     }
 
-    res.json({ message: 'Lấy chi tiết mã giảm giá thành công', coupon });
+    console.log(`Fetched coupon: ${coupon.code}`);
+    res.json({ coupon });
   } catch (error) {
-    console.error('Lỗi khi lấy chi tiết mã giảm giá:', error.stack);
+    console.error('Error in getCouponById:', error);
     res.status(500).json({ error: 'Lỗi server khi lấy chi tiết mã giảm giá', details: error.message });
   }
 };
 
+// Kiểm tra mã giảm giá
 exports.checkCoupon = async (req, res) => {
   try {
     const { code } = req.params;
-    const { userId, orderValue } = req.body;
+    const { userId, orderValue = 0 } = req.body;
 
     if (!code) {
       return res.status(400).json({ error: 'Mã giảm giá là bắt buộc' });
@@ -301,13 +337,15 @@ exports.checkCoupon = async (req, res) => {
     if (userId) query.userId = userId;
 
     const coupon = await Coupon.findOne(query)
-      .populate('userId', 'email username');
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit usedCount')
+      .populate('userId', 'email username')
+      .lean();
 
     if (!coupon) {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại hoặc không hoạt động' });
     }
 
-    if (coupon.expiryDate && new Date() > coupon.expiryDate) {
+    if (coupon.expiryDate && new Date() > new Date(coupon.expiryDate)) {
       return res.status(400).json({ error: 'Mã giảm giá đã hết hạn' });
     }
 
@@ -315,10 +353,11 @@ exports.checkCoupon = async (req, res) => {
       return res.status(400).json({ error: 'Mã giảm giá đã đạt giới hạn sử dụng' });
     }
 
-    if (coupon.minOrderValue && (!orderValue || orderValue < coupon.minOrderValue)) {
+    if (coupon.minOrderValue && orderValue < coupon.minOrderValue) {
       return res.status(400).json({ error: `Đơn hàng phải đạt tối thiểu ${coupon.minOrderValue.toLocaleString()} VNĐ` });
     }
 
+    console.log(`Coupon checked: ${coupon.code}`);
     res.json({
       message: 'Mã giảm giá hợp lệ',
       coupon: {
@@ -326,11 +365,13 @@ exports.checkCoupon = async (req, res) => {
         discountType: coupon.discountType,
         discountValue: coupon.discountValue,
         minOrderValue: coupon.minOrderValue,
-        expiryDate: coupon.expiryDate
-      }
+        expiryDate: coupon.expiryDate,
+      },
     });
   } catch (error) {
-    console.error('Lỗi khi kiểm tra mã giảm giá:', error.stack);
+    console.error('Error in checkCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi kiểm tra mã giảm giá', details: error.message });
   }
 };
+
+module.exports = exports;
