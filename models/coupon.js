@@ -51,4 +51,4 @@ const couponSchema = new mongoose.Schema({
 couponSchema.index({ code: 1 });
 couponSchema.index({ userId: 1 });
 
-module.exports = mongoose.model('Coupon', couponSchema);
+module.exports = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
