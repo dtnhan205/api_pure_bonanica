@@ -48,7 +48,6 @@ const couponSchema = new mongoose.Schema({
   }
 }, { versionKey: false, timestamps: true });
 
-couponSchema.index({ code: 1 });
 couponSchema.index({ userId: 1 });
 
 module.exports = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
