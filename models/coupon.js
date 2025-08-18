@@ -4,7 +4,9 @@ const couponSchema = new mongoose.Schema({
   code: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    trim: true,
+    uppercase: true
   },
   discountType: {
     type: String,
@@ -18,7 +20,8 @@ const couponSchema = new mongoose.Schema({
   },
   minOrderValue: {
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
   expiryDate: {
     type: Date,
@@ -26,11 +29,13 @@ const couponSchema = new mongoose.Schema({
   },
   usageLimit: {
     type: Number,
-    default: null
+    default: null,
+    min: 1
   },
   usedCount: {
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
   isActive: {
     type: Boolean,
@@ -38,21 +43,12 @@ const couponSchema = new mongoose.Schema({
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',
+    ref: 'User',
     default: null
-  },
-  orderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order',
-    default: null
-  },
-  isBirthdayCoupon: {
-    type: Boolean,
-    default: false
   }
-}, { versionKey: false });
+}, { versionKey: false, timestamps: true });
 
 couponSchema.index({ code: 1 });
-couponSchema.index({ userId: 1, isBirthdayCoupon: 1 });
+couponSchema.index({ userId: 1 });
 
 module.exports = mongoose.model('Coupon', couponSchema);
