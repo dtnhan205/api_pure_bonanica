@@ -11,5 +11,6 @@ router.delete('/:id', authMiddleware, isAdmin, couponController.deleteCoupon); /
 router.get('/', authMiddleware, couponController.getCoupons); // Lấy danh sách mã giảm giá
 router.get('/:id', authMiddleware, couponController.getCouponById); // Lấy chi tiết mã giảm giá
 router.post('/check/:code', authMiddleware, couponController.checkCoupon); // Kiểm tra mã giảm giá
+router.get('/user/:userId', authMiddleware, couponController.getCouponsByUserId); // Lấy mã giảm giá theo userId
 
 module.exports = router;

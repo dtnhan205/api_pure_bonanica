@@ -1,4 +1,3 @@
-// controllers/couponController.js
 const Coupon = require('../models/coupon');
 const User = require('../models/user');
 const Joi = require('joi');
@@ -371,6 +370,53 @@ exports.checkCoupon = async (req, res) => {
   } catch (error) {
     console.error('Error in checkCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi kiểm tra mã giảm giá', details: error.message });
+  }
+};
+
+// Lấy danh sách mã giảm giá theo userId
+exports.getCouponsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page = 1, limit = 9, isActive } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'ID người dùng không hợp lệ' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Người dùng không tồn tại' });
+    }
+
+    const query = { userId };
+    if (isActive !== undefined) {
+      query.isActive = isActive === 'true';
+    }
+
+    const coupons = await Coupon.find(query)
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive userId')
+      .populate('userId', 'email username')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const total = await Coupon.countDocuments(query);
+
+    console.log(`Fetched ${coupons.length} coupons for user ${userId}, page ${page}`);
+    res.json({
+      coupons,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Error in getCouponsByUserId:', error);
+    res.status(500).json({ error: 'Lỗi server khi lấy danh sách mã giảm giá theo người dùng', details: error.message });
   }
 };
 

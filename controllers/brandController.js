@@ -42,6 +42,8 @@ exports.createBrand = async (req, res) => {
     console.log('Received body:', req.body);
     console.log('Received file:', req.file);
 
+    let warning = null; // <-- Thêm dòng này
+
     if (!req.body) {
       return res.status(400).json({ error: 'Dữ liệu request body không hợp lệ' });
     }
@@ -68,7 +70,6 @@ exports.createBrand = async (req, res) => {
     // Nếu trạng thái là hidden, đặt active: false cho sản phẩm liên quan
     if (newBrand.status === 'hidden') {
       const products = await Product.find({ id_brand: newBrand._id });
-      let warning = null;
       if (products.length > 0) {
         const hasStock = products.some(product =>
           Array.isArray(product.option) && product.option.some(opt => opt.stock > 0)
@@ -86,7 +87,7 @@ exports.createBrand = async (req, res) => {
     res.status(201).json({
       message: 'Tạo thương hiệu thành công',
       brand: newBrand,
-      warning
+      warning // <-- Không còn lỗi nữa!
     });
   } catch (err) {
     console.error('POST /api/brands error:', err);
