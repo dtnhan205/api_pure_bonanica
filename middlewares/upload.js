@@ -80,7 +80,8 @@ const commentUpload = upload.fields([
 
 // Middleware cho order (video hoàn hàng)
 const orderUpload = upload.fields([
-  { name: 'orderVideo', maxCount: 1 }
+  { name: 'returnImages', maxCount: 5 }, // Thêm trường cho ảnh hoàn hàng
+  { name: 'orderVideo', maxCount: 1 }    // Giữ nguyên trường video
 ]);
 
 const productUpload = upload.array('images', 10);

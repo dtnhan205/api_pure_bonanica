@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
 const { authMiddleware, isAdmin } = require('../middlewares/auth');
-const { orderUpload } = require('../middlewares/upload'); // Import orderUpload middleware
+const { orderUpload } = require('../middlewares/upload');
 
 // Debugging: Log types to ensure handlers are functions
 console.log('authMiddleware type:', typeof authMiddleware);
@@ -21,6 +21,6 @@ router.get('/order/:orderId', authMiddleware, orderController.getOrderById);
 router.put('/status/:orderId', authMiddleware, isAdmin, orderController.updateOrderStatus);
 router.put('/update/:orderId', authMiddleware, isAdmin, orderController.updateOrder);
 router.delete('/cancel/:orderId', authMiddleware, orderController.cancelOrder);
-router.post('/return/:orderId', authMiddleware, orderUpload, orderController.requestOrderReturn); // Added orderUpload middleware
+router.post('/return/:orderId', authMiddleware, orderUpload, orderController.requestOrderReturn);
 
 module.exports = router;

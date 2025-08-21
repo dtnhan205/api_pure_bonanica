@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // Sử dụng App Password nếu bật 2FA
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -90,6 +90,21 @@ exports.getOrderByIdForAdmin = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi lấy chi tiết đơn hàng (admin):', error.stack);
     res.status(500).json({ error: 'Lỗi khi lấy chi tiết đơn hàng (admin)', details: error.message });
+  }
+};
+
+// New function: Get all return requests for admin
+exports.getReturnRequestsForAdmin = async (req, res) => {
+  try {
+    const returnRequests = await Order.find({ returnStatus: 'requested' })
+      .populate('items.product', 'name price image')
+      .populate('user', 'username email')
+      .sort({ returnRequestDate: -1 });
+
+    res.json(returnRequests);
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách yêu cầu hoàn hàng (admin):', error.stack);
+    res.status(500).json({ error: 'Lỗi khi lấy danh sách yêu cầu hoàn hàng', details: error.message });
   }
 };
 
@@ -222,7 +237,6 @@ exports.cancelOrder = async (req, res) => {
     const { orderId } = req.params;
     const { cancelReason, cancelNote } = req.body;
 
-    // Validate orderId
     if (!orderId) {
       return res.status(400).json({ error: 'Thiếu orderId trong yêu cầu' });
     }
@@ -231,7 +245,6 @@ exports.cancelOrder = async (req, res) => {
       return res.status(400).json({ error: 'orderId không hợp lệ' });
     }
 
-    // Validate cancelReason
     if (!cancelReason) {
       return res.status(400).json({ error: 'Vui lòng chọn lý do hủy đơn hàng' });
     }
@@ -241,17 +254,14 @@ exports.cancelOrder = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
     }
 
-    // Kiểm tra quyền hủy đơn
     if (req.user && order.user._id.toString() !== req.user.id.toString()) {
-      return res.status(400).json({ error: 'Bạn không có quyền hủy đơn hàng này' });
+      return res.status(403).json({ error: 'Bạn không có quyền hủy đơn hàng này' });
     }
 
-    // Kiểm tra trạng thái đơn hàng
     if (order.shippingStatus !== 'pending') {
       return res.status(400).json({ error: 'Chỉ có thể hủy đơn hàng khi đang chờ xử lý' });
     }
 
-    // Validate cancellation reason enum
     const validReasons = [
       'Đổi ý không mua nữa',
       'Muốn thay đổi sản phẩm',
@@ -264,7 +274,6 @@ exports.cancelOrder = async (req, res) => {
       return res.status(400).json({ error: 'Lý do hủy đơn không hợp lệ' });
     }
 
-    // Cập nhật thông tin hủy đơn hàng
     order.shippingStatus = 'cancelled';
     order.paymentStatus = 'cancelled';
     order.cancelledAt = new Date();
@@ -275,7 +284,6 @@ exports.cancelOrder = async (req, res) => {
     await order.save();
     await order.populate('items.product');
 
-    // Gửi email thông báo hủy đơn hàng
     try {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
@@ -325,7 +333,6 @@ exports.cancelOrder = async (req, res) => {
       console.log(`Đã gửi email thông báo hủy đơn hàng tới: ${order.user.email}`);
     } catch (emailError) {
       console.error(`Lỗi gửi email thông báo hủy đơn hàng cho ${order.user.email}:`, emailError.message);
-      // Không trả về lỗi vì việc gửi email không ảnh hưởng đến việc hủy đơn hàng
     }
 
     res.json({
@@ -349,6 +356,10 @@ exports.requestOrderReturn = async (req, res) => {
     const { orderId } = req.params;
     const { returnReason } = req.body;
 
+    console.log(`📝 Bắt đầu xử lý yêu cầu hoàn hàng cho orderId: ${orderId}, userId: ${userId}`);
+    console.log('📝 Body:', req.body);
+    console.log('📝 Files:', req.files);
+
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ error: 'userId không hợp lệ' });
     }
@@ -364,7 +375,6 @@ exports.requestOrderReturn = async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
     }
 
-    // Kiểm tra thời gian yêu cầu hoàn hàng (3-4 ngày)
     const now = new Date();
     const orderDate = new Date(order.createdAt);
     const daysDiff = (now - orderDate) / (1000 * 60 * 60 * 24);
@@ -380,14 +390,41 @@ exports.requestOrderReturn = async (req, res) => {
       return res.status(400).json({ error: 'Chỉ có thể yêu cầu hoàn hàng khi đơn hàng đã được giao' });
     }
 
+    let returnImages = [];
+    let returnVideos = [];
+
+    if (req.files) {
+      if (req.files.images) {
+        if (req.files.images.length > 5) {
+          return res.status(400).json({ error: 'Tối đa 5 ảnh' });
+        }
+        returnImages = req.files.images.map(file => ({
+          url: file.path,
+          public_id: file.filename
+        }));
+      }
+      if (req.files.orderVideo) {
+        if (req.files.orderVideo.length > 1) {
+          return res.status(400).json({ error: 'Tối đa 1 video' });
+        }
+        returnVideos = req.files.orderVideo.map(file => ({
+          url: file.path,
+          public_id: file.filename
+        }));
+      }
+    } else {
+      console.log('No files uploaded');
+    }
+
     order.returnStatus = 'requested';
     order.returnRequestDate = now;
     order.returnReason = returnReason;
+    order.returnImages = returnImages;
+    order.returnVideos = returnVideos;
     await order.save();
 
     await order.populate('items.product');
 
-    // Gửi email thông báo yêu cầu hoàn hàng
     try {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
@@ -405,6 +442,8 @@ exports.requestOrderReturn = async (req, res) => {
               </p>
               <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
                 <strong>Lý do hoàn hàng:</strong> ${returnReason}<br>
+                ${returnImages.length > 0 ? `<strong>Hình ảnh:</strong> ${returnImages.map(img => img.url).join(', ')}<br>` : ''}
+                ${returnVideos.length > 0 ? `<strong>Video:</strong> ${returnVideos.map(vid => vid.url).join(', ')}<br>` : ''}
                 Chúng tôi sẽ xem xét yêu cầu của bạn và phản hồi trong vòng <strong>3-4 ngày làm việc</strong>.
               </p>
               <div style="text-align: center; margin: 25px 0;">
@@ -436,7 +475,6 @@ exports.requestOrderReturn = async (req, res) => {
       console.log(`Đã gửi email thông báo yêu cầu hoàn hàng tới: ${order.user.email}`);
     } catch (emailError) {
       console.error(`Lỗi gửi email thông báo hoàn hàng cho ${order.user.email}:`, emailError.message);
-      // Không trả về lỗi vì việc gửi email không ảnh hưởng đến việc yêu cầu hoàn hàng
     }
 
     res.json({ message: 'Yêu cầu hoàn hàng đã được gửi thành công', order });
@@ -474,7 +512,6 @@ exports.confirmOrderReturn = async (req, res) => {
       return res.status(400).json({ error: 'Đơn hàng không ở trạng thái yêu cầu hoàn hàng' });
     }
 
-    // **FIX 1: Kiểm tra user.email tồn tại**
     if (!order.user || !order.user.email) {
       console.error(`❌ Thông tin user hoặc email không tồn tại cho orderId: ${orderId}`);
       return res.status(400).json({ error: 'Thông tin người dùng không hợp lệ' });
@@ -489,10 +526,6 @@ exports.confirmOrderReturn = async (req, res) => {
 
     await order.populate('items.product');
 
-    // **FIX 2: Kiểm tra transporter trước khi gửi email**
-    console.log(`🔍 Kiểm tra transporter readyness...`);
-    
-    // Send email based on return status
     try {
       let emailSubject, emailContent;
       if (returnStatus === 'approved') {
@@ -581,10 +614,6 @@ exports.confirmOrderReturn = async (req, res) => {
         `;
       }
 
-      console.log(`📧 Chuẩn bị gửi email tới: ${order.user.email}, Chủ đề: ${emailSubject}`);
-      console.log(`🔍 Kiểm tra biến môi trường: EMAIL_USER=${process.env.EMAIL_USER ? 'Đã cài đặt' : 'Chưa cài đặt'}, EMAIL_PASS=${process.env.EMAIL_PASS ? 'Đã cài đặt' : 'Chưa cài đặt'}`);
-
-      // **FIX 3: Sử dụng callback thay vì Promise để debug tốt hơn**
       const emailResult = await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: order.user.email,
@@ -593,24 +622,9 @@ exports.confirmOrderReturn = async (req, res) => {
       });
 
       console.log(`✅ Email gửi thành công tới: ${order.user.email}, Message ID: ${emailResult.messageId}`);
-      console.log(`🔍 Thông tin phản hồi:`, emailResult);
-
     } catch (emailError) {
       console.error(`❌ Không thể gửi email thông báo hoàn hàng cho ${order.user.email}:`, emailError.message);
       console.error('🔍 Chi tiết lỗi email:', emailError);
-      
-      // **FIX 4: Log chi tiết hơn về lỗi**
-      if (emailError.code) {
-        console.error(`🔍 Mã lỗi: ${emailError.code}`);
-      }
-      if (emailError.response) {
-        console.error(`🔍 Phản hồi từ server: ${emailError.response}`);
-      }
-      if (emailError.responseCode) {
-        console.error(`🔍 Mã phản hồi: ${emailError.responseCode}`);
-      }
-      
-      // Không trả về lỗi vì việc gửi email không ảnh hưởng đến việc xác nhận hoàn hàng
     }
 
     console.log(`✅ Hoàn tất xử lý xác nhận hoàn hàng cho orderId: ${orderId}`);
@@ -630,12 +644,10 @@ exports.updateOrder = async (req, res) => {
     const { orderId } = req.params;
     const updateData = req.body;
 
-    // Validate orderId
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ error: 'orderId không hợp lệ' });
     }
 
-    // Validate update data
     const allowedFields = [
       'shippingStatus', 
       'paymentStatus', 
@@ -657,13 +669,11 @@ exports.updateOrder = async (req, res) => {
       return res.status(400).json({ error: 'Không có dữ liệu hợp lệ để cập nhật' });
     }
 
-    // Find the order first to validate it exists
     const existingOrder = await Order.findById(orderId);
     if (!existingOrder) {
       return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
     }
 
-    // Validate status transitions if applicable
     if (updateFields.shippingStatus) {
       const validStatuses = ['pending', 'in_transit', 'delivered', 'returned', 'cancelled', 'failed'];
       if (!validStatuses.includes(updateFields.shippingStatus)) {
@@ -685,7 +695,6 @@ exports.updateOrder = async (req, res) => {
       }
     }
 
-    // Update the order
     const updatedOrder = await Order.findByIdAndUpdate(
       orderId, 
       updateFields, 
@@ -696,7 +705,6 @@ exports.updateOrder = async (req, res) => {
       return res.status(404).json({ error: 'Không thể cập nhật đơn hàng' });
     }
 
-    // ✅ ĐÚNG - Populate sau khi update
     const populatedOrder = await Order.findById(orderId)
       .populate('items.product')
       .populate('user', 'username email');
@@ -705,7 +713,6 @@ exports.updateOrder = async (req, res) => {
       message: 'Cập nhật đơn hàng thành công', 
       order: populatedOrder 
     });
-
   } catch (error) {
     console.error('Lỗi khi cập nhật đơn hàng:', error.stack);
     res.status(500).json({ 
