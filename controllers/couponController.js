@@ -268,7 +268,7 @@ exports.getCoupons = async (req, res) => {
     }
 
     const coupons = await Coupon.find(query)
-      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive userId')
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount userId')
       .populate('userId', 'email username')
       .skip(skip)
       .limit(parseInt(limit))
@@ -277,7 +277,7 @@ exports.getCoupons = async (req, res) => {
 
     const total = await Coupon.countDocuments(query);
 
-    console.log(`Fetched ${coupons.length} coupons for page ${page}`);
+    console.log(`Fetched ${coupons.length} coupons for page ${page} with usedCount:`, coupons.map(c => c.usedCount));
     res.json({
       coupons,
       pagination: {
@@ -333,27 +333,15 @@ exports.checkCoupon = async (req, res) => {
     }
 
     const query = { code: code.toUpperCase(), isActive: true };
+    if (userId) query.userId = userId;
+
     const coupon = await Coupon.findOne(query)
-      .select('code discountType discountValue minOrderValue expiryDate usageLimit usedCount userId')
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit usedCount')
       .populate('userId', 'email username')
       .lean();
 
     if (!coupon) {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại hoặc không hoạt động' });
-    }
-
-    // Kiểm tra xem mã có bị giới hạn cho người dùng cụ thể hay không
-    if (coupon.userId && !userId) {
-      return res.status(400).json({ error: 'Mã giảm giá này chỉ áp dụng cho người dùng cụ thể' });
-    }
-
-    if (coupon.userId && userId && coupon.userId._id.toString() !== userId) {
-      return res.status(403).json({ error: 'Bạn không có quyền sử dụng mã giảm giá này' });
-    }
-
-    if (!coupon.userId && userId) {
-      // Nếu mã không giới hạn userId, cho phép sử dụng bất kể userId được gửi
-      // Không cần kiểm tra thêm, vì mã dành cho tất cả người dùng
     }
 
     if (coupon.expiryDate && new Date() > new Date(coupon.expiryDate)) {
@@ -407,7 +395,7 @@ exports.getCouponsByUserId = async (req, res) => {
     }
 
     const coupons = await Coupon.find(query)
-      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive userId')
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount userId')
       .populate('userId', 'email username')
       .skip(skip)
       .limit(parseInt(limit))
@@ -416,7 +404,7 @@ exports.getCouponsByUserId = async (req, res) => {
 
     const total = await Coupon.countDocuments(query);
 
-    console.log(`Fetched ${coupons.length} coupons for user ${userId}, page ${page}`);
+    console.log(`Fetched ${coupons.length} coupons for user ${userId} with usedCount:`, coupons.map(c => c.usedCount));
     res.json({
       coupons,
       pagination: {
