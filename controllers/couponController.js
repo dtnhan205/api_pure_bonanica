@@ -325,6 +325,7 @@ exports.setupAutoCoupons = async (req, res) => {
 };
 exports.getAutoSetupConfig = async (req, res) => {
   try {
+    console.log('Starting getAutoSetupConfig');
     const config = global.specialCouponConfig || {
       discountType: "percentage",
       discountValue: 15,
@@ -333,8 +334,10 @@ exports.getAutoSetupConfig = async (req, res) => {
       usageLimit: 1,
       specialDays: ["2025-09-02", "2026-01-01"],
     };
+    console.log('Config to send:', config);
     res.status(200).json({ success: true, config });
   } catch (error) {
+    console.error('Error in getAutoSetupConfig:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
