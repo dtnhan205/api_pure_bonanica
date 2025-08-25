@@ -128,6 +128,10 @@ const orderSchema = new mongoose.Schema({
     ref: 'user',
     default: null
   },
+  failReason: {
+    type: String,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -146,9 +150,19 @@ orderSchema.virtual('isCancelled').get(function() {
   return this.shippingStatus === 'cancelled' && this.paymentStatus === 'cancelled';
 });
 
+// Add virtual for failed status
+orderSchema.virtual('isFailed').get(function() {
+  return this.shippingStatus === 'failed' && this.paymentStatus === 'failed';
+});
+
 // Add method to check if order can be cancelled
 orderSchema.methods.canBeCancelled = function() {
   return this.shippingStatus === 'pending' && this.paymentStatus === 'pending';
+};
+
+// Add method to check if order can be marked as failed
+orderSchema.methods.canBeMarkedAsFailed = function() {
+  return this.shippingStatus === 'in_transit';
 };
 
 module.exports = mongoose.model('Order', orderSchema);
