@@ -10,6 +10,6 @@ router.delete('/:id', authMiddleware, isAdmin, couponController.deleteCoupon); /
 router.get('/', authMiddleware, couponController.getCoupons); // Lấy tất cả mã giảm giá
 router.get('/:id', authMiddleware, couponController.getCouponById); // Lấy chi tiết mã giảm giá
 router.post('/auto-setup', authMiddleware, isAdmin, couponController.setupAutoCoupons); // Thiết lập tự động tạo mã
-router.get("/auto-setup", authMiddleware, adminMiddleware, couponController.getAutoSetupConfig);
+router.get("/auto-setup", authMiddleware, isAdmin, couponController.getAutoSetupConfig);
 
 module.exports = router;
