@@ -2,9 +2,17 @@ const Order = require('../models/order');
 const Users = require('../models/user');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
-
 require('dotenv').config();
 
+// Define failReasonMapping for Vietnamese translations
+const failReasonMapping = {
+  delivery_error: "Lỗi vận chuyển",
+  address_issue: "Sai địa chỉ",
+  timeout: "Quá thời gian giao hàng",
+  other: "Khác",
+};
+
+// Nodemailer configuration
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -21,6 +29,112 @@ transporter.verify((error, success) => {
     console.log('Transporter đã sẵn sàng để gửi email');
   }
 });
+
+// Helper function to get translated fail reason
+const getTranslatedFailReason = (reason) => {
+  return failReasonMapping[reason] || reason || 'Lý do không xác định';
+};
+
+// Helper function to send return status email
+const sendReturnStatusEmail = async (order, returnStatus) => {
+  try {
+    if (!order.user || !order.user.email) {
+      throw new Error('Email người dùng không tồn tại hoặc không hợp lệ');
+    }
+
+    // Re-verify transporter before sending
+    await new Promise((resolve, reject) => {
+      transporter.verify((error, success) => {
+        if (error) {
+          reject(new Error(`Lỗi xác minh transporter: ${error.message}`));
+        } else {
+          resolve(success);
+        }
+      });
+    });
+
+    const emailSubject = returnStatus === 'approved'
+      ? 'Yêu cầu hoàn hàng được chấp nhận - Pure-Botanica 🌿'
+      : 'Yêu cầu hoàn hàng bị từ chối - Pure-Botanica 🌿';
+
+    const emailContent = `
+      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+        <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #357E38;">
+          <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">
+            ${returnStatus === 'approved' ? 'Yêu cầu hoàn hàng được chấp nhận' : 'Yêu cầu hoàn hàng bị từ chối'}
+          </h1>
+        </div>
+        <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
+          <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${order.user.username},</h3>
+          <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+            Yêu cầu hoàn hàng của bạn cho đơn hàng <strong>#${order._id}</strong> đã được <strong>${returnStatus === 'approved' ? 'chấp nhận' : 'từ chối'}</strong> vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
+          </p>
+          <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+            ${returnStatus === 'approved' ? `
+              <strong>Quy trình hoàn hàng:</strong><br>
+              - Shipper sẽ đến lấy hàng trong vòng <strong>1-2 ngày làm việc</strong>.<br>
+              - Sau khi nhận được hàng, chúng tôi sẽ liên hệ với bạn để hoàn tất thủ tục hoàn tiền.<br>
+              Vui lòng chuẩn bị hàng hóa và liên hệ với chúng tôi nếu có bất kỳ câu hỏi nào.
+            ` : `
+              <strong>Lý do:</strong> Đơn hàng không đủ điều kiện hoàn hàng theo chính sách của chúng tôi.<br>
+              Để biết thêm chi tiết hoặc thảo luận thêm, vui lòng liên hệ với chúng tôi qua email hoặc hotline.
+            `}
+          </p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="mailto:purebotanicastore@gmail.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Liên hệ ngay</a>
+          </div>
+          <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
+            Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
+          </p>
+        </div>
+        <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
+          <p style="margin: 0 0 10px;">Theo dõi chúng tôi:</p>
+          <div style="margin-bottom: 15px;">
+            <a href="https://facebook.com/purebotanica" style="margin: 0 5px;">
+              <img src="https://img.icons8.com/color/24/000000/facebook-new.png" alt="Facebook" style="width: 24px; height: 24px;">
+            </a>
+            <a href="https://instagram.com/purebotanica" style="margin: 0 5px;">
+              <img src="https://img.icons8.com/color/24/000000/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
+            </a>
+          </div>
+          <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
+          <p style="margin: 0;">
+            Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
+            <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+          </p>
+        </div>
+      </div>
+    `;
+
+    // Attempt to send email with retry (up to 3 attempts)
+    let attempts = 0;
+    const maxAttempts = 3;
+    while (attempts < maxAttempts) {
+      try {
+        const emailResult = await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: order.user.email,
+          subject: emailSubject,
+          html: emailContent,
+        });
+        console.log(`✅ Email gửi thành công tới: ${order.user.email}, Message ID: ${emailResult.messageId}`);
+        return { success: true, messageId: emailResult.messageId };
+      } catch (emailError) {
+        attempts++;
+        console.warn(`⚠️ Thử gửi email lần ${attempts} thất bại: ${emailError.message}`);
+        if (attempts === maxAttempts) {
+          throw emailError;
+        }
+        // Wait 1 second before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+  } catch (emailError) {
+    console.error(`❌ Không thể gửi email thông báo hoàn hàng cho ${order.user.email}:`, emailError.message);
+    console.error('🔍 Chi tiết lỗi email:', emailError.stack);
+    return { success: false, error: emailError.message };
+  }
+};
 
 // Admin functions
 exports.getAllOrders = async (req, res) => {
@@ -107,7 +221,6 @@ exports.getReturnRequestsForAdmin = async (req, res) => {
   }
 };
 
-// New function: Get failed orders for admin
 exports.getFailedOrders = async (req, res) => {
   try {
     const failedOrders = await Order.find({ shippingStatus: 'failed' })
@@ -342,7 +455,7 @@ exports.cancelOrder = async (req, res) => {
               </p>
             </div>
           </div>
-        `,
+        `
       });
       console.log(`Đã gửi email thông báo hủy đơn hàng tới: ${order.user.email}`);
     } catch (emailError) {
@@ -484,7 +597,7 @@ exports.requestOrderReturn = async (req, res) => {
               </p>
             </div>
           </div>
-        `,
+        `
       });
       console.log(`Đã gửi email thông báo yêu cầu hoàn hàng tới: ${order.user.email}`);
     } catch (emailError) {
@@ -526,10 +639,13 @@ exports.confirmOrderReturn = async (req, res) => {
       return res.status(400).json({ error: 'Đơn hàng không ở trạng thái yêu cầu hoàn hàng' });
     }
 
+    // Kiểm tra email user trước khi cập nhật
     if (!order.user || !order.user.email) {
-      console.error(`❌ Thông tin user hoặc email không tồn tại cho orderId: ${orderId}`);
-      return res.status(400).json({ error: 'Thông tin người dùng không hợp lệ' });
+      console.error(`❌ Email người dùng không tồn tại: ${order.user}`);
+      return res.status(400).json({ error: 'Email người dùng không tồn tại' });
     }
+
+    console.log(`📧 Email người dùng: ${order.user.email}`);
 
     order.returnStatus = returnStatus;
     if (returnStatus === 'approved') {
@@ -540,115 +656,121 @@ exports.confirmOrderReturn = async (req, res) => {
 
     await order.populate('items.product');
 
+    // GỬI EMAIL TRỰC TIẾP (như các function khác)
+    let emailStatus = 'Email sent successfully';
     try {
-      let emailSubject, emailContent;
-      if (returnStatus === 'approved') {
-        emailSubject = 'Yêu cầu hoàn hàng được chấp nhận - Pure-Botanica 🌿';
-        emailContent = `
-          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
-            <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #357E38;">
-              <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Yêu cầu hoàn hàng được chấp nhận</h1>
-            </div>
-            <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
-              <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${order.user.username},</h3>
-              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
-                Yêu cầu hoàn hàng của bạn cho đơn hàng <strong>#${order._id}</strong> đã được <strong>chấp nhận</strong> vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
-              </p>
-              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+      console.log('📧 Bắt đầu gửi email xác nhận hoàn hàng...');
+      
+      // Re-verify transporter
+      await new Promise((resolve, reject) => {
+        transporter.verify((error, success) => {
+          if (error) {
+            reject(new Error(`Lỗi xác minh transporter: ${error.message}`));
+          } else {
+            console.log('✅ Transporter verified successfully');
+            resolve(success);
+          }
+        });
+      });
+
+      const emailSubject = returnStatus === 'approved'
+        ? 'Yêu cầu hoàn hàng được chấp nhận - Pure-Botanica 🌿'
+        : 'Yêu cầu hoàn hàng bị từ chối - Pure-Botanica 🌿';
+
+      const emailContent = `
+        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+          <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #357E38;">
+            <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">
+              ${returnStatus === 'approved' ? 'Yêu cầu hoàn hàng được chấp nhận' : 'Yêu cầu hoàn hàng bị từ chối'}
+            </h1>
+          </div>
+          <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
+            <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${order.user.username},</h3>
+            <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+              Yêu cầu hoàn hàng của bạn cho đơn hàng <strong>#${order._id}</strong> đã được <strong>${returnStatus === 'approved' ? 'chấp nhận' : 'từ chối'}</strong> vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
+            </p>
+            <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+              ${returnStatus === 'approved' ? `
                 <strong>Quy trình hoàn hàng:</strong><br>
                 - Shipper sẽ đến lấy hàng trong vòng <strong>1-2 ngày làm việc</strong>.<br>
                 - Sau khi nhận được hàng, chúng tôi sẽ liên hệ với bạn để hoàn tất thủ tục hoàn tiền.<br>
                 Vui lòng chuẩn bị hàng hóa và liên hệ với chúng tôi nếu có bất kỳ câu hỏi nào.
-              </p>
-              <div style="text-align: center; margin: 25px 0;">
-                <a href="mailto:purebotanicastore@gmail.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Liên hệ ngay</a>
-              </div>
-              <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
-                Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
-              </p>
-            </div>
-            <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
-              <p style="margin: 0 0 10px;">Theo dõi chúng tôi:</p>
-              <div style="margin-bottom: 15px;">
-                <a href="https://facebook.com/purebotanica" style="margin: 0 5px;">
-                  <img src="https://img.icons8.com/color/24/000000/facebook-new.png" alt="Facebook" style="width: 24px; height: 24px;">
-                </a>
-                <a href="https://instagram.com/purebotanica" style="margin: 0 5px;">
-                  <img src="https://img.icons8.com/color/24/000000/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
-                </a>
-              </div>
-              <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
-              <p style="margin: 0;">
-                Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
-              </p>
-            </div>
-          </div>
-        `;
-      } else {
-        emailSubject = 'Yêu cầu hoàn hàng bị từ chối - Pure-Botanica 🌿';
-        emailContent = `
-          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
-            <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #357E38;">
-              <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Yêu cầu hoàn hàng bị từ chối</h1>
-            </div>
-            <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
-              <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${order.user.username},</h3>
-              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
-                Yêu cầu hoàn hàng của bạn cho đơn hàng <strong>#${order._id}</strong> đã bị <strong>từ chối</strong> vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
-              </p>
-              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+              ` : `
                 <strong>Lý do:</strong> Đơn hàng không đủ điều kiện hoàn hàng theo chính sách của chúng tôi.<br>
                 Để biết thêm chi tiết hoặc thảo luận thêm, vui lòng liên hệ với chúng tôi qua email hoặc hotline.
-              </p>
-              <div style="text-align: center; margin: 25px 0;">
-                <a href="mailto:purebotanicastore@gmail.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Liên hệ ngay</a>
-              </div>
-              <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
-                Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
-              </p>
+              `}
+            </p>
+            <div style="text-align: center; margin: 25px 0;">
+              <a href="mailto:purebotanicastore@gmail.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Liên hệ ngay</a>
             </div>
-            <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
-              <p style="margin: 0 0 10px;">Theo dõi chúng tôi:</p>
-              <div style="margin-bottom: 15px;">
-                <a href="https://facebook.com/purebotanica" style="margin: 0 5px;">
-                  <img src="https://img.icons8.com/color/24/000000/facebook-new.png" alt="Facebook" style="width: 24px; height: 24px;">
-                </a>
-                <a href="https://instagram.com/purebotanica" style="margin: 0 5px;">
-                  <img src="https://img.icons8.com/color/24/000000/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
-                </a>
-              </div>
-              <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
-              <p style="margin: 0;">
-                Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
-              </p>
-            </div>
+            <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
+              Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
+            </p>
           </div>
-        `;
+          <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
+            <p style="margin: 0 0 10px;">Theo dõi chúng tôi:</p>
+            <div style="margin-bottom: 15px;">
+              <a href="https://facebook.com/purebotanica" style="margin: 0 5px;">
+                <img src="https://img.icons8.com/color/24/000000/facebook-new.png" alt="Facebook" style="width: 24px; height: 24px;">
+              </a>
+              <a href="https://instagram.com/purebotanica" style="margin: 0 5px;">
+                <img src="https://img.icons8.com/color/24/000000/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
+              </a>
+            </div>
+            <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
+            <p style="margin: 0;">
+              Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
+              <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+            </p>
+          </div>
+        </div>
+      `;
+
+      // Gửi email với retry mechanism
+      let attempts = 0;
+      const maxAttempts = 3;
+      let emailSent = false;
+      
+      while (attempts < maxAttempts && !emailSent) {
+        try {
+          console.log(`📧 Thử gửi email lần ${attempts + 1}/${maxAttempts} tới: ${order.user.email}`);
+          
+          const emailResult = await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: order.user.email,
+            subject: emailSubject,
+            html: emailContent,
+          });
+          
+          console.log(`✅ Email gửi thành công tới: ${order.user.email}, Message ID: ${emailResult.messageId}`);
+          emailSent = true;
+          emailStatus = `Email sent successfully - Message ID: ${emailResult.messageId}`;
+        } catch (emailError) {
+          attempts++;
+          console.warn(`⚠️ Thử gửi email lần ${attempts} thất bại: ${emailError.message}`);
+          
+          if (attempts === maxAttempts) {
+            throw emailError;
+          }
+          
+          // Wait 2 seconds before retrying
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
       }
-
-      const emailResult = await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: order.user.email,
-        subject: emailSubject,
-        html: emailContent,
-      });
-
-      console.log(`✅ Email gửi thành công tới: ${order.user.email}, Message ID: ${emailResult.messageId}`);
     } catch (emailError) {
       console.error(`❌ Không thể gửi email thông báo hoàn hàng cho ${order.user.email}:`, emailError.message);
-      console.error('🔍 Chi tiết lỗi email:', emailError);
+      console.error('🔍 Chi tiết lỗi email:', emailError.stack);
+      emailStatus = `Email failed: ${emailError.message}`;
     }
 
-    console.log(`✅ Hoàn tất xử lý xác nhận hoàn hàng cho orderId: ${orderId}`);
     res.json({ 
-      message: `Yêu cầu hoàn hàng đã được ${returnStatus === 'approved' ? 'chấp nhận' : 'từ chối'}`, 
-      order 
+      message: `Yêu cầu hoàn hàng đã được ${returnStatus === 'approved' ? 'chấp nhận' : 'từ chối'}`,
+      order,
+      emailStatus
     });
   } catch (error) {
     console.error('❌ Lỗi khi xác nhận yêu cầu hoàn hàng:', error.message);
-    console.error('🔍 Chi tiết lỗi:', error);
+    console.error('🔍 Chi tiết lỗi:', error.stack);
     res.status(500).json({ error: 'Lỗi khi xác nhận yêu cầu hoàn hàng', details: error.message });
   }
 };
@@ -726,6 +848,7 @@ exports.updateOrder = async (req, res) => {
 
     if (updateFields.shippingStatus === 'failed') {
       try {
+        const translatedFailReason = getTranslatedFailReason(updateFields.failReason);
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: populatedOrder.user.email,
@@ -741,7 +864,7 @@ exports.updateOrder = async (req, res) => {
                   Đơn hàng của bạn với mã <strong>#${populatedOrder._id}</strong> không thể được giao thành công vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
                 </p>
                 <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
-                  <strong>Lý do:</strong> ${updateFields.failReason || 'Lỗi vận chuyển'}.<br>
+                  <strong>Lý do:</strong> ${translatedFailReason}.<br>
                   Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
                 </p>
                 <div style="text-align: center; margin: 25px 0;">
@@ -789,7 +912,6 @@ exports.updateOrder = async (req, res) => {
   }
 };
 
-// New function: Mark order as failed
 exports.markOrderAsFailed = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -816,6 +938,7 @@ exports.markOrderAsFailed = async (req, res) => {
     await order.populate('items.product');
 
     try {
+      const translatedFailReason = getTranslatedFailReason(failReason);
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: order.user.email,
@@ -831,7 +954,7 @@ exports.markOrderAsFailed = async (req, res) => {
                 Đơn hàng của bạn với mã <strong>#${order._id}</strong> không thể được giao thành công vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
               </p>
               <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
-                <strong>Lý do:</strong> ${failReason}.<br>
+                <strong>Lý do:</strong> ${translatedFailReason}.<br>
                 Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
               </p>
               <div style="text-align: center; margin: 25px 0;">
@@ -872,7 +995,6 @@ exports.markOrderAsFailed = async (req, res) => {
   }
 };
 
-// New function: Check for failed deliveries
 exports.checkFailedDeliveries = async () => {
   try {
     const thresholdDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
@@ -884,10 +1006,11 @@ exports.checkFailedDeliveries = async () => {
     for (const order of failedOrders) {
       order.shippingStatus = 'failed';
       order.paymentStatus = 'failed';
-      order.failReason = 'Đơn hàng quá thời gian vận chuyển';
+      order.failReason = 'timeout';
       await order.save();
 
       try {
+        const translatedFailReason = getTranslatedFailReason(order.failReason);
         await transporter.sendMail({
           from: process.env.EMAIL_USER,
           to: order.user.email,
@@ -903,6 +1026,7 @@ exports.checkFailedDeliveries = async () => {
                   Đơn hàng của bạn với mã <strong>#${order._id}</strong> không thể được giao thành công do quá thời gian vận chuyển.
                 </p>
                 <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                  <strong>Lý do:</strong> ${translatedFailReason}.<br>
                   Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
                 </p>
                 <div style="text-align: center; margin: 25px 0;">
