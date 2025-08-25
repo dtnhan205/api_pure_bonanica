@@ -323,7 +323,7 @@ exports.setupAutoCoupons = async (req, res) => {
     res.status(500).json({ error: 'Lỗi server khi thiết lập tự động' });
   }
 };
-export const getAutoSetupConfig = async (req, res) => {
+exports.getAutoSetupConfig = async (req, res) => {
   try {
     const config = global.specialCouponConfig || {
       discountType: "percentage",
