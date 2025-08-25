@@ -93,7 +93,6 @@ exports.getOrderByIdForAdmin = async (req, res) => {
   }
 };
 
-// New function: Get all return requests for admin
 exports.getReturnRequestsForAdmin = async (req, res) => {
   try {
     const returnRequests = await Order.find({ returnStatus: 'requested' })
@@ -105,6 +104,21 @@ exports.getReturnRequestsForAdmin = async (req, res) => {
   } catch (error) {
     console.error('Lỗi khi lấy danh sách yêu cầu hoàn hàng (admin):', error.stack);
     res.status(500).json({ error: 'Lỗi khi lấy danh sách yêu cầu hoàn hàng', details: error.message });
+  }
+};
+
+// New function: Get failed orders for admin
+exports.getFailedOrders = async (req, res) => {
+  try {
+    const failedOrders = await Order.find({ shippingStatus: 'failed' })
+      .populate('items.product', 'name price image')
+      .populate('user', 'username email')
+      .sort({ updatedAt: -1 });
+
+    res.json(failedOrders);
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách đơn hàng giao thất bại:', error.stack);
+    res.status(500).json({ error: 'Lỗi khi lấy danh sách đơn hàng giao thất bại', details: error.message });
   }
 };
 
@@ -653,6 +667,7 @@ exports.updateOrder = async (req, res) => {
       'paymentStatus', 
       'returnStatus', 
       'cancelReason',
+      'failReason',
       'shippingAddress', 
       'items', 
       'totalPrice'
@@ -709,6 +724,58 @@ exports.updateOrder = async (req, res) => {
       .populate('items.product')
       .populate('user', 'username email');
 
+    if (updateFields.shippingStatus === 'failed') {
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: populatedOrder.user.email,
+          subject: 'Thông báo giao hàng thất bại - Pure-Botanica 🌿',
+          html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+              <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #357E38;">
+                <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Thông báo giao hàng thất bại</h1>
+              </div>
+              <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
+                <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${populatedOrder.user.username},</h3>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                  Đơn hàng của bạn với mã <strong>#${populatedOrder._id}</strong> không thể được giao thành công vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
+                </p>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                  <strong>Lý do:</strong> ${updateFields.failReason || 'Lỗi vận chuyển'}.<br>
+                  Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
+                </p>
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="mailto:purebotanicastore@gmail.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Liên hệ ngay</a>
+                </div>
+                <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
+                  Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
+                </p>
+              </div>
+              <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
+                <p style="margin: 0 0 10px;">Theo dõi chúng tôi:</p>
+                <div style="margin-bottom: 15px;">
+                  <a href="https://facebook.com/purebotanica" style="margin: 0 5px;">
+                    <img src="https://img.icons8.com/color/24/000000/facebook-new.png" alt="Facebook" style="width: 24px; height: 24px;">
+                  </a>
+                  <a href="https://instagram.com/purebotanica" style="margin: 0 5px;">
+                    <img src="https://img.icons8.com/color/24/000000/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
+                  </a>
+                </div>
+                <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
+                <p style="margin: 0;">
+                  Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
+                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                </p>
+              </div>
+            </div>
+          `
+        });
+        console.log(`Đã gửi email thông báo giao hàng thất bại tới: ${populatedOrder.user.email}`);
+      } catch (emailError) {
+        console.error(`Lỗi gửi email thông báo giao hàng thất bại: ${emailError.message}`);
+      }
+    }
+
     res.json({ 
       message: 'Cập nhật đơn hàng thành công', 
       order: populatedOrder 
@@ -719,5 +786,157 @@ exports.updateOrder = async (req, res) => {
       error: 'Lỗi khi cập nhật đơn hàng', 
       details: error.message 
     });
+  }
+};
+
+// New function: Mark order as failed
+exports.markOrderAsFailed = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { failReason } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ error: 'orderId không hợp lệ' });
+    }
+
+    if (!failReason) {
+      return res.status(400).json({ error: 'Vui lòng cung cấp lý do giao hàng thất bại' });
+    }
+
+    const order = await Order.findById(orderId).populate('user', 'username email');
+    if (!order) {
+      return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
+    }
+
+    order.shippingStatus = 'failed';
+    order.paymentStatus = 'failed';
+    order.failReason = failReason;
+    await order.save();
+
+    await order.populate('items.product');
+
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: order.user.email,
+        subject: 'Thông báo giao hàng thất bại - Pure-Botanica 🌿',
+        html: `
+          <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+            <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #357E38;">
+              <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Thông báo giao hàng thất bại</h1>
+            </div>
+            <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
+              <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${order.user.username},</h3>
+              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                Đơn hàng của bạn với mã <strong>#${order._id}</strong> không thể được giao thành công vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
+              </p>
+              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                <strong>Lý do:</strong> ${failReason}.<br>
+                Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
+              </p>
+              <div style="text-align: center; margin: 25px 0;">
+                <a href="mailto:purebotanicastore@gmail.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Liên hệ ngay</a>
+              </div>
+              <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
+                Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
+              </p>
+            </div>
+            <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
+              <p style="margin: 0 0 10px;">Theo dõi chúng tôi:</p>
+              <div style="margin-bottom: 15px;">
+                <a href="https://facebook.com/purebotanica" style="margin: 0 5px;">
+                  <img src="https://img.icons8.com/color/24/000000/facebook-new.png" alt="Facebook" style="width: 24px; height: 24px;">
+                </a>
+                <a href="https://instagram.com/purebotanica" style="margin: 0 5px;">
+                  <img src="https://img.icons8.com/color/24/000000/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
+                </a>
+              </div>
+              <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
+              <p style="margin: 0;">
+                Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+              </p>
+            </div>
+          </div>
+        `
+      });
+      console.log(`Đã gửi email thông báo giao hàng thất bại tới: ${order.user.email}`);
+    } catch (emailError) {
+      console.error(`Lỗi gửi email thông báo giao hàng thất bại: ${emailError.message}`);
+    }
+
+    res.json({ message: 'Đã đánh dấu đơn hàng giao thất bại', order });
+  } catch (error) {
+    console.error('Lỗi khi đánh dấu giao hàng thất bại:', error.message);
+    res.status(500).json({ error: 'Lỗi khi đánh dấu giao hàng thất bại', details: error.message });
+  }
+};
+
+// New function: Check for failed deliveries
+exports.checkFailedDeliveries = async () => {
+  try {
+    const thresholdDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+    const failedOrders = await Order.find({
+      shippingStatus: 'in_transit',
+      updatedAt: { $lt: thresholdDate }
+    }).populate('user', 'username email');
+
+    for (const order of failedOrders) {
+      order.shippingStatus = 'failed';
+      order.paymentStatus = 'failed';
+      order.failReason = 'Đơn hàng quá thời gian vận chuyển';
+      await order.save();
+
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: order.user.email,
+          subject: 'Thông báo giao hàng thất bại - Pure-Botanica 🌿',
+          html: `
+            <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f5f5f5; padding: 20px;">
+              <div style="text-align: center; background-color: #ffffff; padding: 30px; border-radius: 10px 10px 0 0; border-top: 4px solid #357E38;">
+                <h1 style="color: #357E38; font-size: 26px; font-weight: 600; margin: 0;">Thông báo giao hàng thất bại</h1>
+              </div>
+              <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
+                <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${order.user.username},</h3>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                  Đơn hàng của bạn với mã <strong>#${order._id}</strong> không thể được giao thành công do quá thời gian vận chuyển.
+                </p>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
+                  Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
+                </p>
+                <div style="text-align: center; margin: 25px 0;">
+                  <a href="mailto:purebotanicastore@gmail.com" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-size: 16px; font-weight: 500;">Liên hệ ngay</a>
+                </div>
+                <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 20px 0 0;">
+                  Cảm ơn bạn đã tin tưởng và đồng hành cùng Pure-Botanica!
+                </p>
+              </div>
+              <div style="text-align: center; padding: 20px; color: #888; font-size: 12px;">
+                <p style="margin: 0 0 10px;">Theo dõi chúng tôi:</p>
+                <div style="margin-bottom: 15px;">
+                  <a href="https://facebook.com/purebotanica" style="margin: 0 5px;">
+                    <img src="https://img.icons8.com/color/24/000000/facebook-new.png" alt="Facebook" style="width: 24px; height: 24px;">
+                  </a>
+                  <a href="https://instagram.com/purebotanica" style="margin: 0 5px;">
+                    <img src="https://img.icons8.com/color/24/000000/instagram-new.png" alt="Instagram" style="width: 24px; height: 24px;">
+                  </a>
+                </div>
+                <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
+                <p style="margin: 0;">
+                  Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
+                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                </p>
+              </div>
+            </div>
+          `
+        });
+        console.log(`Đã gửi email thông báo giao hàng thất bại tới: ${order.user.email}`);
+      } catch (emailError) {
+        console.error(`Lỗi gửi email thông báo giao hàng thất bại: ${emailError.message}`);
+      }
+    }
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra giao hàng thất bại:', error.message);
   }
 };

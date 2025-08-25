@@ -13,7 +13,9 @@ console.log('updateOrder type:', typeof orderController.updateOrder);
 router.get('/admin/all', authMiddleware, isAdmin, orderController.getAllOrders);
 router.get('/admin/user/:userId', authMiddleware, isAdmin, orderController.getOrdersByUserIdForAdmin);
 router.get('/admin/order/:orderId', authMiddleware, isAdmin, orderController.getOrderByIdForAdmin);
+router.get('/admin/failed', authMiddleware, isAdmin, orderController.getFailedOrders);
 router.put('/admin/return/:orderId', authMiddleware, isAdmin, orderController.confirmOrderReturn);
+router.put('/admin/fail/:orderId', authMiddleware, isAdmin, orderController.markOrderAsFailed);
 
 // User routes
 router.get('/user/:userId', authMiddleware, orderController.getUserOrders);
