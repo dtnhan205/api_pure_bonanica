@@ -268,34 +268,38 @@ exports.getCouponById = async (req, res) => {
 // Tạo mã tự động cho ngày đặc biệt
 exports.createAutoSpecialCoupons = async (specialConfig) => {
   try {
+    console.log('Starting createAutoSpecialCoupons with config:', specialConfig);
     const eligibleUsers = await User.find({}, '_id').lean();
+    console.log('Found users:', eligibleUsers.length);
     if (!eligibleUsers.length) {
       console.warn('No users for auto coupon creation');
       return;
     }
 
     const expiryDate = new Date(Date.now() + specialConfig.expiryDays * 24 * 60 * 60 * 1000);
-    const coupons = await Promise.all(
-      eligibleUsers.map(async (user) => {
-        const code = await generateCouponCode(); // Đảm bảo hàm generateCouponCode được định nghĩa
-        return {
-          code,
-          discountType: specialConfig.discountType,
-          discountValue: specialConfig.discountValue,
-          minOrderValue: specialConfig.minOrderValue || 0,
-          expiryDate,
-          usageLimit: specialConfig.usageLimit || 1,
-          isActive: true,
-          userId: user._id,
-        };
-      })
-    );
+    console.log('Calculated expiry date:', expiryDate);
+
+    // Tạo một mã duy nhất
+    const commonCode = await generateCouponCode();
+    console.log('Generated common coupon code:', commonCode);
+
+    // Tạo mảng coupons với cùng mã cho từng user
+    const coupons = eligibleUsers.map((user) => ({
+      code: commonCode,
+      discountType: specialConfig.discountType,
+      discountValue: specialConfig.discountValue,
+      minOrderValue: specialConfig.minOrderValue || 0,
+      expiryDate,
+      usageLimit: specialConfig.usageLimit || 1,
+      isActive: true,
+      userId: user._id,
+    }));
 
     await Coupon.insertMany(coupons);
-    console.log(`Auto created ${coupons.length} special coupons on ${new Date().toLocaleDateString()}`);
+    console.log(`Auto created ${coupons.length} special coupons with code ${commonCode} on ${new Date().toLocaleDateString()}`);
   } catch (error) {
     console.error('Error in createAutoSpecialCoupons:', error);
-    throw error; // Ném lỗi để xử lý ở cấp cao hơn nếu cần
+    throw error;
   }
 };
 
@@ -327,7 +331,7 @@ exports.setupAutoCoupons = async (req, res) => {
     console.log('Today is:', today);
     if (global.specialCouponConfig.specialDays.includes(today)) {
       console.log('Special day matched today, creating coupons immediately...');
-      await exports.createAutoSpecialCoupons(global.specialCouponConfig); // Sử dụng exports.createAutoSpecialCoupons
+      await exports.createAutoSpecialCoupons(global.specialCouponConfig); // Gọi hàm đã sửa
       console.log('Coupons created for special day:', today);
     } else {
       console.log('No special day match today, skipping creation.');
