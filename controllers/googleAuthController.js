@@ -37,7 +37,7 @@ const googleAuthCallback = [
       const token = jwt.sign(
         { id: req.user._id, email: req.user.email, role: req.user.role },
         process.env.JWT_SECRET || 'dinhthenhan',
-        { expiresIn: '1h' }
+        { expiresIn: '8h' }
       );
       console.log('Generated Token:', token);
 

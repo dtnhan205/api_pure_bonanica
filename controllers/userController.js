@@ -154,7 +154,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'dinhthenhan',
-      { expiresIn: '1h' }
+      { expiresIn: '8h' }
     );
 
     console.log('Đăng nhập thành công:', email);
@@ -185,7 +185,7 @@ const forgotPassword = async (req, res) => {
     const resetToken = jwt.sign(
       { email },
       process.env.JWT_SECRET || 'dinhthenhan',
-      { expiresIn: '1h' }
+      { expiresIn: '8h' }
     );
 
     // Save token to user
