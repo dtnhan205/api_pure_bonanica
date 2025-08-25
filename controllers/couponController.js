@@ -323,5 +323,20 @@ exports.setupAutoCoupons = async (req, res) => {
     res.status(500).json({ error: 'Lỗi server khi thiết lập tự động' });
   }
 };
+export const getAutoSetupConfig = async (req, res) => {
+  try {
+    const config = global.specialCouponConfig || {
+      discountType: "percentage",
+      discountValue: 15,
+      minOrderValue: 0,
+      expiryDays: 7,
+      usageLimit: 1,
+      specialDays: ["2025-09-02", "2026-01-01"],
+    };
+    res.status(200).json({ success: true, config });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
 
 module.exports = exports;
