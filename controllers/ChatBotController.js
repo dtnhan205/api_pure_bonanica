@@ -1,8 +1,8 @@
+const { v4: uuidv4 } = require('uuid');
 const ChatMessage = require('../models/chatBot');
 const Joi = require('joi');
 const mongoose = require('mongoose');
 const fetch = require('node-fetch');
-const { v4: uuidv4 } = require('uuid');
 const stringSimilarity = require('string-similarity');
 
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -13,7 +13,7 @@ const COUPONS_API_URL = 'https://api-zeal.onrender.com/api/coupons';
 const NEWS_API_URL = 'https://api-zeal.onrender.com/api/news';
 const CATEGORIES_API_URL = 'https://api-zeal.onrender.com/api/categories';
 
-// Định nghĩa navigationMap trước faqs
+// Định nghĩa navigationMap, faqs, và các hàm hỗ trợ như trong code gốc
 const navigationMap = {
   home: {
     description: "Trang chủ hiển thị sản phẩm nổi bật và tin tức.",
@@ -305,27 +305,6 @@ const faqs = [
   },
 ];
 
-exports.createOrGetSession = async (req, res) => {
-  try {
-    let { sessionId } = req.body;
-    if (!sessionId) sessionId = uuidv4();
-
-    let chatSession = await ChatMessage.findOne({ sessionId });
-    if (!chatSession) {
-      chatSession = new ChatMessage({
-        sessionId,
-        messages: [{ role: 'model', content: 'Pure Botanice xin chào! Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!', timestamp: new Date() }],
-      });
-      await chatSession.save();
-    }
-
-    res.status(200).json({ sessionId });
-  } catch (error) {
-    console.error('Lỗi createOrGetSession:', error);
-    res.status(500).json({ error: 'Lỗi server' });
-  }
-};
-
 exports.sendMessage = async (req, res) => {
   try {
     const { error, value } = messageValidationSchema.validate(req.body);
@@ -381,12 +360,12 @@ exports.sendMessage = async (req, res) => {
         hasNavigationQuery = true;
       }
     } else {
-      const productKeywords = ['gợi ý', 'mua', 'kem', 'mặt nạ', 'toner', 'chống nắng', 'da', 'dưỡng', 'mỹ phẩm', 'chăm sóc', 'sữa rửa mặt', 'tạo bọt', 'vitamin c', 'rau má', 'tơ tằm', 'dưỡng ẩm', 'kiềm dầu', 'bí đao', 'charming']; // Loại "sản phẩm" ra khỏi đây
+      const productKeywords = ['gợi ý', 'mua', 'kem', 'mặt nạ', 'toner', 'chống nắng', 'da', 'dưỡng', 'mỹ phẩm', 'chăm sóc', 'sữa rửa mặt', 'tạo bọt', 'vitamin c', 'rau má', 'tơ tằm', 'dưỡng ẩm', 'kiềm dầu', 'bí đao', 'charming'];
       const brandKeywords = ['thương hiệu', 'brand'];
       const couponKeywords = ['mã giảm giá', 'coupon', 'khuyến mãi'];
       const newsKeywords = ['tin tức', 'news', 'bài viết', 'gần đây'];
       const categoryKeywords = ['danh mục', 'category'];
-      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức', 'xem', 'ở đâu']; // Thêm "sản phẩm yêu thích", "xem", "ở đâu"
+      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức', 'xem', 'ở đâu'];
 
       hasProductQuery = productKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
       hasBrandQuery = brandKeywords.some(keyword => message.toLowerCase().includes(keyword));
@@ -395,7 +374,7 @@ exports.sendMessage = async (req, res) => {
       hasCategoryQuery = categoryKeywords.some(keyword => message.toLowerCase().includes(keyword));
       hasNavigationQuery = navigationKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
 
-      let context = 'Trả lời ngắn gọn bằng tiếng Việt, chỉ cung cấp thông tin cần thiết.\n';
+      let context = 'Bạn là trợ lý chatbot của Pure Botanica, trả lời ngắn gọn bằng tiếng Việt, chỉ cung cấp thông tin cần thiết. Nếu câu hỏi không liên quan đến sản phẩm, mã giảm giá, tin tức, hoặc điều hướng website, hãy suy luận và trả lời chính xác, tự nhiên, và hữu ích.\n';
       context += 'Nếu gợi ý sản phẩm, chỉ trả về "Dưới đây là các sản phẩm gợi ý cho bạn:" trong message, chi tiết sản phẩm (tên, giá, hình ảnh đầu tiên, liên kết) nằm trong mảng products.\n';
       context += 'Nếu liên quan đến điều hướng web, sử dụng URL và mô tả từ navigationMap.\n';
 
@@ -404,11 +383,10 @@ exports.sendMessage = async (req, res) => {
           message.toLowerCase().includes(page) || 
           navigationMap[page].actions.some(action => 
             correctSpelling(message).toLowerCase().includes(action.toLowerCase()) ||
-            message.toLowerCase().includes(page.toLowerCase()) // Thêm kiểm tra tên trang
+            message.toLowerCase().includes(page.toLowerCase())
           )
         );
         if (matchedPage) {
-          // Kiểm tra cụ thể cho "sản phẩm yêu thích" để đảm bảo khớp với wishlist
           if (message.toLowerCase().includes('sản phẩm yêu thích') || message.toLowerCase().includes('wishlist')) {
             botResponseText = `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url} để xem danh sách yêu thích.`;
           } else {
@@ -417,39 +395,32 @@ exports.sendMessage = async (req, res) => {
         } else {
           botResponseText = 'Không tìm thấy trang phù hợp. Vui lòng thử lại!';
         }
-      }
-
-      if (hasNewsQuery) {
+      } else if (hasNewsQuery) {
         suggestedNews = (await getNews()).slice(0, 2);
         botResponseText = suggestedNews.length > 0
           ? summarizeNews(suggestedNews)
           : 'Chưa có tin tức mới.';
-      }
-      if (hasProductQuery) {
+      } else if (hasProductQuery) {
         const products = await getActiveProducts();
         suggestedProducts = filterProducts(products, correctSpelling(message)).slice(0, 2);
         botResponseText = "Dưới đây là các sản phẩm gợi ý cho bạn:";
-      }
-      if (hasBrandQuery) {
+      } else if (hasBrandQuery) {
         suggestedBrands = (await getBrands()).slice(0, 2);
         botResponseText = suggestedBrands.length > 0
           ? summarizeBrands(suggestedBrands)
           : 'Chưa có thương hiệu.';
-      }
-      if (hasCouponQuery) {
+      } else if (hasCouponQuery) {
         suggestedCoupons = (await getCoupons()).slice(0, 2);
         botResponseText = suggestedCoupons.length > 0
           ? summarizeCoupons(suggestedCoupons)
           : 'Chưa có mã giảm giá.';
-      }
-      if (hasCategoryQuery) {
+      } else if (hasCategoryQuery) {
         suggestedCategories = (await getCategories()).slice(0, 2);
         botResponseText = suggestedCategories.length > 0
           ? summarizeCategories(suggestedCategories)
           : 'Chưa có danh mục.';
-      }
-
-      if (!faqMatch && !botResponseText) {
+      } else {
+        // Gọi Gemini API cho câu hỏi ngoài FAQ
         const products = await getActiveProducts();
         context += `Sản phẩm: ${summarizeProducts(products.slice(0, 2))}\n`;
         const chatHistory = chatSession.messages.slice(-10).map(msg => ({
@@ -457,6 +428,12 @@ exports.sendMessage = async (req, res) => {
           parts: [{ text: msg.content }],
         }));
         chatHistory.unshift({ role: 'model', parts: [{ text: context }] });
+        chatHistory.push({ role: 'user', parts: [{ text: message }] });
+
+        if (!API_KEY) {
+          console.error('GEMINI_API_KEY không được thiết lập');
+          return res.status(500).json({ error: 'Cấu hình API không hợp lệ' });
+        }
 
         const requestOptions = {
           method: 'POST',
@@ -465,17 +442,20 @@ exports.sendMessage = async (req, res) => {
         };
 
         const response = await fetch(API_URL, requestOptions);
-        if (!response.ok) throw new Error('Lỗi từ Gemini API');
+        if (!response.ok) {
+          console.error('Lỗi từ Gemini API:', response.status, response.statusText);
+          throw new Error(`Lỗi từ Gemini API: ${response.status}`);
+        }
         const data = await response.json();
-        botResponseText = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
-        if (hasProductQuery) {
-          suggestedProducts = filterProducts(products, correctSpelling(message)).slice(0, 2);
-          botResponseText = "Dưới đây là các sản phẩm gợi ý cho bạn:";
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+          console.error('Phản hồi từ Gemini API không hợp lệ:', data);
+          botResponseText = 'Xin lỗi, tôi không thể xử lý câu hỏi này. Hãy thử hỏi về sản phẩm, mã giảm giá, hoặc cách sử dụng website!';
+        } else {
+          botResponseText = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
         }
       }
     }
 
-    // Cắt chuỗi hợp lý tại ranh giới dòng nếu quá dài
     if (botResponseText.length > 500) {
       const lines = botResponseText.split('\n');
       let truncated = '';
@@ -522,14 +502,35 @@ exports.sendMessage = async (req, res) => {
 
     res.status(200).json(responsePayload);
   } catch (error) {
-    console.error('Lỗi sendMessage:', error);
+    console.error('Lỗi sendMessage:', error.message, error.stack);
     if (error.message.includes('request entity too large')) {
       return res.status(413).json({ error: 'Yêu cầu quá lớn, tối đa 10MB' });
     }
-    return res.status(500).json({ error: 'Lỗi server' });
+    return res.status(500).json({ error: `Lỗi server: ${error.message}` });
   }
 };
 
+// Các hàm khác giữ nguyên
+exports.createOrGetSession = async (req, res) => {
+  try {
+    let { sessionId } = req.body;
+    if (!sessionId) sessionId = uuidv4();
+
+    let chatSession = await ChatMessage.findOne({ sessionId });
+    if (!chatSession) {
+      chatSession = new ChatMessage({
+        sessionId,
+        messages: [{ role: 'model', content: 'Pure Botanice xin chào! Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!', timestamp: new Date() }],
+      });
+      await chatSession.save();
+    }
+
+    res.status(200).json({ sessionId });
+  } catch (error) {
+    console.error('Lỗi createOrGetSession:', error);
+    res.status(500).json({ error: 'Lỗi server' });
+  }
+};
 
 exports.getChatHistory = async (req, res) => {
   try {
