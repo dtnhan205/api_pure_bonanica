@@ -17,42 +17,42 @@ const CATEGORIES_API_URL = 'https://api-zeal.onrender.com/api/categories';
 const navigationMap = {
   home: {
     description: "Trang chủ hiển thị sản phẩm nổi bật và tin tức.",
-    url: "https://purebotanice.com",
+    url: "https://purebotanica.online/user",
     actions: ["Xem sản phẩm", "Xem tin tức"],
   },
   products: {
     description: "Trang danh sách sản phẩm, có thể lọc theo danh mục hoặc tìm kiếm.",
-    url: "https://purebotanice.com/products",
+    url: "https://purebotanica.online/user/products",
     actions: ["Tìm sản phẩm", "Lọc theo danh mục", "Xem chi tiết sản phẩm"],
   },
   productDetail: {
     description: "Trang chi tiết sản phẩm, hiển thị giá, mô tả, và nút thêm vào giỏ hàng.",
-    url: "https://purebotanice.com/product/:slug",
+    url: "https://purebotanica.online/user/product/:slug",
     actions: ["Thêm vào giỏ hàng", "Xem đánh giá"],
   },
   cart: {
     description: "Giỏ hàng hiển thị các sản phẩm đã chọn và nút thanh toán.",
-    url: "https://purebotanice.com/cart",
+    url: "https://purebotanica.online/user/cart",
     actions: ["Xem giỏ hàng", "Thanh toán"],
   },
   account: {
     description: "Trang thông tin khách hàng, quản lý đơn hàng và thông tin cá nhân.",
-    url: "https://purebotanice.com/account",
+    url: "https://purebotanica.online/user/userinfo",
     actions: ["Đăng nhập", "Đăng ký", "Cập nhật thông tin", "Xem đơn hàng", "Yêu cầu hoàn hàng"],
   },
   wishlist: {
     description: "Danh sách sản phẩm yêu thích.",
-    url: "https://purebotanice.com/wishlist",
+    url: "https://purebotanica.online/user/wishlist",
     actions: ["Xem danh sách yêu thích", "Thêm/xóa sản phẩm"],
   },
   contact: {
     description: "Trang liên hệ để gửi yêu cầu hỗ trợ.",
-    url: "https://purebotanice.com/contact",
+    url: "https://purebotanica.online/user/contact",
     actions: ["Gửi form liên hệ"],
   },
   news: {
     description: "Trang tin tức hiển thị các bài viết mới nhất.",
-    url: "https://purebotanice.com/news",
+    url: "https://purebotanica.online/user/new",
     actions: ["Xem tin tức", "Đọc bài viết"],
   },
 };
@@ -190,7 +190,7 @@ function summarizeProducts(products) {
     const image = product.images && product.images.length > 0
       ? `Hình ảnh: [Hình ảnh tại ${product.images[0]}]`
       : 'Không có hình ảnh';
-    return `- Sản phẩm: ${product.name}\n  - ${option}\n  - ${image}\n  - Liên kết: https://purebotanice.com/product/${product.slug || 'khong-co-slug'}`;
+    return `- Sản phẩm: ${product.name}\n  - ${option}\n  - ${image}\n  - Liên kết: https://purebotanica.online/product/${product.slug || 'khong-co-slug'}`;
   }).join('\n');
 }
 
@@ -202,7 +202,7 @@ function summarizeBrands(brands) {
 function summarizeNews(news) {
   if (news.length === 0) return 'Chưa có tin tức.';
   return news.map(item => 
-    `Tiêu đề: ${item.title}\nLiên kết: ${item.slug ? `https://purebotanice.com/news/${item.slug}` : 'Không có liên kết'}`
+    `Tiêu đề: ${item.title}\nLiên kết: ${item.slug ? `https://purebotanica.online/news/${item.slug}` : 'Không có liên kết'}`
   ).join('\n---\n');
 }
 
