@@ -19,6 +19,7 @@ const paymentRouter = require("./routes/paymentRoutes");
 const interfaceRouter = require("./routes/interfaceRouter");
 const contactRouter = require("./routes/contactRouter");
 const vnPayRouter = require("./routes/vnpayRoutes");
+const ChatBotRouter = require("./routes/ChatbotRouter");
 require("dotenv").config();
 
 // Kiểm tra biến môi trường bắt buộc
@@ -116,6 +117,7 @@ app.use("/api/payments", paymentRouter);
 app.use("/api/interfaces", interfaceRouter);
 app.use("/api/contacts", contactRouter);
 app.use("/api/vnpay", vnPayRouter);
+app.use("/api/chatbot", ChatBotRouter);
 app.use(express.static("public"));
 app.use("/api", authRouter);
 
