@@ -182,16 +182,16 @@ function filterProducts(products, keyword) {
 }
 
 function summarizeProducts(products) {
-  if (products.length === 0) return 'Không tìm thấy sản phẩm.';
+  if (products.length === 0) return 'Không có sản phẩm.';
   return products.map(product => {
     const option = product.option && product.option[0]
       ? `Giá: ${product.option[0].price.toLocaleString('vi-VN')} VNĐ`
       : 'Giá: Liên hệ';
-    const images = product.images && product.images.length > 0
-      ? `Hình ảnh: ${product.images[0]}` // Chỉ lấy URL hình ảnh đầu tiên để ngắn gọn
+    const image = product.images && product.images.length > 0
+      ? `Hình ảnh: [Hình ảnh tại ${product.images[0]}]`
       : 'Không có hình ảnh';
-    return `Sản phẩm: ${product.name}\n${option}\n${images}\nLiên kết: https://purebotanice.com/product/${product.slug || 'khong-co-slug'}`;
-  }).join('\n---\n');
+    return `- Sản phẩm: ${product.name}\n  - ${option}\n  - ${image}\n  - Liên kết: https://purebotanice.com/product/${product.slug || 'khong-co-slug'}`;
+  }).join('\n');
 }
 
 function summarizeBrands(brands) {
@@ -343,7 +343,7 @@ exports.sendMessage = async (req, res) => {
     }
 
     chatSession.messages.push({ role: 'user', content: message, timestamp: new Date() });
-    if (chatSession.messages.length > 100) chatSession.messages.shift();
+    if (chatSession.messages.length > 50) chatSession.messages.shift();
     await chatSession.save();
 
     let botResponseText = '';
@@ -371,7 +371,7 @@ exports.sendMessage = async (req, res) => {
       } else if (faqMatch.question.toLowerCase().includes('dưỡng da') || faqMatch.question.toLowerCase().includes('sản phẩm') || faqMatch.question.toLowerCase().includes('sữa rửa mặt')) {
         hasProductQuery = true;
         const products = await getActiveProducts();
-        suggestedProducts = filterProducts(products, correctSpelling(faqMatch.question));
+        suggestedProducts = filterProducts(products, correctSpelling(faqMatch.question)).slice(0, 2);
       } else if (faqMatch.question.toLowerCase().includes('thương hiệu') || faqMatch.question.toLowerCase().includes('danh mục')) {
         hasBrandQuery = true;
         hasCategoryQuery = true;
@@ -381,12 +381,12 @@ exports.sendMessage = async (req, res) => {
         hasNavigationQuery = true;
       }
     } else {
-      const productKeywords = ['sản phẩm', 'gợi ý', 'mua', 'kem', 'mặt nạ', 'toner', 'chống nắng', 'da', 'dưỡng', 'mỹ phẩm', 'chăm sóc', 'sữa rửa mặt', 'tạo bọt', 'vitamin c', 'rau má', 'tơ tằm', 'dưỡng ẩm', 'kiềm dầu', 'bí đao', 'charming', 'trang sức', 'mặt dây chuyền'];
+      const productKeywords = ['gợi ý', 'mua', 'kem', 'mặt nạ', 'toner', 'chống nắng', 'da', 'dưỡng', 'mỹ phẩm', 'chăm sóc', 'sữa rửa mặt', 'tạo bọt', 'vitamin c', 'rau má', 'tơ tằm', 'dưỡng ẩm', 'kiềm dầu', 'bí đao', 'charming']; // Loại "sản phẩm" ra khỏi đây
       const brandKeywords = ['thương hiệu', 'brand'];
       const couponKeywords = ['mã giảm giá', 'coupon', 'khuyến mãi'];
       const newsKeywords = ['tin tức', 'news', 'bài viết', 'gần đây'];
       const categoryKeywords = ['danh mục', 'category'];
-      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức'];
+      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức', 'xem', 'ở đâu']; // Thêm "sản phẩm yêu thích", "xem", "ở đâu"
 
       hasProductQuery = productKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
       hasBrandQuery = brandKeywords.some(keyword => message.toLowerCase().includes(keyword));
@@ -395,63 +395,64 @@ exports.sendMessage = async (req, res) => {
       hasCategoryQuery = categoryKeywords.some(keyword => message.toLowerCase().includes(keyword));
       hasNavigationQuery = navigationKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
 
-      let context = 'Trả lời bằng tiếng Việt, ngắn gọn, chính xác, chỉ cung cấp thông tin cần thiết. Nếu liên quan đến điều hướng website, sử dụng thông tin sau:\n';
-      context += JSON.stringify(navigationMap, null, 2) + '\n';
-      context += 'Nếu gợi ý sản phẩm, liệt kê tối đa 3 sản phẩm với tên, giá, hình ảnh đầu tiên, liên kết. Luôn khuyến khích mua sắm.\n';
+      let context = 'Trả lời ngắn gọn bằng tiếng Việt, chỉ cung cấp thông tin cần thiết.\n';
+      context += 'Nếu gợi ý sản phẩm, chỉ trả về "Dưới đây là các sản phẩm gợi ý cho bạn:" trong message, chi tiết sản phẩm (tên, giá, hình ảnh đầu tiên, liên kết) nằm trong mảng products.\n';
+      context += 'Nếu liên quan đến điều hướng web, sử dụng URL và mô tả từ navigationMap.\n';
 
       if (hasNavigationQuery) {
         const matchedPage = Object.keys(navigationMap).find(page => 
           message.toLowerCase().includes(page) || 
           navigationMap[page].actions.some(action => 
-            correctSpelling(message).toLowerCase().includes(action.toLowerCase())
+            correctSpelling(message).toLowerCase().includes(action.toLowerCase()) ||
+            message.toLowerCase().includes(page.toLowerCase()) // Thêm kiểm tra tên trang
           )
         );
         if (matchedPage) {
-          botResponseText = `Để ${message.toLowerCase()}, truy cập ${navigationMap[matchedPage].url}. ${navigationMap[matchedPage].description}`;
+          // Kiểm tra cụ thể cho "sản phẩm yêu thích" để đảm bảo khớp với wishlist
+          if (message.toLowerCase().includes('sản phẩm yêu thích') || message.toLowerCase().includes('wishlist')) {
+            botResponseText = `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url} để xem danh sách yêu thích.`;
+          } else {
+            botResponseText = `Truy cập ${navigationMap[matchedPage].url} để ${message.toLowerCase()}.`;
+          }
+        } else {
+          botResponseText = 'Không tìm thấy trang phù hợp. Vui lòng thử lại!';
         }
       }
 
       if (hasNewsQuery) {
-        suggestedNews = await getNews();
+        suggestedNews = (await getNews()).slice(0, 2);
         botResponseText = suggestedNews.length > 0
-          ? `Tin tức mới:\n${summarizeNews(suggestedNews)}`
-          : 'Chưa có tin tức mới. Theo dõi trang web để cập nhật!';
-        context += `Tin tức: ${summarizeNews(suggestedNews)}\n`;
+          ? summarizeNews(suggestedNews)
+          : 'Chưa có tin tức mới.';
       }
       if (hasProductQuery) {
         const products = await getActiveProducts();
-        suggestedProducts = filterProducts(products, correctSpelling(message));
-        botResponseText = suggestedProducts.length > 0
-          ? `Gợi ý sản phẩm:\n${summarizeProducts(suggestedProducts)}`
-          : `Không tìm thấy sản phẩm "${message}". Gợi ý:\n${summarizeProducts(products.filter(p => p.name.toLowerCase().includes('sữa rửa mặt') || p.name.toLowerCase().includes('toner')).slice(0, 3))}`;
-        context += `Sản phẩm: ${summarizeProducts(suggestedProducts)}\n`;
+        suggestedProducts = filterProducts(products, correctSpelling(message)).slice(0, 2);
+        botResponseText = "Dưới đây là các sản phẩm gợi ý cho bạn:";
       }
       if (hasBrandQuery) {
-        suggestedBrands = await getBrands();
+        suggestedBrands = (await getBrands()).slice(0, 2);
         botResponseText = suggestedBrands.length > 0
-          ? `Thương hiệu hiện có:\n${summarizeBrands(suggestedBrands)}`
-          : 'Chưa có thông tin thương hiệu.';
-        context += `Thương hiệu: ${summarizeBrands(suggestedBrands)}\n`;
+          ? summarizeBrands(suggestedBrands)
+          : 'Chưa có thương hiệu.';
       }
       if (hasCouponQuery) {
-        suggestedCoupons = await getCoupons();
+        suggestedCoupons = (await getCoupons()).slice(0, 2);
         botResponseText = suggestedCoupons.length > 0
-          ? `Mã giảm giá:\n${summarizeCoupons(suggestedCoupons)}`
-          : 'Chưa có mã giảm giá. Theo dõi trang web để cập nhật!';
-        context += `Mã giảm giá: ${summarizeCoupons(suggestedCoupons)}\n`;
+          ? summarizeCoupons(suggestedCoupons)
+          : 'Chưa có mã giảm giá.';
       }
       if (hasCategoryQuery) {
-        suggestedCategories = await getCategories();
+        suggestedCategories = (await getCategories()).slice(0, 2);
         botResponseText = suggestedCategories.length > 0
-          ? `Danh mục hiện có:\n${summarizeCategories(suggestedCategories)}`
+          ? summarizeCategories(suggestedCategories)
           : 'Chưa có danh mục.';
-        context += `Danh mục: ${summarizeCategories(suggestedCategories)}\n`;
       }
 
       if (!faqMatch && !botResponseText) {
         const products = await getActiveProducts();
-        context += `Sản phẩm: ${summarizeProducts(products)}\n`;
-        const chatHistory = chatSession.messages.map(msg => ({
+        context += `Sản phẩm: ${summarizeProducts(products.slice(0, 2))}\n`;
+        const chatHistory = chatSession.messages.slice(-10).map(msg => ({
           role: msg.role,
           parts: [{ text: msg.content }],
         }));
@@ -464,20 +465,27 @@ exports.sendMessage = async (req, res) => {
         };
 
         const response = await fetch(API_URL, requestOptions);
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error?.message || 'Lỗi từ Gemini API');
-        }
-
+        if (!response.ok) throw new Error('Lỗi từ Gemini API');
         const data = await response.json();
         botResponseText = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
         if (hasProductQuery) {
-          suggestedProducts = filterProducts(products, correctSpelling(message));
-          botResponseText = suggestedProducts.length > 0
-            ? `Gợi ý sản phẩm:\n${summarizeProducts(suggestedProducts)}`
-            : `Không tìm thấy sản phẩm "${message}". Gợi ý:\n${summarizeProducts(products.filter(p => p.name.toLowerCase().includes('sữa rửa mặt') || p.name.toLowerCase().includes('toner')).slice(0, 3))}`;
+          suggestedProducts = filterProducts(products, correctSpelling(message)).slice(0, 2);
+          botResponseText = "Dưới đây là các sản phẩm gợi ý cho bạn:";
         }
       }
+    }
+
+    // Cắt chuỗi hợp lý tại ranh giới dòng nếu quá dài
+    if (botResponseText.length > 500) {
+      const lines = botResponseText.split('\n');
+      let truncated = '';
+      let charCount = 0;
+      for (const line of lines) {
+        if (charCount + line.length + 1 > 500) break;
+        truncated += line + '\n';
+        charCount += line.length + 1;
+      }
+      botResponseText = truncated.trim() + '...';
     }
 
     chatSession.messages.push({ role: 'model', content: botResponseText, timestamp: new Date() });
@@ -485,35 +493,31 @@ exports.sendMessage = async (req, res) => {
 
     const responsePayload = { message: botResponseText };
     if (hasProductQuery && suggestedProducts.length > 0) {
-      responsePayload.products = suggestedProducts.slice(0, 3).map(product => ({
+      responsePayload.products = suggestedProducts.slice(0, 2).map(product => ({
         name: product.name,
         slug: product.slug || 'khong-co-slug',
         price: product.option && product.option[0] ? product.option[0].price : null,
-        images: product.images || [], // Thêm trường images
+        images: product.images || [],
       }));
     }
     if (hasBrandQuery && suggestedBrands.length > 0) {
-      responsePayload.brands = suggestedBrands.slice(0, 3).map(brand => ({
-        name: brand.name,
-      }));
+      responsePayload.brands = suggestedBrands.slice(0, 2).map(brand => ({ name: brand.name }));
     }
     if (hasCouponQuery && suggestedCoupons.length > 0) {
-      responsePayload.coupons = suggestedCoupons.slice(0, 3).map(coupon => ({
+      responsePayload.coupons = suggestedCoupons.slice(0, 2).map(coupon => ({
         code: coupon.code,
         discountValue: coupon.discountValue,
         discountType: coupon.discountType,
       }));
     }
     if (hasNewsQuery && suggestedNews.length > 0) {
-      responsePayload.news = suggestedNews.slice(0, 3).map(item => ({
+      responsePayload.news = suggestedNews.slice(0, 2).map(item => ({
         title: item.title,
         slug: item.slug,
       }));
     }
     if (hasCategoryQuery && suggestedCategories.length > 0) {
-      responsePayload.categories = suggestedCategories.slice(0, 3).map(category => ({
-        name: category.name,
-      }));
+      responsePayload.categories = suggestedCategories.slice(0, 2).map(category => ({ name: category.name }));
     }
 
     res.status(200).json(responsePayload);
@@ -525,6 +529,7 @@ exports.sendMessage = async (req, res) => {
     return res.status(500).json({ error: 'Lỗi server' });
   }
 };
+
 
 exports.getChatHistory = async (req, res) => {
   try {
