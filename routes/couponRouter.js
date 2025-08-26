@@ -10,7 +10,8 @@ router.post('/auto-setup', authMiddleware, isAdmin, couponController.setupAutoCo
 router.put('/:id', authMiddleware, isAdmin, couponController.updateCoupon);
 router.delete('/:id', authMiddleware, isAdmin, couponController.deleteCoupon);
 
-router.get('/', authMiddleware, couponController.getCoupons);
+router.get('/', couponController.getCoupons);
+router.get('/all', authMiddleware, isAdmin, couponController.getCouponsAdmin);
 router.get("/auto-setup", authMiddleware, isAdmin, couponController.getAutoSetupConfig);
 router.get('/:id', authMiddleware, couponController.getCouponById);
 

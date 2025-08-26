@@ -164,8 +164,49 @@ exports.deleteCoupon = async (req, res) => {
   }
 };
 
-// Lấy danh sách tất cả mã giảm giá (giữ nguyên)
+// Lấy danh sách tất cả mã giảm giá 
 exports.getCoupons = async (req, res) => {
+  try {
+    const { page = 1, limit = 9, code } = req.query; // bỏ isActive
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const query = { isActive: true }; // luôn chỉ lấy mã đang hoạt động
+
+    if (code) {
+      query.code = { $regex: code, $options: 'i' };
+    }
+
+    const coupons = await Coupon.find(query)
+      .select(
+        'code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount description'
+      )
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const total = await Coupon.countDocuments(query);
+
+    console.log(`Đã lấy ${coupons.length} mã giảm giá (isActive=true) cho trang ${page}`);
+    res.json({
+      coupons,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error('Lỗi trong getCoupons:', error);
+    res.status(500).json({
+      error: 'Lỗi server khi lấy danh sách mã giảm giá',
+      details: error.message,
+    });
+  }
+};
+
+// Lấy danh sách mã giảm giá cho admin 
+exports.getCouponsAdmin = async (req, res) => {
   try {
     const { page = 1, limit = 9, code, isActive } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
