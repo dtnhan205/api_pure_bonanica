@@ -13,6 +13,50 @@ const COUPONS_API_URL = 'https://api-zeal.onrender.com/api/coupons';
 const NEWS_API_URL = 'https://api-zeal.onrender.com/api/news';
 const CATEGORIES_API_URL = 'https://api-zeal.onrender.com/api/categories';
 
+// Định nghĩa navigationMap trước faqs
+const navigationMap = {
+  home: {
+    description: "Trang chủ hiển thị sản phẩm nổi bật và tin tức.",
+    url: "https://purebotanice.com",
+    actions: ["Xem sản phẩm", "Xem tin tức"],
+  },
+  products: {
+    description: "Trang danh sách sản phẩm, có thể lọc theo danh mục hoặc tìm kiếm.",
+    url: "https://purebotanice.com/products",
+    actions: ["Tìm sản phẩm", "Lọc theo danh mục", "Xem chi tiết sản phẩm"],
+  },
+  productDetail: {
+    description: "Trang chi tiết sản phẩm, hiển thị giá, mô tả, và nút thêm vào giỏ hàng.",
+    url: "https://purebotanice.com/product/:slug",
+    actions: ["Thêm vào giỏ hàng", "Xem đánh giá"],
+  },
+  cart: {
+    description: "Giỏ hàng hiển thị các sản phẩm đã chọn và nút thanh toán.",
+    url: "https://purebotanice.com/cart",
+    actions: ["Xem giỏ hàng", "Thanh toán"],
+  },
+  account: {
+    description: "Trang thông tin khách hàng, quản lý đơn hàng và thông tin cá nhân.",
+    url: "https://purebotanice.com/account",
+    actions: ["Đăng nhập", "Đăng ký", "Cập nhật thông tin", "Xem đơn hàng", "Yêu cầu hoàn hàng"],
+  },
+  wishlist: {
+    description: "Danh sách sản phẩm yêu thích.",
+    url: "https://purebotanice.com/wishlist",
+    actions: ["Xem danh sách yêu thích", "Thêm/xóa sản phẩm"],
+  },
+  contact: {
+    description: "Trang liên hệ để gửi yêu cầu hỗ trợ.",
+    url: "https://purebotanice.com/contact",
+    actions: ["Gửi form liên hệ"],
+  },
+  news: {
+    description: "Trang tin tức hiển thị các bài viết mới nhất.",
+    url: "https://purebotanice.com/news",
+    actions: ["Xem tin tức", "Đọc bài viết"],
+  },
+};
+
 const messageValidationSchema = Joi.object({
   sessionId: Joi.string().required().messages({
     'string.empty': 'Session ID không được để trống',
@@ -40,67 +84,44 @@ function correctSpelling(keyword) {
 
 async function getCoupons() {
   try {
-    console.log('Đang gọi API:', COUPONS_API_URL);
     const response = await fetch(COUPONS_API_URL, { timeout: 10000 });
-    if (!response.ok) {
-      throw new Error(`Lỗi từ API mã giảm giá: ${response.status} - ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Lỗi API mã giảm giá: ${response.status}`);
     const data = await response.json();
-    console.log('Dữ liệu từ API /api/coupons:', JSON.stringify(data, null, 2));
-
     const coupons = data.coupons || [];
-    const validCoupons = coupons.filter(coupon => {
-      const isActive = coupon.isActive;
-      const notExpired = !coupon.expiryDate || new Date(coupon.expiryDate) >= new Date();
-      const hasRemainingUses = !coupon.usageLimit || coupon.usedCount < coupon.usageLimit;
-      console.log(`Kiểm tra mã ${coupon.code}: isActive=${isActive}, notExpired=${notExpired}, hasRemainingUses=${hasRemainingUses}`);
-      return isActive && notExpired && hasRemainingUses;
-    });
-
-    console.log('Mã giảm giá hợp lệ:', JSON.stringify(validCoupons, null, 2));
-    return validCoupons;
+    return coupons.filter(coupon => 
+      coupon.isActive && 
+      (!coupon.expiryDate || new Date(coupon.expiryDate) >= new Date()) && 
+      (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit)
+    );
   } catch (error) {
-    console.error('Lỗi khi lấy mã giảm giá:', error.message, error.stack);
+    console.error('Lỗi khi lấy mã giảm giá:', error.message);
     return [];
   }
 }
 
 function summarizeCoupons(coupons) {
-  if (coupons.length === 0) {
-    return 'Hiện tại chưa có mã giảm giá nào hợp lệ.';
-  }
-  return coupons
-    .map(coupon => {
-      const discount = coupon.discountType === 'percentage'
-        ? `${coupon.discountValue}%`
-        : `${coupon.discountValue.toLocaleString('vi-VN')} VNĐ`;
-      return `Mã: ${coupon.code}\nGiảm: ${discount}\nĐơn tối thiểu: ${coupon.minOrderValue.toLocaleString('vi-VN')} VNĐ\nHết hạn: ${coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString('vi-VN') : 'Không thời hạn'}\nMô tả: ${coupon.description || 'Không có mô tả'}`;
-    })
-    .join('\n---\n');
+  if (coupons.length === 0) return 'Chưa có mã giảm giá.';
+  return coupons.map(coupon => {
+    const discount = coupon.discountType === 'percentage'
+      ? `${coupon.discountValue}%`
+      : `${coupon.discountValue.toLocaleString('vi-VN')} VNĐ`;
+    return `Mã: ${coupon.code}\nGiảm: ${discount}\nHết hạn: ${coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString('vi-VN') : 'Không thời hạn'}`;
+  }).join('\n---\n');
 }
 
 async function getActiveProducts() {
   try {
-    console.log('Đang gọi API sản phẩm:', PRODUCTS_API_URL);
     const response = await fetch(PRODUCTS_API_URL, { timeout: 10000 });
-    console.log('Mã trạng thái API:', response.status);
-    if (!response.ok) {
-      throw new Error(`Lỗi từ API sản phẩm: ${response.status} - ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Lỗi API sản phẩm: ${response.status}`);
     const data = await response.json();
-    console.log('Dữ liệu sản phẩm thô:', JSON.stringify(data, null, 2));
-
     const products = Array.isArray(data) ? data : data.products || [];
-    const activeProducts = products.filter(product =>
-      product.isActive &&
-      product.option &&
+    return products.filter(product => 
+      product.isActive && 
+      product.option && 
       product.option.some(opt => opt.stock > 0)
     );
-
-    console.log('Sản phẩm còn hàng:', JSON.stringify(activeProducts, null, 2));
-    return activeProducts;
   } catch (error) {
-    console.error('Lỗi khi lấy sản phẩm:', error.message, error.stack);
+    console.error('Lỗi khi lấy sản phẩm:', error.message);
     return [];
   }
 }
@@ -108,7 +129,7 @@ async function getActiveProducts() {
 async function getBrands() {
   try {
     const response = await fetch(BRANDS_API_URL, { timeout: 10000 });
-    if (!response.ok) throw new Error(`Lỗi từ API thương hiệu: ${response.status} - ${response.statusText}`);
+    if (!response.ok) throw new Error(`Lỗi API thương hiệu: ${response.status}`);
     const brands = await response.json();
     return brands.filter(brand => brand.status === 'show');
   } catch (error) {
@@ -119,11 +140,9 @@ async function getBrands() {
 
 async function getNews() {
   try {
-    console.log('Đang gọi API tin tức:', NEWS_API_URL);
     const response = await fetch(NEWS_API_URL, { timeout: 10000 });
-    if (!response.ok) throw new Error(`Lỗi từ API tin tức: ${response.status} - ${response.statusText}`);
+    if (!response.ok) throw new Error(`Lỗi API tin tức: ${response.status}`);
     const news = await response.json();
-    console.log('Dữ liệu tin tức thô:', JSON.stringify(news, null, 2));
     return news.filter(item => item.status === 'show').slice(0, 3);
   } catch (error) {
     console.error('Lỗi khi lấy tin tức:', error);
@@ -134,7 +153,7 @@ async function getNews() {
 async function getCategories() {
   try {
     const response = await fetch(CATEGORIES_API_URL, { timeout: 10000 });
-    if (!response.ok) throw new Error(`Lỗi từ API danh mục: ${response.status} - ${response.statusText}`);
+    if (!response.ok) throw new Error(`Lỗi API danh mục: ${response.status}`);
     const categories = await response.json();
     return categories.filter(category => category.status === 'show');
   } catch (error) {
@@ -144,92 +163,69 @@ async function getCategories() {
 }
 
 function filterProducts(products, keyword) {
-  console.log('Từ khóa tìm kiếm:', keyword);
-  console.log('Số sản phẩm đầu vào:', products.length);
-
-  if (!keyword) {
-    console.log('Không có từ khóa, trả về tối đa 3 sản phẩm còn hàng');
-    return products.slice(0, 3);
-  }
-
-  const normalizedKeyword = correctSpelling(keyword);
-  const keywords = normalizedKeyword.toLowerCase().split(/\s+/);
-  const primaryKeywords = ['sữa rửa mặt', 'tạo bọt', 'toner', 'kem chống nắng', 'dưỡng ẩm', 'trang sức', 'mặt dây chuyền'];
-
+  if (!keyword) return products.slice(0, 3);
+  const normalizedKeyword = correctSpelling(keyword).toLowerCase();
+  const keywords = normalizedKeyword.split(/\s+/);
   const filtered = products
     .map(product => {
       const name = (product.name || '').toLowerCase();
-      const shortDesc = (product.short_description || name).toLowerCase();
-      const desc = (product.description || name).toLowerCase();
-
-      let score = 0;
-      if (primaryKeywords.some(kw => name.includes(kw) || shortDesc.includes(kw) || desc.includes(kw))) {
-        score += 2;
-      }
-      const secondaryMatches = keywords.filter(kw => name.includes(kw) || shortDesc.includes(kw) || desc.includes(kw)).length;
-      score += secondaryMatches;
-
-      const similarity = stringSimilarity.compareTwoStrings(normalizedKeyword, name);
-      if (similarity > 0.6) score += 1;
-
-      console.log(`Sản phẩm ${product.name}: score=${score}, similarity=${similarity}`);
+      const shortDesc = (product.short_description || '').toLowerCase();
+      let score = stringSimilarity.compareTwoStrings(normalizedKeyword, name) * 2;
+      score += keywords.filter(kw => name.includes(kw) || shortDesc.includes(kw)).length;
       return { product, score };
     })
-    .filter(item => item.score > 0)
+    .filter(item => item.score > 0.5)
     .sort((a, b) => b.score - a.score)
     .map(item => item.product)
     .slice(0, 3);
-
-  console.log('Sản phẩm sau lọc:', JSON.stringify(filtered, null, 2));
   return filtered;
 }
 
 function summarizeProducts(products) {
-  if (products.length === 0) return 'Không có sản phẩm phù hợp.';
+  if (products.length === 0) return 'Không tìm thấy sản phẩm.';
   return products.map(product => {
     const option = product.option && product.option[0]
-      ? `Giá: ${product.option[0].price.toLocaleString('vi-VN')} VNĐ, Còn hàng: ${product.option[0].stock}`
+      ? `Giá: ${product.option[0].price.toLocaleString('vi-VN')} VNĐ`
       : 'Giá: Liên hệ';
     const images = product.images && product.images.length > 0
-      ? `Hình ảnh: ${product.images.length} ảnh (xem bên dưới)`
+      ? `Hình ảnh: ${product.images[0]}` // Chỉ lấy URL hình ảnh đầu tiên để ngắn gọn
       : 'Không có hình ảnh';
-    return `Sản phẩm: ${product.name}\nMô tả ngắn: ${product.short_description || 'Không có mô tả ngắn'}\nChi tiết: ${product.description ? product.description.substring(0, 200) + '...' : 'Không có chi tiết'}\n${option}\n${images}\n`;
+    return `Sản phẩm: ${product.name}\n${option}\n${images}\nLiên kết: https://purebotanice.com/product/${product.slug || 'khong-co-slug'}`;
   }).join('\n---\n');
 }
 
 function summarizeBrands(brands) {
-  if (brands.length === 0) return 'Không có thương hiệu nào hiện tại.';
-  return brands.map(brand => `Thương hiệu: ${brand.name}\nLogo: ${brand.logoImg || 'Không có logo'}\n`).join('\n---\n');
+  if (brands.length === 0) return 'Chưa có thương hiệu.';
+  return brands.map(brand => `Thương hiệu: ${brand.name}`).join('\n---\n');
 }
 
 function summarizeNews(news) {
-  if (news.length === 0) return 'Hiện tại chưa có tin tức nào.';
-  return news.map(item => {
-    const link = item.slug ? `https://purebotanice.com/news/${item.slug}` : 'Không có liên kết';
-    return `Tiêu đề: ${item.title}\nNgày đăng: ${new Date(item.publishedAt).toLocaleDateString('vi-VN')}\nTóm tắt: ${item.content.substring(0, 100)}...\nLiên kết: ${link}\nHình ảnh: ${item.thumbnailUrl || 'Không có hình ảnh'}`;
-  }).join('\n---\n');
+  if (news.length === 0) return 'Chưa có tin tức.';
+  return news.map(item => 
+    `Tiêu đề: ${item.title}\nLiên kết: ${item.slug ? `https://purebotanice.com/news/${item.slug}` : 'Không có liên kết'}`
+  ).join('\n---\n');
 }
 
 function summarizeCategories(categories) {
-  if (categories.length === 0) return 'Không có danh mục nào hiện tại.';
-  return categories.map(category => `Danh mục: ${category.name}\n`).join('\n---\n');
+  if (categories.length === 0) return 'Chưa có danh mục.';
+  return categories.map(category => `Danh mục: ${category.name}`).join('\n---\n');
 }
 
 const faqs = [
   {
     question: "Sản phẩm của Pure Botanice có phù hợp với da nhạy cảm không?",
-    answer: "Có. Các sản phẩm đều được nghiên cứu và sản xuất với tiêu chuẩn cao, không chứa thành phần gây hại, phù hợp cho cả làn da nhạy cảm."
+    answer: "Có, sản phẩm phù hợp với da nhạy cảm, không chứa thành phần gây hại."
   },
   {
     question: "Muốn hoàn hàng như nào?",
-    answer: "Bạn hãy bấm vào biểu tượng người dùng trên góc phải, chọn thông tin khách hàng, bấm vào đơn hàng chọn xem chi tiết đơn cần hoàn, bấm nút yêu cầu hoàn hàng và nhập lý do và hình ảnh hoặc video về sản phẩm."
+    answer: `Vào ${navigationMap.account.url}, chọn Đơn hàng, bấm Yêu cầu hoàn hàng, nhập lý do và gửi kèm ảnh/video.`
   },
   {
     question: "Có sản phẩm nào vừa dưỡng da vừa giúp thư giãn không?",
     answer: async () => {
       const products = await getActiveProducts();
       const suggestedProducts = filterProducts(products, 'dưỡng da thư giãn');
-      return `Pure Botanice gợi ý:\n${summarizeProducts(suggestedProducts)}`;
+      return `Gợi ý:\n${summarizeProducts(suggestedProducts)}`;
     }
   },
   {
@@ -237,91 +233,96 @@ const faqs = [
     answer: async () => {
       const products = await getActiveProducts();
       const suggestedProducts = filterProducts(products, 'sữa rửa mặt tạo bọt');
-      return `Chào bạn! Dưới đây là các sản phẩm sữa rửa mặt tạo bọt được gợi ý:\n${summarizeProducts(suggestedProducts)}`;
+      return `Gợi ý sữa rửa mặt tạo bọt:\n${summarizeProducts(suggestedProducts)}`;
     }
   },
   {
     question: "Làm sao để thanh toán đơn hàng?",
-    answer: "Sau khi vào Giỏ hàng, bạn chọn Thanh toán để tiến hành đặt hàng. Có 2 phần thanh toán tiền mặt và chuyển khoản ngân hàng."
+    answer: `Vào ${navigationMap.cart.url}, chọn Thanh toán, chọn phương thức tiền mặt hoặc chuyển khoản.`
   },
   {
     question: "Làm sao để xem đơn hàng của tôi?",
-    answer: "Bạn nhấn vào biểu tượng người dùng trên góc phải, chọn Thông tin khách hàng. Sau đó vào mục Đơn hàng để kiểm tra. Nếu xem chi tiết, hãy bấm Xem Chi Tiết."
+    answer: `Vào ${navigationMap.account.url}, chọn Đơn hàng, bấm Xem Chi Tiết.`
   },
   {
     question: "Làm sao để cập nhật thông tin cá nhân?",
-    answer: "Bạn nhấn vào biểu tượng người dùng trên góc phải, chọn Thông tin khách hàng. Sau đó bấm vào Chỉnh sửa thông tin. Sửa xong, tiến hành bấm Lưu để lưu thông tin."
+    answer: `Vào ${navigationMap.account.url}, chọn Chỉnh sửa thông tin, sửa và bấm Lưu.`
   },
   {
     question: "Tôi muốn xem danh sách yêu thích (wishlist)?",
-    answer: "Bấm vào biểu tượng trái tim trên góc phải để xem danh sách sản phẩm bạn đã yêu thích."
+    answer: `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url}.`
   },
   {
     question: "Đăng nhập, Đăng ký ở đâu?",
-    answer: "Bạn nhấn vào biểu tượng người dùng trên góc phải. Nếu bạn đã có tài khoản hoặc đăng nhập bằng Google, tiến hành đăng nhập. Nếu chưa có tài khoản, nhấn vào nút Đăng ký để đăng ký tài khoản!"
+    answer: `Vào ${navigationMap.account.url}, chọn Đăng nhập hoặc Đăng ký.`
   },
   {
     question: "Tôi muốn kiểm tra giỏ hàng thì làm sao?",
-    answer: "Nhấn vào biểu tượng Giỏ hàng trên góc phải để xem các sản phẩm đã thêm."
+    answer: `Bấm biểu tượng giỏ hàng tại ${navigationMap.cart.url}.`
   },
   {
     question: "Có các thương hiệu và danh mục nào?",
     answer: async () => {
       const categories = await getCategories();
       const brands = await getBrands();
-      return `Pure Botanice có các danh mục: ${summarizeCategories(categories)}\nThương hiệu: ${summarizeBrands(brands)}\nCó các phân khúc giá: 100.000đ - 300.000đ, 300.000đ - 500.000đ, 500.000đ trở lên.`;
+      return `Danh mục: ${summarizeCategories(categories)}\nThương hiệu: ${summarizeBrands(brands)}\nGiá: 100.000đ - 300.000đ, 300.000đ - 500.000đ, 500.000đ trở lên.`;
     }
   },
   {
     question: "Có mã giảm giá nào không?",
     answer: async () => {
       const coupons = await getCoupons();
-      if (coupons.length === 0) {
-        return 'Hiện tại chưa có mã giảm giá nào hợp lệ. Hãy theo dõi trang web và fanpage của Pure Botanice để cập nhật các chương trình khuyến mãi mới!';
-      }
-      return `Hiện tại shop có các mã giảm giá:\n${summarizeCoupons(coupons)}\nHãy nhanh tay áp dụng khi mua sắm nhé!`;
+      return coupons.length > 0
+        ? `Mã giảm giá:\n${summarizeCoupons(coupons)}`
+        : 'Chưa có mã giảm giá. Theo dõi trang web để cập nhật!';
     }
   },
   {
     question: "Có tin tức gì mới không?",
     answer: async () => {
       const news = await getNews();
-      return `Tin tức mới nhất từ Pure Botanice:\n${summarizeNews(news)}\nXem chi tiết tại trang tin tức của shop nhé!`;
+      return `Tin tức mới:\n${summarizeNews(news)}`;
     }
   },
   {
     question: "Tin tức gần đây",
     answer: async () => {
       const news = await getNews();
-      return `Tin tức mới nhất từ Pure Botanice:\n${summarizeNews(news)}\nXem chi tiết tại trang tin tức của shop nhé!`;
+      return `Tin tức mới:\n${summarizeNews(news)}`;
     }
   },
   {
     question: "Liên hệ với shop?",
-    answer: "Để liên hệ với chúng tôi, bạn hãy truy cập trang liên hệ và nhập đầy đủ thông tin vào form liên hệ sau đó bấm gửi và đợi chúng tôi phản hồi. Nếu có thắc mắc gì về sản phẩm, hãy để Pure Botanice tư vấn cho bạn!"
-  }
+    answer: `Truy cập ${navigationMap.contact.url}, điền form liên hệ và bấm Gửi.`
+  },
+  {
+    question: "Làm sao để tìm sản phẩm trên web?",
+    answer: `Truy cập ${navigationMap.products.url} để tìm sản phẩm. Bạn có thể lọc theo danh mục hoặc dùng ô tìm kiếm.`
+  },
+  {
+    question: "Làm sao để thêm sản phẩm vào giỏ hàng?",
+    answer: `Vào ${navigationMap.productDetail.url.replace(':slug', '<tên-sản-phẩm>')} để xem chi tiết sản phẩm, sau đó bấm "Thêm vào giỏ hàng".`
+  },
 ];
 
 exports.createOrGetSession = async (req, res) => {
   try {
     let { sessionId } = req.body;
-    if (!sessionId) {
-      sessionId = uuidv4();
-    }
+    if (!sessionId) sessionId = uuidv4();
 
     let chatSession = await ChatMessage.findOne({ sessionId });
     if (!chatSession) {
       chatSession = new ChatMessage({
         sessionId,
-        messages: [{ role: 'model', content: 'Pure Botanice xin chào bạn! 👋\nTôi có thể giúp gì cho bạn hôm nay? Hỏi về sản phẩm, mã giảm giá, tin tức hay bất cứ điều gì bạn muốn nhé!', timestamp: new Date() }],
+        messages: [{ role: 'model', content: 'Pure Botanice xin chào! Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!', timestamp: new Date() }],
       });
       await chatSession.save();
     }
 
     res.status(200).json({ sessionId });
   } catch (error) {
-    console.error('Lỗi trong createOrGetSession:', error);
-    res.status(500).json({ error: 'Lỗi server khi tạo hoặc lấy session chat' });
+    console.error('Lỗi createOrGetSession:', error);
+    res.status(500).json({ error: 'Lỗi server' });
   }
 };
 
@@ -329,15 +330,12 @@ exports.sendMessage = async (req, res) => {
   try {
     const { error, value } = messageValidationSchema.validate(req.body);
     if (error) {
-      console.log('Validation error:', error.details);
-      return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
+      console.log('Lỗi xác thực:', error.details);
+      return res.status(400).json({ error: 'Dữ liệu không hợp lệ' });
     }
 
     const { sessionId, message } = value;
-
-    if (!sessionId) {
-      return res.status(400).json({ error: 'Session ID là bắt buộc' });
-    }
+    if (!sessionId) return res.status(400).json({ error: 'Session ID là bắt buộc' });
 
     let chatSession = await ChatMessage.findOne({ sessionId });
     if (!chatSession) {
@@ -345,10 +343,7 @@ exports.sendMessage = async (req, res) => {
     }
 
     chatSession.messages.push({ role: 'user', content: message, timestamp: new Date() });
-
-    if (chatSession.messages.length > 100) {
-      chatSession.messages.shift();
-    }
+    if (chatSession.messages.length > 100) chatSession.messages.shift();
     await chatSession.save();
 
     let botResponseText = '';
@@ -357,6 +352,7 @@ exports.sendMessage = async (req, res) => {
     let hasCouponQuery = false;
     let hasNewsQuery = false;
     let hasCategoryQuery = false;
+    let hasNavigationQuery = false;
     let suggestedProducts = [];
     let suggestedBrands = [];
     let suggestedCoupons = [];
@@ -365,96 +361,101 @@ exports.sendMessage = async (req, res) => {
 
     const faqMatch = faqs.find(faq => faq.question.toLowerCase() === correctSpelling(message).toLowerCase());
     if (faqMatch) {
+      botResponseText = typeof faqMatch.answer === 'function' ? await faqMatch.answer() : faqMatch.answer;
       if (faqMatch.question.toLowerCase().includes('mã giảm giá') || faqMatch.question.toLowerCase().includes('coupon') || faqMatch.question.toLowerCase().includes('khuyến mãi')) {
         hasCouponQuery = true;
         suggestedCoupons = await getCoupons();
-        botResponseText = suggestedCoupons.length > 0
-          ? `Chào bạn! Hiện tại shop có các mã giảm giá:\n${summarizeCoupons(suggestedCoupons)}\nHãy nhanh tay áp dụng khi mua sắm nhé!`
-          : 'Chào bạn! Hiện tại chưa có mã giảm giá nào hợp lệ. Hãy theo dõi trang web và fanpage của Pure Botanice để cập nhật các chương trình khuyến mãi mới!';
       } else if (faqMatch.question.toLowerCase().includes('tin tức')) {
         hasNewsQuery = true;
         suggestedNews = await getNews();
-        botResponseText = typeof faqMatch.answer === 'function' ? await faqMatch.answer() : `${faqMatch.answer}`;
       } else if (faqMatch.question.toLowerCase().includes('dưỡng da') || faqMatch.question.toLowerCase().includes('sản phẩm') || faqMatch.question.toLowerCase().includes('sữa rửa mặt')) {
         hasProductQuery = true;
         const products = await getActiveProducts();
         suggestedProducts = filterProducts(products, correctSpelling(faqMatch.question));
-        botResponseText = typeof faqMatch.answer === 'function' ? await faqMatch.answer() : `${faqMatch.answer}`;
-      } else {
-        botResponseText = typeof faqMatch.answer === 'function' ? await faqMatch.answer() : `${faqMatch.answer}`;
+      } else if (faqMatch.question.toLowerCase().includes('thương hiệu') || faqMatch.question.toLowerCase().includes('danh mục')) {
+        hasBrandQuery = true;
+        hasCategoryQuery = true;
+        suggestedBrands = await getBrands();
+        suggestedCategories = await getCategories();
+      } else if (faqMatch.question.toLowerCase().includes('truy cập') || faqMatch.question.toLowerCase().includes('làm sao')) {
+        hasNavigationQuery = true;
       }
     } else {
-      const productKeywords = [
-        'sản phẩm', 'gợi ý', 'mua', 'kem', 'mặt nạ', 'toner', 'chống nắng', 'da', 'dưỡng',
-        'mỹ phẩm', 'chăm sóc', 'làn da', 'sữa rửa mặt', 'tạo bọt', 'sửa rửa mặt', 'vitamin c',
-        'rau má', 'tơ tằm', 'dưỡng ẩm', 'kiềm dầu', 'bí đao', 'charming', 'trang sức', 'mặt dây chuyền'
-      ];
+      const productKeywords = ['sản phẩm', 'gợi ý', 'mua', 'kem', 'mặt nạ', 'toner', 'chống nắng', 'da', 'dưỡng', 'mỹ phẩm', 'chăm sóc', 'sữa rửa mặt', 'tạo bọt', 'vitamin c', 'rau má', 'tơ tằm', 'dưỡng ẩm', 'kiềm dầu', 'bí đao', 'charming', 'trang sức', 'mặt dây chuyền'];
       const brandKeywords = ['thương hiệu', 'brand'];
       const couponKeywords = ['mã giảm giá', 'coupon', 'khuyến mãi'];
       const newsKeywords = ['tin tức', 'news', 'bài viết', 'gần đây'];
       const categoryKeywords = ['danh mục', 'category'];
+      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức'];
 
       hasProductQuery = productKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
       hasBrandQuery = brandKeywords.some(keyword => message.toLowerCase().includes(keyword));
       hasCouponQuery = couponKeywords.some(keyword => message.toLowerCase().includes(keyword));
       hasNewsQuery = newsKeywords.some(keyword => message.toLowerCase().includes(keyword));
       hasCategoryQuery = categoryKeywords.some(keyword => message.toLowerCase().includes(keyword));
+      hasNavigationQuery = navigationKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
 
-      console.log('Câu hỏi của khách hàng:', message);
-      console.log('hasNewsQuery:', hasNewsQuery);
+      let context = 'Trả lời bằng tiếng Việt, ngắn gọn, chính xác, chỉ cung cấp thông tin cần thiết. Nếu liên quan đến điều hướng website, sử dụng thông tin sau:\n';
+      context += JSON.stringify(navigationMap, null, 2) + '\n';
+      context += 'Nếu gợi ý sản phẩm, liệt kê tối đa 3 sản phẩm với tên, giá, hình ảnh đầu tiên, liên kết. Luôn khuyến khích mua sắm.\n';
 
-      let context = '';
+      if (hasNavigationQuery) {
+        const matchedPage = Object.keys(navigationMap).find(page => 
+          message.toLowerCase().includes(page) || 
+          navigationMap[page].actions.some(action => 
+            correctSpelling(message).toLowerCase().includes(action.toLowerCase())
+          )
+        );
+        if (matchedPage) {
+          botResponseText = `Để ${message.toLowerCase()}, truy cập ${navigationMap[matchedPage].url}. ${navigationMap[matchedPage].description}`;
+        }
+      }
+
       if (hasNewsQuery) {
-        console.log('Phát hiện yêu cầu về tin tức...');
         suggestedNews = await getNews();
         botResponseText = suggestedNews.length > 0
-          ? `Chào bạn! Dưới đây là các tin tức mới nhất từ Pure Botanice:\n${summarizeNews(suggestedNews)}\nXem chi tiết tại trang tin tức của shop nhé!`
-          : 'Chào bạn! Hiện tại chưa có tin tức mới. Hãy theo dõi trang web và fanpage của Pure Botanice để cập nhật nhé!';
-        context += `Danh sách tin tức hiện có: ${summarizeNews(suggestedNews)}\n\n`;
+          ? `Tin tức mới:\n${summarizeNews(suggestedNews)}`
+          : 'Chưa có tin tức mới. Theo dõi trang web để cập nhật!';
+        context += `Tin tức: ${summarizeNews(suggestedNews)}\n`;
       }
       if (hasProductQuery) {
-        console.log('Phát hiện yêu cầu gợi ý sản phẩm...');
         const products = await getActiveProducts();
         suggestedProducts = filterProducts(products, correctSpelling(message));
         botResponseText = suggestedProducts.length > 0
-          ? `Chào bạn! Dưới đây là các sản phẩm gợi ý phù hợp với yêu cầu của bạn:\n${summarizeProducts(suggestedProducts)}\nThông tin chi tiết hiển thị bên dưới.`
-          : `Chào bạn! Không tìm thấy sản phẩm khớp với "${message}". Dưới đây là một số sản phẩm chăm sóc da nổi bật:\n${summarizeProducts(products.filter(p => p.name.toLowerCase().includes('sữa rửa mặt') || p.name.toLowerCase().includes('toner')).slice(0, 3))}\nThông tin chi tiết hiển thị bên dưới.`;
-        context += `Danh sách sản phẩm hiện có: ${summarizeProducts(suggestedProducts)}\n\n`;
+          ? `Gợi ý sản phẩm:\n${summarizeProducts(suggestedProducts)}`
+          : `Không tìm thấy sản phẩm "${message}". Gợi ý:\n${summarizeProducts(products.filter(p => p.name.toLowerCase().includes('sữa rửa mặt') || p.name.toLowerCase().includes('toner')).slice(0, 3))}`;
+        context += `Sản phẩm: ${summarizeProducts(suggestedProducts)}\n`;
       }
       if (hasBrandQuery) {
-        console.log('Phát hiện yêu cầu về thương hiệu...');
         suggestedBrands = await getBrands();
-        context += `Danh sách thương hiệu hiện có: ${summarizeBrands(suggestedBrands)}\n\n`;
+        botResponseText = suggestedBrands.length > 0
+          ? `Thương hiệu hiện có:\n${summarizeBrands(suggestedBrands)}`
+          : 'Chưa có thông tin thương hiệu.';
+        context += `Thương hiệu: ${summarizeBrands(suggestedBrands)}\n`;
       }
       if (hasCouponQuery) {
-        console.log('Phát hiện yêu cầu về mã giảm giá...');
         suggestedCoupons = await getCoupons();
-        context += `Danh sách mã giảm giá hiện có: ${summarizeCoupons(suggestedCoupons)}\n\n`;
         botResponseText = suggestedCoupons.length > 0
-          ? `Chào bạn! Hiện tại shop có các mã giảm giá:\n${summarizeCoupons(suggestedCoupons)}\nHãy nhanh tay áp dụng khi mua sắm nhé!`
-          : 'Chào bạn! Hiện tại chưa có mã giảm giá nào hợp lệ. Hãy theo dõi trang web và fanpage của Pure Botanice để cập nhật các chương trình khuyến mãi mới!';
+          ? `Mã giảm giá:\n${summarizeCoupons(suggestedCoupons)}`
+          : 'Chưa có mã giảm giá. Theo dõi trang web để cập nhật!';
+        context += `Mã giảm giá: ${summarizeCoupons(suggestedCoupons)}\n`;
       }
       if (hasCategoryQuery) {
-        console.log('Phát hiện yêu cầu về danh mục...');
         suggestedCategories = await getCategories();
-        context += `Danh sách danh mục hiện có: ${summarizeCategories(suggestedCategories)}\n\n`;
+        botResponseText = suggestedCategories.length > 0
+          ? `Danh mục hiện có:\n${summarizeCategories(suggestedCategories)}`
+          : 'Chưa có danh mục.';
+        context += `Danh mục: ${summarizeCategories(suggestedCategories)}\n`;
       }
 
       if (!faqMatch && !botResponseText) {
         const products = await getActiveProducts();
-        context += `Danh sách sản phẩm hiện có: ${summarizeProducts(products)}\n\n`;
-        context += 'Hãy trả lời câu hỏi của khách hàng bằng tiếng Việt, thân thiện, khuyến khích mua sắm, và đề cập rằng thông tin chi tiết sẽ được hiển thị bên dưới nếu có.';
-
+        context += `Sản phẩm: ${summarizeProducts(products)}\n`;
         const chatHistory = chatSession.messages.map(msg => ({
           role: msg.role,
           parts: [{ text: msg.content }],
         }));
-        chatHistory.unshift({
-          role: 'model',
-          parts: [{ text: context }],
-        });
-
-        console.log('Chat history size:', JSON.stringify({ contents: chatHistory }).length, 'bytes');
+        chatHistory.unshift({ role: 'model', parts: [{ text: context }] });
 
         const requestOptions = {
           method: 'POST',
@@ -472,9 +473,9 @@ exports.sendMessage = async (req, res) => {
         botResponseText = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
         if (hasProductQuery) {
           suggestedProducts = filterProducts(products, correctSpelling(message));
-          botResponseText += suggestedProducts.length > 0
-            ? `\n\nDưới đây là một số sản phẩm gợi ý:\n${summarizeProducts(suggestedProducts)}`
-            : `\n\nDưới đây là một số sản phẩm chăm sóc da nổi bật:\n${summarizeProducts(products.filter(p => p.name.toLowerCase().includes('sữa rửa mặt') || p.name.toLowerCase().includes('toner')).slice(0, 3))}`;
+          botResponseText = suggestedProducts.length > 0
+            ? `Gợi ý sản phẩm:\n${summarizeProducts(suggestedProducts)}`
+            : `Không tìm thấy sản phẩm "${message}". Gợi ý:\n${summarizeProducts(products.filter(p => p.name.toLowerCase().includes('sữa rửa mặt') || p.name.toLowerCase().includes('toner')).slice(0, 3))}`;
         }
       }
     }
@@ -484,82 +485,71 @@ exports.sendMessage = async (req, res) => {
 
     const responsePayload = { message: botResponseText };
     if (hasProductQuery && suggestedProducts.length > 0) {
-      responsePayload.products = suggestedProducts.map(product => ({
+      responsePayload.products = suggestedProducts.slice(0, 3).map(product => ({
         name: product.name,
+        slug: product.slug || 'khong-co-slug',
         price: product.option && product.option[0] ? product.option[0].price : null,
-        images: product.images || [],
+        images: product.images || [], // Thêm trường images
       }));
     }
     if (hasBrandQuery && suggestedBrands.length > 0) {
-      responsePayload.brands = suggestedBrands.map(brand => ({
+      responsePayload.brands = suggestedBrands.slice(0, 3).map(brand => ({
         name: brand.name,
-        logoImg: brand.logoImg,
       }));
     }
     if (hasCouponQuery && suggestedCoupons.length > 0) {
-      responsePayload.coupons = suggestedCoupons.map(coupon => ({
+      responsePayload.coupons = suggestedCoupons.slice(0, 3).map(coupon => ({
         code: coupon.code,
         discountValue: coupon.discountValue,
         discountType: coupon.discountType,
-        minOrderValue: coupon.minOrderValue,
-        expiryDate: coupon.expiryDate,
       }));
     }
     if (hasNewsQuery && suggestedNews.length > 0) {
-      responsePayload.news = suggestedNews.map(item => ({
+      responsePayload.news = suggestedNews.slice(0, 3).map(item => ({
         title: item.title,
         slug: item.slug,
-        thumbnailUrl: item.thumbnailUrl,
-        publishedAt: item.publishedAt,
       }));
     }
     if (hasCategoryQuery && suggestedCategories.length > 0) {
-      responsePayload.categories = suggestedCategories.map(category => ({
+      responsePayload.categories = suggestedCategories.slice(0, 3).map(category => ({
         name: category.name,
       }));
     }
 
     res.status(200).json(responsePayload);
   } catch (error) {
-    console.error('Lỗi trong sendMessage:', error);
-    if (error.message && error.message.includes('request entity too large')) {
-      return res.status(413).json({ error: 'Kích thước yêu cầu quá lớn, tối đa 10MB' });
-    } else {
-      return res.status(500).json({ error: 'Lỗi server khi gửi tin nhắn', details: error.message });
+    console.error('Lỗi sendMessage:', error);
+    if (error.message.includes('request entity too large')) {
+      return res.status(413).json({ error: 'Yêu cầu quá lớn, tối đa 10MB' });
     }
+    return res.status(500).json({ error: 'Lỗi server' });
   }
 };
 
 exports.getChatHistory = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    if (!sessionId) {
-      return res.status(400).json({ error: 'Session ID là bắt buộc' });
-    }
+    if (!sessionId) return res.status(400).json({ error: 'Session ID là bắt buộc' });
 
     const chatSession = await ChatMessage.findOne({ sessionId });
-    if (!chatSession) {
-      return res.status(404).json({ error: 'Session không tồn tại' });
-    }
+    if (!chatSession) return res.status(404).json({ error: 'Session không tồn tại' });
 
     res.status(200).json({ messages: chatSession.messages });
   } catch (error) {
-    console.error('Lỗi trong getChatHistory:', error);
-    res.status(500).json({ error: 'Lỗi server khi lấy lịch sử chat' });
+    console.error('Lỗi getChatHistory:', error);
+    res.status(500).json({ error: 'Lỗi server' });
   }
 };
 
 exports.deleteSession = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    if (!sessionId) {
-      return res.status(400).json({ error: 'Session ID là bắt buộc' });
-    }
+    if (!sessionId) return res.status(400).json({ error: 'Session ID là bắt buộc' });
 
     await ChatMessage.deleteOne({ sessionId });
-    res.status(200).json({ message: 'Xóa session chat thành công' });
+    res.status(200).json({ message: 'Xóa session thành công' });
   } catch (error) {
-    console.error('Lỗi trong deleteSession:', error);
-    res.status(500).json({ error: 'Lỗi server khi xóa session chat' });
+    console.error('Lỗi deleteSession:', error);
+    res.status(500).json({ error: 'Lỗi server' });
   }
 };
