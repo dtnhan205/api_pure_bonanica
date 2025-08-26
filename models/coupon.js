@@ -45,7 +45,7 @@ const couponSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: '',
-      maxLength: 200, 
+      maxLength: 200,
     },
   },
   { versionKey: false, timestamps: true }
