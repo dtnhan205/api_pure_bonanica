@@ -1,5 +1,4 @@
 const Coupon = require('../models/coupon');
-const User = require('../models/user');
 const Joi = require('joi');
 const mongoose = require('mongoose');
 
@@ -12,15 +11,6 @@ const couponValidationSchema = Joi.object({
   expiryDate: Joi.date().allow(null).optional(),
   usageLimit: Joi.number().min(1).allow(null).optional(),
   isActive: Joi.boolean().default(true),
-  userId: Joi.string()
-    .optional()
-    .allow(null)
-    .custom((value, helpers) => {
-      if (value && !mongoose.Types.ObjectId.isValid(value)) {
-        return helpers.error('any.invalid', { message: 'ID người dùng không hợp lệ' });
-      }
-      return value;
-    }),
 });
 
 const bulkCouponValidationSchema = Joi.object({
@@ -29,21 +19,7 @@ const bulkCouponValidationSchema = Joi.object({
   minOrderValue: Joi.number().min(0).default(0),
   expiryDays: Joi.number().min(1).required(),
   usageLimit: Joi.number().min(1).allow(null).optional(),
-  target: Joi.string().valid('all', 'selected').required(),
-  userIds: Joi.array()
-    .items(
-      Joi.string().custom((value, helpers) => {
-        if (!mongoose.Types.ObjectId.isValid(value)) {
-          return helpers.error('any.invalid', { message: 'ID người dùng không hợp lệ' });
-        }
-        return value;
-      })
-    )
-    .when('target', {
-      is: 'selected',
-      then: Joi.array().min(1).required(),
-      otherwise: Joi.array().optional().allow(null),
-    }),
+  count: Joi.number().min(1).required(), // Số lượng mã cần tạo
 });
 
 // Hàm tạo mã ngẫu nhiên
@@ -54,12 +30,12 @@ const generateCouponCode = async () => {
   const maxAttempts = 10;
 
   do {
-    code = Array.from({ length: 8 }, () => characters.charAt(Math.floor(Math.random() * characters.length))).join('');
+    code = Array.from({ length: 10 }, () => characters.charAt(Math.floor(Math.random() * characters.length))).join('');
     const existingCoupon = await Coupon.findOne({ code });
     if (!existingCoupon) return code;
     attempts++;
     if (attempts >= maxAttempts) {
-      throw new Error('Could not generate unique coupon code after maximum attempts');
+      throw new Error('Không thể tạo mã giảm giá duy nhất sau số lần thử tối đa');
     }
   } while (true);
 };
@@ -69,7 +45,7 @@ exports.createCoupon = async (req, res) => {
   try {
     const { error, value } = couponValidationSchema.validate(req.body, { abortEarly: false });
     if (error) {
-      console.warn('Validation error in createCoupon:', error.details);
+      console.warn('Lỗi xác thực trong createCoupon:', error.details);
       return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
     }
 
@@ -85,10 +61,10 @@ exports.createCoupon = async (req, res) => {
     });
 
     await coupon.save();
-    console.log(`Coupon created: ${coupon.code}`);
+    console.log(`Đã tạo mã giảm giá: ${coupon.code}`);
     res.status(201).json({ message: 'Tạo mã giảm giá thành công', coupon });
   } catch (error) {
-    console.error('Error in createCoupon:', error);
+    console.error('Lỗi trong createCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi tạo mã giảm giá', details: error.message });
   }
 };
@@ -98,27 +74,13 @@ exports.createBulkCoupons = async (req, res) => {
   try {
     const { error, value } = bulkCouponValidationSchema.validate(req.body, { abortEarly: false });
     if (error) {
-      console.warn('Validation error in createBulkCoupons:', error.details);
+      console.warn('Lỗi xác thực trong createBulkCoupons:', error.details);
       return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
-    }
-
-    let eligibleUsers = [];
-    if (value.target === 'all') {
-      eligibleUsers = await User.find({}, '_id').lean();
-    } else {
-      eligibleUsers = await User.find({ _id: { $in: value.userIds } }, '_id').lean();
-      if (eligibleUsers.length !== value.userIds.length) {
-        return res.status(400).json({ error: 'Một số người dùng không tồn tại' });
-      }
-    }
-
-    if (!eligibleUsers.length) {
-      return res.status(400).json({ error: 'Không có người dùng hợp lệ để tạo mã giảm giá' });
     }
 
     const expiryDate = new Date(Date.now() + value.expiryDays * 24 * 60 * 60 * 1000);
     const coupons = await Promise.all(
-      eligibleUsers.map(async (user) => {
+      Array.from({ length: value.count }, async () => {
         const code = await generateCouponCode();
         return {
           code,
@@ -128,16 +90,15 @@ exports.createBulkCoupons = async (req, res) => {
           expiryDate,
           usageLimit: value.usageLimit || 1,
           isActive: true,
-          userId: user._id,
         };
       })
     );
 
     await Coupon.insertMany(coupons);
-    console.log(`Created ${coupons.length} bulk coupons`);
+    console.log(`Đã tạo ${coupons.length} mã giảm giá hàng loạt`);
     res.status(201).json({ message: `Tạo ${coupons.length} mã giảm giá thành công`, coupons });
   } catch (error) {
-    console.error('Error in createBulkCoupons:', error);
+    console.error('Lỗi trong createBulkCoupons:', error);
     res.status(500).json({ error: 'Lỗi server khi tạo mã giảm giá hàng loạt', details: error.message });
   }
 };
@@ -148,7 +109,7 @@ exports.updateCoupon = async (req, res) => {
     const { id } = req.params;
     const { error, value } = couponValidationSchema.validate(req.body, { abortEarly: false });
     if (error) {
-      console.warn('Validation error in updateCoupon:', error.details);
+      console.warn('Lỗi xác thực trong updateCoupon:', error.details);
       return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
     }
 
@@ -168,10 +129,10 @@ exports.updateCoupon = async (req, res) => {
     });
 
     await coupon.save();
-    console.log(`Coupon updated: ${coupon.code}`);
+    console.log(`Đã cập nhật mã giảm giá: ${coupon.code}`);
     res.json({ message: 'Cập nhật mã giảm giá thành công', coupon });
   } catch (error) {
-    console.error('Error in updateCoupon:', error);
+    console.error('Lỗi trong updateCoupon:', error);
     if (error.code === 11000) {
       return res.status(400).json({ error: 'Mã giảm giá đã tồn tại' });
     }
@@ -192,10 +153,10 @@ exports.deleteCoupon = async (req, res) => {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại' });
     }
 
-    console.log(`Coupon deleted: ${coupon.code}`);
+    console.log(`Đã xóa mã giảm giá: ${coupon.code}`);
     res.json({ message: 'Xóa mã giảm giá thành công' });
   } catch (error) {
-    console.error('Error in deleteCoupon:', error);
+    console.error('Lỗi trong deleteCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi xóa mã giảm giá', details: error.message });
   }
 };
@@ -215,8 +176,7 @@ exports.getCoupons = async (req, res) => {
     }
 
     const coupons = await Coupon.find(query)
-      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount userId')
-      .populate('userId', 'email username')
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount')
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 })
@@ -224,7 +184,7 @@ exports.getCoupons = async (req, res) => {
 
     const total = await Coupon.countDocuments(query);
 
-    console.log(`Fetched ${coupons.length} coupons for page ${page}`);
+    console.log(`Đã lấy ${coupons.length} mã giảm giá cho trang ${page}`);
     res.json({
       coupons,
       pagination: {
@@ -235,7 +195,7 @@ exports.getCoupons = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error in getCoupons:', error);
+    console.error('Lỗi trong getCoupons:', error);
     res.status(500).json({ error: 'Lỗi server khi lấy danh sách mã giảm giá', details: error.message });
   }
 };
@@ -249,42 +209,33 @@ exports.getCouponById = async (req, res) => {
     }
 
     const coupon = await Coupon.findById(id)
-      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive userId')
-      .populate('userId', 'email username')
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount')
       .lean();
 
     if (!coupon) {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại' });
     }
 
-    console.log(`Fetched coupon: ${coupon.code}`);
+    console.log(`Đã lấy mã giảm giá: ${coupon.code}`);
     res.json({ coupon });
   } catch (error) {
-    console.error('Error in getCouponById:', error);
+    console.error('Lỗi trong getCouponById:', error);
     res.status(500).json({ error: 'Lỗi server khi lấy chi tiết mã giảm giá', details: error.message });
   }
 };
 
-// Tạo mã tự động cho ngày đặc biệt
+// Tạo mã giảm giá tự động cho ngày đặc biệt
 exports.createAutoSpecialCoupons = async (specialConfig) => {
   try {
-    console.log('Starting createAutoSpecialCoupons with config:', specialConfig);
-    const eligibleUsers = await User.find({}, '_id').lean();
-    console.log('Found users:', eligibleUsers.length);
-    if (!eligibleUsers.length) {
-      console.warn('No users for auto coupon creation');
-      return;
-    }
-
+    console.log('Bắt đầu createAutoSpecialCoupons với config:', specialConfig);
+    
     const expiryDate = new Date(Date.now() + specialConfig.expiryDays * 24 * 60 * 60 * 1000);
-    console.log('Calculated expiry date:', expiryDate);
+    console.log('Ngày hết hạn tính toán:', expiryDate);
 
-    // Tạo một mã duy nhất
     const commonCode = await generateCouponCode();
-    console.log('Generated common coupon code:', commonCode);
+    console.log('Mã giảm giá chung được tạo:', commonCode);
 
-    // Tạo mảng coupons với cùng mã cho từng user
-    const coupons = eligibleUsers.map((user) => ({
+    const coupon = {
       code: commonCode,
       discountType: specialConfig.discountType,
       discountValue: specialConfig.discountValue,
@@ -292,21 +243,20 @@ exports.createAutoSpecialCoupons = async (specialConfig) => {
       expiryDate,
       usageLimit: specialConfig.usageLimit || 1,
       isActive: true,
-      userId: user._id,
-    }));
+    };
 
-    await Coupon.insertMany(coupons);
-    console.log(`Auto created ${coupons.length} special coupons with code ${commonCode} on ${new Date().toLocaleDateString()}`);
+    await Coupon.create(coupon);
+    console.log(`Đã tạo mã giảm giá đặc biệt với mã ${commonCode} vào ${new Date().toLocaleDateString()}`);
   } catch (error) {
-    console.error('Error in createAutoSpecialCoupons:', error);
+    console.error('Lỗi trong createAutoSpecialCoupons:', error);
     throw error;
   }
 };
 
-// Thiết lập config cho ngày đặc biệt
+// Thiết lập tự động tạo mã giảm giá
 exports.setupAutoCoupons = async (req, res) => {
   try {
-    console.log('Received request body in setupAutoCoupons:', req.body);
+    console.log('Nhận yêu cầu trong setupAutoCoupons:', req.body);
     const schema = Joi.object({
       discountType: Joi.string().valid('percentage', 'fixed').required(),
       discountValue: Joi.number().min(0).required(),
@@ -318,35 +268,34 @@ exports.setupAutoCoupons = async (req, res) => {
 
     const { error, value } = schema.validate(req.body, { abortEarly: false });
     if (error) {
-      console.log('Validation error in setupAutoCoupons:', error.details);
+      console.log('Lỗi xác thực trong setupAutoCoupons:', error.details);
       return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
     }
 
-    // Lưu cấu hình
     global.specialCouponConfig = value;
-    console.log('Auto coupon config set:', global.specialCouponConfig);
+    console.log('Cấu hình tự động mã giảm giá được thiết lập:', global.specialCouponConfig);
 
-    // Kiểm tra và tạo mã ngay nếu ngày hiện tại khớp
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    console.log('Today is:', today);
+    const today = new Date().toISOString().slice(0, 10);
+    console.log('Hôm nay là:', today);
     if (global.specialCouponConfig.specialDays.includes(today)) {
-      console.log('Special day matched today, creating coupons immediately...');
-      await exports.createAutoSpecialCoupons(global.specialCouponConfig); // Gọi hàm đã sửa
-      console.log('Coupons created for special day:', today);
+      console.log('Khớp với ngày đặc biệt, tạo mã ngay lập tức...');
+      await exports.createAutoSpecialCoupons(global.specialCouponConfig);
+      console.log('Đã tạo mã giảm giá cho ngày đặc biệt:', today);
     } else {
-      console.log('No special day match today, skipping creation.');
+      console.log('Không khớp ngày đặc biệt, bỏ qua việc tạo.');
     }
 
     res.status(200).json({ message: 'Thiết lập tự động tạo mã giảm giá thành công' });
   } catch (error) {
-    console.error('Error in setupAutoCoupons:', error);
+    console.error('Lỗi trong setupAutoCoupons:', error);
     res.status(500).json({ error: 'Lỗi server khi thiết lập tự động' });
   }
 };
 
+// Lấy cấu hình tự động
 exports.getAutoSetupConfig = async (req, res) => {
   try {
-    console.log('Starting getAutoSetupConfig');
+    console.log('Bắt đầu getAutoSetupConfig');
     const config = global.specialCouponConfig || {
       discountType: "percentage",
       discountValue: 15,
@@ -355,11 +304,11 @@ exports.getAutoSetupConfig = async (req, res) => {
       usageLimit: 1,
       specialDays: ["2025-09-02", "2026-01-01"],
     };
-    console.log('Config to send:', config);
+    console.log('Cấu hình gửi đi:', config);
     res.status(200).json({ success: true, config });
   } catch (error) {
-    console.error('Error in getAutoSetupConfig:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Lỗi trong getAutoSetupConfig:', error);
+    res.status(500).json({ error: 'Lỗi server khi lấy cấu hình tự động', details: error.message });
   }
 };
 
