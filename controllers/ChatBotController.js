@@ -13,7 +13,7 @@ const COUPONS_API_URL = 'https://api-zeal.onrender.com/api/coupons';
 const NEWS_API_URL = 'https://api-zeal.onrender.com/api/news';
 const CATEGORIES_API_URL = 'https://api-zeal.onrender.com/api/categories';
 
-// Định nghĩa navigationMap, faqs, và các hàm hỗ trợ như trong code gốc
+// Định nghĩa navigationMap
 const navigationMap = {
   home: {
     description: "Trang chủ hiển thị sản phẩm nổi bật và tin tức.",
@@ -57,6 +57,7 @@ const navigationMap = {
   },
 };
 
+// Định nghĩa schema xác thực
 const messageValidationSchema = Joi.object({
   sessionId: Joi.string().required().messages({
     'string.empty': 'Session ID không được để trống',
@@ -69,6 +70,7 @@ const messageValidationSchema = Joi.object({
   }),
 });
 
+// Hàm sửa lỗi chính tả
 function correctSpelling(keyword) {
   const corrections = {
     'sửa rửa mặt': 'sữa rửa mặt',
@@ -82,6 +84,7 @@ function correctSpelling(keyword) {
   return corrected;
 }
 
+// Hàm lấy mã giảm giá
 async function getCoupons() {
   try {
     const response = await fetch(COUPONS_API_URL, { timeout: 10000 });
@@ -99,6 +102,7 @@ async function getCoupons() {
   }
 }
 
+// Hàm tóm tắt mã giảm giá
 function summarizeCoupons(coupons) {
   if (coupons.length === 0) return 'Chưa có mã giảm giá.';
   return coupons.map(coupon => {
@@ -109,6 +113,7 @@ function summarizeCoupons(coupons) {
   }).join('\n---\n');
 }
 
+// Hàm lấy sản phẩm
 async function getActiveProducts() {
   try {
     const response = await fetch(PRODUCTS_API_URL, { timeout: 10000 });
@@ -126,6 +131,7 @@ async function getActiveProducts() {
   }
 }
 
+// Hàm lấy thương hiệu
 async function getBrands() {
   try {
     const response = await fetch(BRANDS_API_URL, { timeout: 10000 });
@@ -138,6 +144,7 @@ async function getBrands() {
   }
 }
 
+// Hàm lấy tin tức
 async function getNews() {
   try {
     const response = await fetch(NEWS_API_URL, { timeout: 10000 });
@@ -150,6 +157,7 @@ async function getNews() {
   }
 }
 
+// Hàm lấy danh mục
 async function getCategories() {
   try {
     const response = await fetch(CATEGORIES_API_URL, { timeout: 10000 });
@@ -162,6 +170,7 @@ async function getCategories() {
   }
 }
 
+// Hàm lọc sản phẩm
 function filterProducts(products, keyword) {
   if (!keyword) return products.slice(0, 3);
   const normalizedKeyword = correctSpelling(keyword).toLowerCase();
@@ -181,6 +190,7 @@ function filterProducts(products, keyword) {
   return filtered;
 }
 
+// Hàm tóm tắt sản phẩm
 function summarizeProducts(products) {
   if (products.length === 0) return 'Không có sản phẩm.';
   return products.map(product => {
@@ -194,11 +204,13 @@ function summarizeProducts(products) {
   }).join('\n');
 }
 
+// Hàm tóm tắt thương hiệu
 function summarizeBrands(brands) {
   if (brands.length === 0) return 'Chưa có thương hiệu.';
   return brands.map(brand => `Thương hiệu: ${brand.name}`).join('\n---\n');
 }
 
+// Hàm tóm tắt tin tức
 function summarizeNews(news) {
   if (news.length === 0) return 'Chưa có tin tức.';
   return news.map(item => 
@@ -206,11 +218,13 @@ function summarizeNews(news) {
   ).join('\n---\n');
 }
 
+// Hàm tóm tắt danh mục
 function summarizeCategories(categories) {
   if (categories.length === 0) return 'Chưa có danh mục.';
   return categories.map(category => `Danh mục: ${category.name}`).join('\n---\n');
 }
 
+// Danh sách FAQ
 const faqs = [
   {
     question: "Sản phẩm của Pure Botanice có phù hợp với da nhạy cảm không?",
@@ -250,7 +264,7 @@ const faqs = [
   },
   {
     question: "Tôi muốn xem danh sách yêu thích (wishlist)?",
-    answer: `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url}.`
+    answer: `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url} để xem danh sách yêu thích.`
   },
   {
     question: "Đăng nhập, Đăng ký ở đâu?",
@@ -305,25 +319,34 @@ const faqs = [
   },
 ];
 
+// Hàm xử lý gửi tin nhắn
 exports.sendMessage = async (req, res) => {
   try {
+    // Xác thực dữ liệu
     const { error, value } = messageValidationSchema.validate(req.body);
     if (error) {
       console.log('Lỗi xác thực:', error.details);
-      return res.status(400).json({ error: 'Dữ liệu không hợp lệ' });
+      return res.status(400).json({ error: error.details[0].message });
     }
 
     const { sessionId, message } = value;
-    if (!sessionId) return res.status(400).json({ error: 'Session ID là bắt buộc' });
+    if (!sessionId || !message) {
+      return res.status(400).json({ error: 'Session ID và tin nhắn là bắt buộc' });
+    }
 
+    // Tìm hoặc tạo session
     let chatSession = await ChatMessage.findOne({ sessionId });
     if (!chatSession) {
       chatSession = new ChatMessage({ sessionId, messages: [] });
     }
 
+    // Thêm tin nhắn người dùng
     chatSession.messages.push({ role: 'user', content: message, timestamp: new Date() });
     if (chatSession.messages.length > 50) chatSession.messages.shift();
-    await chatSession.save();
+    await chatSession.save().catch(err => {
+      console.error('Lỗi khi lưu chatSession:', err);
+      throw err;
+    });
 
     let botResponseText = '';
     let hasProductQuery = false;
@@ -338,6 +361,7 @@ exports.sendMessage = async (req, res) => {
     let suggestedNews = [];
     let suggestedCategories = [];
 
+    // Kiểm tra FAQ
     const faqMatch = faqs.find(faq => faq.question.toLowerCase() === correctSpelling(message).toLowerCase());
     if (faqMatch) {
       botResponseText = typeof faqMatch.answer === 'function' ? await faqMatch.answer() : faqMatch.answer;
@@ -360,12 +384,14 @@ exports.sendMessage = async (req, res) => {
         hasNavigationQuery = true;
       }
     } else {
+      // Kiểm tra từ khóa
       const productKeywords = ['gợi ý', 'mua', 'kem', 'mặt nạ', 'toner', 'chống nắng', 'da', 'dưỡng', 'mỹ phẩm', 'chăm sóc', 'sữa rửa mặt', 'tạo bọt', 'vitamin c', 'rau má', 'tơ tằm', 'dưỡng ẩm', 'kiềm dầu', 'bí đao', 'charming'];
       const brandKeywords = ['thương hiệu', 'brand'];
       const couponKeywords = ['mã giảm giá', 'coupon', 'khuyến mãi'];
       const newsKeywords = ['tin tức', 'news', 'bài viết', 'gần đây'];
       const categoryKeywords = ['danh mục', 'category'];
-      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức', 'xem', 'ở đâu'];
+      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức', 'xem'];
+      const greetingKeywords = ['chào', 'hello', 'hi', 'xin chào'];
 
       hasProductQuery = productKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
       hasBrandQuery = brandKeywords.some(keyword => message.toLowerCase().includes(keyword));
@@ -373,12 +399,12 @@ exports.sendMessage = async (req, res) => {
       hasNewsQuery = newsKeywords.some(keyword => message.toLowerCase().includes(keyword));
       hasCategoryQuery = categoryKeywords.some(keyword => message.toLowerCase().includes(keyword));
       hasNavigationQuery = navigationKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
+      const isGreeting = greetingKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
 
-      let context = 'Bạn là trợ lý chatbot của Pure Botanica, trả lời ngắn gọn bằng tiếng Việt, chỉ cung cấp thông tin cần thiết. Nếu câu hỏi không liên quan đến sản phẩm, mã giảm giá, tin tức, hoặc điều hướng website, hãy suy luận và trả lời chính xác, tự nhiên, và hữu ích.\n';
-      context += 'Nếu gợi ý sản phẩm, chỉ trả về "Dưới đây là các sản phẩm gợi ý cho bạn:" trong message, chi tiết sản phẩm (tên, giá, hình ảnh đầu tiên, liên kết) nằm trong mảng products.\n';
-      context += 'Nếu liên quan đến điều hướng web, sử dụng URL và mô tả từ navigationMap.\n';
-
-      if (hasNavigationQuery) {
+      // Xử lý theo loại query
+      if (isGreeting) {
+        botResponseText = 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn. Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!';
+      } else if (hasNavigationQuery) {
         const matchedPage = Object.keys(navigationMap).find(page => 
           message.toLowerCase().includes(page) || 
           navigationMap[page].actions.some(action => 
@@ -390,7 +416,7 @@ exports.sendMessage = async (req, res) => {
           if (message.toLowerCase().includes('sản phẩm yêu thích') || message.toLowerCase().includes('wishlist')) {
             botResponseText = `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url} để xem danh sách yêu thích.`;
           } else {
-            botResponseText = `Truy cập ${navigationMap[matchedPage].url} để ${message.toLowerCase()}.`;
+            botResponseText = `Truy cập ${navigationMap[matchedPage].url} để ${message.toLowerCase().replace('ở đâu', '').trim()}.`;
           }
         } else {
           botResponseText = 'Không tìm thấy trang phù hợp. Vui lòng thử lại!';
@@ -421,8 +447,13 @@ exports.sendMessage = async (req, res) => {
           : 'Chưa có danh mục.';
       } else {
         // Gọi Gemini API cho câu hỏi ngoài FAQ
+        let context = 'Bạn là trợ lý chatbot của Pure Botanica, trả lời ngắn gọn bằng tiếng Việt, chỉ cung cấp thông tin cần thiết. Nếu có thể, trả lời tự nhiên và hữu ích. Nếu không biết, nói "Xin lỗi tôi không có đủ thông tin để trả lời câu hỏi này!".\n';
+        context += 'Nếu gợi ý sản phẩm, chỉ trả về "Dưới đây là các sản phẩm gợi ý cho bạn:" trong message, chi tiết sản phẩm (tên, giá, hình ảnh đầu tiên, liên kết) nằm trong mảng products.\n';
+        context += 'Nếu liên quan đến điều hướng web, sử dụng URL và mô tả từ navigationMap.\n';
+
         const products = await getActiveProducts();
-        context += `Sản phẩm: ${summarizeProducts(products.slice(0, 2))}\n`;
+        context += `Sản phẩm mẫu: ${summarizeProducts(products.slice(0, 2))}\n`;
+
         const chatHistory = chatSession.messages.slice(-10).map(msg => ({
           role: msg.role,
           parts: [{ text: msg.content }],
@@ -432,30 +463,32 @@ exports.sendMessage = async (req, res) => {
 
         if (!API_KEY) {
           console.error('GEMINI_API_KEY không được thiết lập');
-          return res.status(500).json({ error: 'Cấu hình API không hợp lệ' });
-        }
-
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: chatHistory }),
-        };
-
-        const response = await fetch(API_URL, requestOptions);
-        if (!response.ok) {
-          console.error('Lỗi từ Gemini API:', response.status, response.statusText);
-          throw new Error(`Lỗi từ Gemini API: ${response.status}`);
-        }
-        const data = await response.json();
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-          console.error('Phản hồi từ Gemini API không hợp lệ:', data);
-          botResponseText = 'Xin lỗi, tôi không thể xử lý câu hỏi này. Hãy thử hỏi về sản phẩm, mã giảm giá, hoặc cách sử dụng website!';
+          botResponseText = 'Xin lỗi, hệ thống chưa được cấu hình để trả lời câu hỏi này!';
         } else {
-          botResponseText = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
+          const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: chatHistory }),
+          };
+
+          const response = await fetch(API_URL, requestOptions);
+          if (!response.ok) {
+            console.error('Lỗi từ Gemini API:', response.status, response.statusText);
+            botResponseText = 'Xin lỗi, có lỗi khi kết nối đến hệ thống xử lý, hãy thử lại sau!';
+          } else {
+            const data = await response.json();
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+              console.error('Phản hồi từ Gemini API không hợp lệ:', data);
+              botResponseText = 'Xin lỗi tôi không có đủ thông tin để trả lời câu hỏi này!';
+            } else {
+              botResponseText = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
+            }
+          }
         }
       }
     }
 
+    // Cắt ngắn nếu quá 500 ký tự
     if (botResponseText.length > 500) {
       const lines = botResponseText.split('\n');
       let truncated = '';
@@ -468,9 +501,14 @@ exports.sendMessage = async (req, res) => {
       botResponseText = truncated.trim() + '...';
     }
 
+    // Thêm phản hồi bot vào session
     chatSession.messages.push({ role: 'model', content: botResponseText, timestamp: new Date() });
-    await chatSession.save();
+    await chatSession.save().catch(err => {
+      console.error('Lỗi khi lưu chatSession:', err);
+      throw err;
+    });
 
+    // Chuẩn bị payload trả về
     const responsePayload = { message: botResponseText };
     if (hasProductQuery && suggestedProducts.length > 0) {
       responsePayload.products = suggestedProducts.slice(0, 2).map(product => ({
@@ -510,7 +548,7 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-// Các hàm khác giữ nguyên
+// Hàm tạo hoặc lấy session
 exports.createOrGetSession = async (req, res) => {
   try {
     let { sessionId } = req.body;
@@ -522,7 +560,10 @@ exports.createOrGetSession = async (req, res) => {
         sessionId,
         messages: [{ role: 'model', content: 'Pure Botanice xin chào! Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!', timestamp: new Date() }],
       });
-      await chatSession.save();
+      await chatSession.save().catch(err => {
+        console.error('Lỗi khi lưu session mới:', err);
+        throw err;
+      });
     }
 
     res.status(200).json({ sessionId });
@@ -532,6 +573,7 @@ exports.createOrGetSession = async (req, res) => {
   }
 };
 
+// Hàm lấy lịch sử chat
 exports.getChatHistory = async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -547,12 +589,16 @@ exports.getChatHistory = async (req, res) => {
   }
 };
 
+// Hàm xóa session
 exports.deleteSession = async (req, res) => {
   try {
     const { sessionId } = req.params;
     if (!sessionId) return res.status(400).json({ error: 'Session ID là bắt buộc' });
 
-    await ChatMessage.deleteOne({ sessionId });
+    await ChatMessage.deleteOne({ sessionId }).catch(err => {
+      console.error('Lỗi khi xóa session:', err);
+      throw err;
+    });
     res.status(200).json({ message: 'Xóa session thành công' });
   } catch (error) {
     console.error('Lỗi deleteSession:', error);
