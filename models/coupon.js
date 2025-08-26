@@ -41,6 +41,12 @@ const couponSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    description: { 
+      type: String,
+      trim: true,
+      default: '',
+      maxLength: 200, 
+    },
   },
   { versionKey: false, timestamps: true }
 );
