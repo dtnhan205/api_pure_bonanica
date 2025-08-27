@@ -23,9 +23,9 @@ const checkAndCreateSpecialCoupons = async () => {
   } else {
     console.log('No special day match today.');
   }
-};
+}; 
 
-cron.schedule('0 0 * * *', () => {
+cron.schedule('0 * * * *', () => {
   console.log('Checking for special day coupons at', new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
   checkAndCreateSpecialCoupons();
 }, {
