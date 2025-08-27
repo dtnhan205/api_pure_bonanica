@@ -928,7 +928,7 @@ exports.updateOrder = async (req, res) => {
     }
 
     if (updateFields.shippingStatus) {
-      const validStatuses = ['pending', 'in_transit', 'delivered', 'returned', 'cancelled', 'failed'];
+      const validStatuses = ['pending','confirmed', 'in_transit', 'delivered', 'returned', 'cancelled', 'failed'];
       if (!validStatuses.includes(updateFields.shippingStatus)) {
         throw new Error('Trạng thái vận chuyển không hợp lệ');
       }
