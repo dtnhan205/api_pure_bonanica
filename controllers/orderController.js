@@ -629,11 +629,11 @@ exports.requestOrderReturn = async (req, res) => {
     let returnVideos = [];
 
     if (req.files) {
-      if (req.files.images) {
-        if (req.files.images.length > 5) {
+      if (req.files.returnImages) { 
+        if (req.files.returnImages.length > 5) {
           return res.status(400).json({ error: 'Tối đa 5 ảnh' });
         }
-        returnImages = req.files.images.map(file => ({
+        returnImages = req.files.returnImages.map(file => ({
           url: file.path,
           public_id: file.filename
         }));
