@@ -23,7 +23,12 @@ const chatMessageSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
-        // Tùy chọn: Thêm trường imageMetadata nếu muốn lưu thông tin hình ảnh
+        // Lưu base64 của hình ảnh để hiển thị khi load history
+        imageBase64: {
+          type: String,
+          required: false,
+        },
+        // Lưu metadata hình ảnh (nếu cần)
         imageMetadata: {
           type: {
             mimeType: String,
@@ -31,8 +36,44 @@ const chatMessageSchema = new mongoose.Schema(
           },
           required: false,
         },
+        // Lưu sản phẩm gợi ý
+        products: [
+          {
+            name: { type: String, required: true },
+            slug: { type: String, required: true },
+            price: { type: Number, required: false },
+            images: [{ type: String }],
+          },
+        ],
+        // Lưu mã giảm giá gợi ý
+        coupons: [
+          {
+            code: { type: String, required: true },
+            discountValue: { type: Number, required: true },
+            discountType: { type: String, required: true },
+          },
+        ],
+        // Lưu tin tức gợi ý
+        news: [
+          {
+            title: { type: String, required: true },
+            slug: { type: String, required: true },
+          },
+        ],
+        // Lưu thương hiệu gợi ý
+        brands: [
+          {
+            name: { type: String, required: true },
+          },
+        ],
+        // Lưu danh mục gợi ý
+        categories: [
+          {
+            name: { type: String, required: true },
+          },
+        ],
       },
-      { maxlength: 200 }, // Giới hạn số lượng tin nhắn trong mỗi session
+      { maxlength: 200 }, // Giới hạn số lượng tin nhắn
     ],
   },
   { versionKey: false, timestamps: true }

@@ -6,7 +6,7 @@ const fetch = require('node-fetch');
 const stringSimilarity = require('string-similarity');
 const multer = require('multer');
 const fs = require('fs').promises;
-const path = require('path'); // Đảm bảo dòng này có và đúng cú pháp
+const path = require('path');
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
@@ -16,11 +16,10 @@ const COUPONS_API_URL = 'https://api-zeal.onrender.com/api/coupons';
 const NEWS_API_URL = 'https://api-zeal.onrender.com/api/news';
 const CATEGORIES_API_URL = 'https://api-zeal.onrender.com/api/categories';
 
-
-// Cấu hình multer để lưu trữ tạm thời
+// Cấu hình multer
 const upload = multer({
   dest: 'uploads/',
-  limits: { fileSize: 10 * 1024 * 1024 }, // Giới hạn 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -649,7 +648,7 @@ exports.createOrGetSession = async (req, res) => {
     if (!chatSession) {
       chatSession = new ChatMessage({
         sessionId,
-        messages: [{ role: 'model', content: 'Pure Botanice xin chào! Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!', timestamp: new Date() }],
+        messages: [{ role: 'model', content: 'Pure Botanice xin chào! tôi có thể giúp gì cho bạn!', timestamp: new Date() }],
       });
       await chatSession.save().catch(err => {
         console.error('Lỗi khi lưu session mới:', err);
@@ -692,19 +691,32 @@ exports.analyzeSkin = [
 
       // Thêm tin nhắn người dùng
       const userContent = message || 'Phân tích tình trạng da từ hình ảnh';
-      chatSession.messages.push({
+      const userMessageObj = {
         role: 'user',
         content: userContent,
         timestamp: new Date(),
-        imageMetadata: req.file ? {
+      };
+
+      if (req.file) {
+        const imageBuffer = await fs.readFile(req.file.path);
+        const imageBase64 = imageBuffer.toString('base64');
+        userMessageObj.imageBase64 = imageBase64; // Lưu base64 để load lại
+        userMessageObj.imageMetadata = {
           mimeType: req.file.mimetype,
           filename: req.file.originalname,
-        } : undefined,
-      });
+        };
+      }
+
+      chatSession.messages.push(userMessageObj);
 
       // Xử lý hình ảnh và/hoặc văn bản
       let botResponseText = '';
       let suggestedProducts = [];
+      let suggestedCoupons = [];
+      let suggestedNews = [];
+      let suggestedBrands = [];
+      let suggestedCategories = [];
+
       if (req.file || message) {
         const imageBuffer = req.file ? await fs.readFile(req.file.path) : null;
         botResponseText = await analyzeSkinImage(imageBuffer, message);
@@ -735,6 +747,7 @@ exports.analyzeSkin = [
             const products = await getActiveProducts();
             suggestedProducts = filterProducts(products, correctSpelling(faqMatch.question)).slice(0, 2);
           }
+          // Tương tự cho các loại khác nếu cần (coupons, news, etc.)
         }
       }
 
@@ -751,31 +764,60 @@ exports.analyzeSkin = [
         botResponseText = truncated.trim() + '...';
       }
 
-      // Thêm phản hồi bot
-      chatSession.messages.push({
-        role: 'model',
-        content: botResponseText,
-        timestamp: new Date(),
-      });
+      // Thêm phản hồi bot với gợi ý
+const botMessageObj = {
+  role: 'model',
+  content: botResponseText,
+  timestamp: new Date(),
+  products: suggestedProducts.map(product => ({
+    name: product.name,
+    slug: product.slug || 'khong-co-slug',
+    price: product.option && product.option[0] ? product.option[0].price : null,
+    images: product.images || [],
+  })),
+  coupons: suggestedCoupons.map(coupon => ({
+    code: coupon.code,
+    discountValue: coupon.discountValue,
+    discountType: coupon.discountType,
+    minOrderValue: coupon.minOrderValue || 0, // Thêm nếu cần, mặc định 0 nếu không có
+    expiryDate: coupon.expiryDate || null, // Thêm nếu cần, lưu ngày hết hạn
+  })),
+  news: suggestedNews.map(item => ({
+    title: item.title,
+    slug: item.slug,
+    thumbnailUrl: item.thumbnailUrl || null, // Thêm nếu có URL hình ảnh tin tức
+    publishedAt: item.publishedAt || null, // Thêm nếu có ngày xuất bản
+  })),
+  brands: suggestedBrands.map(brand => ({
+    name: brand.name,
+    logoImg: brand.logoImg || null, // Thêm nếu có URL logo thương hiệu
+  })),
+  categories: suggestedCategories.map(category => ({
+    name: category.name,
+  })),
+};
 
-      if (chatSession.messages.length > 200) chatSession.messages.shift();
-      await chatSession.save().catch(err => {
-        console.error('Lỗi khi lưu chatSession:', err);
-        throw err;
-      });
+      // Thêm botMessageObj vào chatSession.messages
+chatSession.messages.push(botMessageObj);
 
-      // Chuẩn bị payload trả về
-      const responsePayload = { message: botResponseText };
-      if (suggestedProducts.length > 0) {
-        responsePayload.products = suggestedProducts.map(product => ({
-          name: product.name,
-          slug: product.slug || 'khong-co-slug',
-          price: product.option && product.option[0] ? product.option[0].price : null,
-          images: product.images || [],
-        }));
-      }
+      // Kiểm tra giới hạn số lượng tin nhắn và lưu session
+if (chatSession.messages.length > 200) {
+  chatSession.messages.shift(); // Xóa tin nhắn cũ nhất nếu vượt quá giới hạn
+}
+await chatSession.save().catch(err => {
+  console.error('Lỗi khi lưu chatSession:', err);
+  throw err;
+});
 
-      res.status(200).json(responsePayload);
+// Chuẩn bị payload trả về
+const responsePayload = { message: botResponseText };
+if (suggestedProducts.length > 0) responsePayload.products = botMessageObj.products;
+if (suggestedCoupons.length > 0) responsePayload.coupons = botMessageObj.coupons;
+if (suggestedNews.length > 0) responsePayload.news = botMessageObj.news;
+if (suggestedBrands.length > 0) responsePayload.brands = botMessageObj.brands;
+if (suggestedCategories.length > 0) responsePayload.categories = botMessageObj.categories;
+
+res.status(200).json(responsePayload);
     } catch (error) {
       console.error('Lỗi analyzeSkin:', error.message, error.stack);
       if (req.file) {
