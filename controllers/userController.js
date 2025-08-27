@@ -68,10 +68,10 @@ const register = async (req, res) => {
                 Chúng tôi rất vui khi bạn đã gia nhập cộng đồng <strong>Pure-Botanica</strong>! Hãy cùng khám phá hành trình chăm sóc sức khỏe và sắc đẹp tự nhiên với các sản phẩm tinh khiết từ thiên nhiên.
               </p>
               <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 25px;">
-                Để chào mừng bạn, chúng tôi dành tặng <strong>mã giảm giá 10%</strong> cho lần mua sắm đầu tiên:
+                Để chào mừng bạn, chúng tôi dành tặng <strong>mã giảm giá 25%</strong>:
               </p>
               <div style="text-align: center; background-color: #e8f5e9; padding: 15px 20px; border-radius: 8px; margin: 0 0 25px; border: 1px dashed #357E38;">
-                <strong style="color: #357E38; font-size: 18px; letter-spacing: 1px; font-weight: 600;">Ducduydeptrai</strong>
+                <strong style="color: #357E38; font-size: 18px; letter-spacing: 1px; font-weight: 600;">WELCOME25</strong>
               </div>
               <div style="text-align: center; margin: 30px 0;">
                 <a href="https://purebotanica.online" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Mua sắm ngay</a>
@@ -93,7 +93,7 @@ const register = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
               </p>
             </div>
           </div>
@@ -194,7 +194,7 @@ const forgotPassword = async (req, res) => {
 
     // Send password reset email
     try {
-      const resetUrl = `http://localhost:3000/user/resetpass/${resetToken}`;
+      const resetUrl = `https://purebotanica.online/user/resetpass/${resetToken}`;
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: email,
@@ -567,7 +567,7 @@ const updateUser = async (req, res) => {
 
     // Kiểm tra quyền truy cập
     if (req.user._id.toString() !== userId && req.user.role !== 'admin') {
-      console.log("Access denied:", {
+      console.log("Access denied:", {a
         userId,
         requesterId: req.user._id.toString(),
         role: req.user.role,

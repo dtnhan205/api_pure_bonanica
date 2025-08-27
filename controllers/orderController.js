@@ -100,7 +100,7 @@ const sendReturnStatusEmail = async (order, returnStatus) => {
           <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
           <p style="margin: 0;">
             Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-            <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+            <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
           </p>
         </div>
       </div>
@@ -451,7 +451,7 @@ exports.cancelOrder = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
               </p>
             </div>
           </div>
@@ -593,7 +593,7 @@ exports.requestOrderReturn = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
               </p>
             </div>
           </div>
@@ -720,7 +720,7 @@ exports.confirmOrderReturn = async (req, res) => {
             <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
             <p style="margin: 0;">
               Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-              <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+              <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
             </p>
           </div>
         </div>
@@ -887,7 +887,7 @@ exports.updateOrder = async (req, res) => {
                 <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
                 <p style="margin: 0;">
                   Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
                 </p>
               </div>
             </div>
@@ -977,7 +977,7 @@ exports.markOrderAsFailed = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
               </p>
             </div>
           </div>
@@ -1049,7 +1049,7 @@ exports.checkFailedDeliveries = async () => {
                 <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
                 <p style="margin: 0;">
                   Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
+                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
                 </p>
               </div>
             </div>
