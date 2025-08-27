@@ -56,7 +56,7 @@ exports.sendEmail = async (req, res) => {
                         Để chào mừng bạn, chúng tôi dành tặng <strong>mã giảm giá 10%</strong> cho lần mua sắm đầu tiên:
                     </p>
                     <div style="text-align: center; background-color: #e8f5e9; padding: 15px 20px; border-radius: 8px; margin: 0 0 25px; border: 1px dashed #357E38;">
-                        <strong style="color: #357E38; font-size: 18px; letter-spacing: 1px; font-weight: 600;">Ducduydeptrai</strong>
+                        <strong style="color: #357E38; font-size: 18px; letter-spacing: 1px; font-weight: 600;">WELCOME25</strong>
                     </div>
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="https://purebotanica.online" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Mua sắm ngay</a>

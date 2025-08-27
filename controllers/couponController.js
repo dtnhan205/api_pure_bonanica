@@ -24,7 +24,7 @@ const bulkCouponValidationSchema = Joi.object({
   description: Joi.string().trim().max(200).default('').optional(),
 });
 
-// Hàm tạo mã ngẫu nhiên (giữ nguyên)
+// Hàm tạo mã ngẫu nhiên
 const generateCouponCode = async () => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code;
@@ -42,8 +42,20 @@ const generateCouponCode = async () => {
   } while (true);
 };
 
-// Tạo mã giảm giá (giữ nguyên, đã hỗ trợ description)
+// Hàm kiểm tra và cập nhật trạng thái isActive
+const updateCouponStatus = async (coupon, session = null) => {
+  if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
+    coupon.isActive = false;
+    await coupon.save({ session });
+    console.log(`Đã cập nhật mã giảm giá ${coupon.code} thành không hoạt động do đạt giới hạn sử dụng`);
+  }
+};
+
+// Tạo mã giảm giá
 exports.createCoupon = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { error, value } = couponValidationSchema.validate(req.body, { abortEarly: false });
     if (error) {
@@ -51,7 +63,7 @@ exports.createCoupon = async (req, res) => {
       return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
     }
 
-    const existingCoupon = await Coupon.findOne({ code: value.code.toUpperCase() });
+    const existingCoupon = await Coupon.findOne({ code: value.code.toUpperCase() }).session(session);
     if (existingCoupon) {
       return res.status(400).json({ error: 'Mã giảm giá đã tồn tại' });
     }
@@ -62,17 +74,24 @@ exports.createCoupon = async (req, res) => {
       expiryDate: value.expiryDate ? new Date(value.expiryDate) : null,
     });
 
-    await coupon.save();
+    await coupon.save({ session });
     console.log(`Đã tạo mã giảm giá: ${coupon.code}`);
+    await session.commitTransaction();
     res.status(201).json({ message: 'Tạo mã giảm giá thành công', coupon });
   } catch (error) {
+    await session.abortTransaction();
     console.error('Lỗi trong createCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi tạo mã giảm giá', details: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
-// Tạo mã giảm giá hàng loạt (giữ nguyên, đã hỗ trợ description)
+// Tạo mã giảm giá hàng loạt
 exports.createBulkCoupons = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { error, value } = bulkCouponValidationSchema.validate(req.body, { abortEarly: false });
     if (error) {
@@ -90,24 +109,31 @@ exports.createBulkCoupons = async (req, res) => {
           discountValue: value.discountValue,
           minOrderValue: value.minOrderValue || 0,
           expiryDate,
-          usageLimit: value.usageLimit || 1,
+          usageLimit: value.usageLimit || null, // Đảm bảo usageLimit được thiết lập đúng
           isActive: true,
           description: value.description || '',
         };
       })
     );
 
-    await Coupon.insertMany(coupons);
+    const insertedCoupons = await Coupon.insertMany(coupons, { session });
     console.log(`Đã tạo ${coupons.length} mã giảm giá hàng loạt`);
-    res.status(201).json({ message: `Tạo ${coupons.length} mã giảm giá thành công`, coupons });
+    await session.commitTransaction();
+    res.status(201).json({ message: `Tạo ${coupons.length} mã giảm giá thành công`, coupons: insertedCoupons });
   } catch (error) {
+    await session.abortTransaction();
     console.error('Lỗi trong createBulkCoupons:', error);
     res.status(500).json({ error: 'Lỗi server khi tạo mã giảm giá hàng loạt', details: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
-// Cập nhật mã giảm giá (giữ nguyên, đã hỗ trợ description)
+// Cập nhật mã giảm giá
 exports.updateCoupon = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
     const { error, value } = couponValidationSchema.validate(req.body, { abortEarly: false });
@@ -120,7 +146,7 @@ exports.updateCoupon = async (req, res) => {
       return res.status(400).json({ error: 'ID mã giảm giá không hợp lệ' });
     }
 
-    const coupon = await Coupon.findById(id);
+    const coupon = await Coupon.findById(id).session(session);
     if (!coupon) {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại' });
     }
@@ -131,45 +157,57 @@ exports.updateCoupon = async (req, res) => {
       expiryDate: value.expiryDate ? new Date(value.expiryDate) : coupon.expiryDate,
     });
 
-    await coupon.save();
+    await updateCouponStatus(coupon, session); // Kiểm tra trạng thái sau khi cập nhật
+    await coupon.save({ session });
     console.log(`Đã cập nhật mã giảm giá: ${coupon.code}`);
+    await session.commitTransaction();
     res.json({ message: 'Cập nhật mã giảm giá thành công', coupon });
   } catch (error) {
+    await session.abortTransaction();
     console.error('Lỗi trong updateCoupon:', error);
     if (error.code === 11000) {
       return res.status(400).json({ error: 'Mã giảm giá đã tồn tại' });
     }
     res.status(500).json({ error: 'Lỗi server khi cập nhật mã giảm giá', details: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
-// Xóa mã giảm giá (giữ nguyên)
+// Xóa mã giảm giá
 exports.deleteCoupon = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'ID mã giảm giá không hợp lệ' });
     }
 
-    const coupon = await Coupon.findByIdAndDelete(id);
+    const coupon = await Coupon.findByIdAndDelete(id).session(session);
     if (!coupon) {
       return res.status(404).json({ error: 'Mã giảm giá không tồn tại' });
     }
 
     console.log(`Đã xóa mã giảm giá: ${coupon.code}`);
+    await session.commitTransaction();
     res.json({ message: 'Xóa mã giảm giá thành công' });
   } catch (error) {
+    await session.abortTransaction();
     console.error('Lỗi trong deleteCoupon:', error);
     res.status(500).json({ error: 'Lỗi server khi xóa mã giảm giá', details: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
-// Lấy danh sách tất cả mã giảm giá 
+// Lấy danh sách tất cả mã giảm giá
 exports.getCoupons = async (req, res) => {
   try {
-    const { page = 1, limit = 9, code } = req.query; // bỏ isActive
+    const { page = 1, limit = 9, code } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const query = { isActive: true }; // luôn chỉ lấy mã đang hoạt động
+    const query = { isActive: true };
 
     if (code) {
       query.code = { $regex: code, $options: 'i' };
@@ -205,7 +243,7 @@ exports.getCoupons = async (req, res) => {
   }
 };
 
-// Lấy danh sách mã giảm giá cho admin 
+// Lấy danh sách mã giảm giá cho admin
 exports.getCouponsAdmin = async (req, res) => {
   try {
     const { page = 1, limit = 9, code, isActive } = req.query;
@@ -220,7 +258,7 @@ exports.getCouponsAdmin = async (req, res) => {
     }
 
     const coupons = await Coupon.find(query)
-      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount description') // Đã có description
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount description')
       .skip(skip)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 })
@@ -244,7 +282,7 @@ exports.getCouponsAdmin = async (req, res) => {
   }
 };
 
-// Lấy chi tiết mã giảm giá (giữ nguyên)
+// Lấy chi tiết mã giảm giá
 exports.getCouponById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -253,7 +291,7 @@ exports.getCouponById = async (req, res) => {
     }
 
     const coupon = await Coupon.findById(id)
-      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount description') // Đã có description
+      .select('code discountType discountValue minOrderValue expiryDate usageLimit isActive usedCount description')
       .lean();
 
     if (!coupon) {
@@ -270,6 +308,9 @@ exports.getCouponById = async (req, res) => {
 
 // Tạo mã giảm giá tự động cho ngày đặc biệt
 exports.createAutoSpecialCoupons = async (specialConfig) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     console.log('Bắt đầu createAutoSpecialCoupons với config:', specialConfig);
     
@@ -289,16 +330,21 @@ exports.createAutoSpecialCoupons = async (specialConfig) => {
       discountValue: specialConfig.discountValue,
       minOrderValue: specialConfig.minOrderValue || 0,
       expiryDate,
-      usageLimit: specialConfig.usageLimit || 1,
+      usageLimit: specialConfig.usageLimit || null,
       isActive: true,
       description,
     };
 
-    await Coupon.create(coupon);
+    const createdCoupon = await Coupon.create([coupon], { session });
     console.log(`Đã tạo mã giảm giá đặc biệt với mã ${commonCode} vào ${new Date().toLocaleDateString()}`);
+    await session.commitTransaction();
+    return createdCoupon[0];
   } catch (error) {
+    await session.abortTransaction();
     console.error('Lỗi trong createAutoSpecialCoupons:', error);
     throw error;
+  } finally {
+    session.endSession();
   }
 };
 
@@ -353,7 +399,7 @@ exports.getAutoSetupConfig = async (req, res) => {
       discountValue: 15,
       minOrderValue: 0,
       expiryDays: 7,
-      usageLimit: 1,
+      usageLimit: null,
       specialDays: [
         { date: "2025-09-02", description: "Ngày Quốc Khánh" },
         { date: "2026-01-01", description: "Năm Mới" }
@@ -364,6 +410,92 @@ exports.getAutoSetupConfig = async (req, res) => {
   } catch (error) {
     console.error('Lỗi trong getAutoSetupConfig:', error);
     res.status(500).json({ error: 'Lỗi server khi lấy cấu hình tự động', details: error.message });
+  }
+};
+
+// Hàm áp dụng mã giảm giá
+exports.applyCoupon = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { code, orderValue } = req.body;
+
+    // Xác thực đầu vào
+    const schema = Joi.object({
+      code: Joi.string().required(),
+      orderValue: Joi.number().min(0).required(),
+    });
+
+    const { error, value } = schema.validate(req.body, { abortEarly: false });
+    if (error) {
+      console.warn('Lỗi xác thực trong applyCoupon:', error.details);
+      return res.status(400).json({ error: error.details.map((e) => e.message).join(', ') });
+    }
+
+    const coupon = await Coupon.findOne({ code: value.code.toUpperCase() }).session(session);
+    if (!coupon) {
+      return res.status(404).json({ error: 'Mã giảm giá không tồn tại' });
+    }
+
+    // Kiểm tra trạng thái mã giảm giá
+    if (!coupon.isActive) {
+      return res.status(400).json({ error: 'Mã giảm giá không hoạt động' });
+    }
+
+    // Kiểm tra ngày hết hạn
+    if (coupon.expiryDate && new Date() > coupon.expiryDate) {
+      coupon.isActive = false;
+      await coupon.save({ session });
+      return res.status(400).json({ error: 'Mã giảm giá đã hết hạn' });
+    }
+
+    // Kiểm tra giá trị đơn hàng tối thiểu
+    if (value.orderValue < coupon.minOrderValue) {
+      return res.status(400).json({ error: `Đơn hàng phải có giá trị tối thiểu ${coupon.minOrderValue} để sử dụng mã này` });
+    }
+
+    // Kiểm tra giới hạn sử dụng
+    if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
+      coupon.isActive = false;
+      await coupon.save({ session });
+      return res.status(400).json({ error: 'Mã giảm giá đã đạt giới hạn sử dụng' });
+    }
+
+    // Tăng số lần sử dụng
+    coupon.usedCount += 1;
+
+    // Kiểm tra và cập nhật trạng thái isActive
+    await updateCouponStatus(coupon, session);
+
+    // Tính toán giá trị giảm giá
+    let discountAmount = 0;
+    if (coupon.discountType === 'percentage') {
+      discountAmount = (coupon.discountValue / 100) * value.orderValue;
+    } else if (coupon.discountType === 'fixed') {
+      discountAmount = coupon.discountValue;
+    }
+
+    await coupon.save({ session });
+    console.log(`Đã áp dụng mã giảm giá: ${coupon.code}, usedCount: ${coupon.usedCount}`);
+
+    await session.commitTransaction();
+    res.json({
+      message: 'Áp dụng mã giảm giá thành công',
+      coupon: {
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        discountAmount,
+        isActive: coupon.isActive,
+      },
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('Lỗi trong applyCoupon:', error);
+    res.status(500).json({ error: 'Lỗi server khi áp dụng mã giảm giá', details: error.message });
+  } finally {
+    session.endSession();
   }
 };
 
