@@ -68,7 +68,7 @@ const register = async (req, res) => {
                 Chúng tôi rất vui khi bạn đã gia nhập cộng đồng <strong>Pure-Botanica</strong>! Hãy cùng khám phá hành trình chăm sóc sức khỏe và sắc đẹp tự nhiên với các sản phẩm tinh khiết từ thiên nhiên.
               </p>
               <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 25px;">
-                Để chào mừng bạn, chúng tôi dành tặng <strong>mã giảm giá 25%</strong>:
+                Để chào mừng bạn, chúng tôi dành tặng <strong>mã giảm giá 10%</strong>:
               </p>
               <div style="text-align: center; background-color: #e8f5e9; padding: 15px 20px; border-radius: 8px; margin: 0 0 25px; border: 1px dashed #357E38;">
                 <strong style="color: #357E38; font-size: 18px; letter-spacing: 1px; font-weight: 600;">WELCOME25</strong>

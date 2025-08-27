@@ -387,85 +387,74 @@ exports.clearCart = async (req, res) => {
 };
 
 exports.checkout = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     const { userId, addressLine, ward, district, cityOrProvince, sdt, paymentMethod, note, couponCode } = req.body;
 
-    // Validate inputs
     if (!userId) {
-      throw new Error('Thiếu userId trong yêu cầu');
+      return res.status(400).json({ error: 'Thiếu userId trong yêu cầu' });
     }
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      throw new Error('userId không hợp lệ');
+      return res.status(400).json({ error: 'userId không hợp lệ' });
     }
 
     if (!addressLine || !ward || !district || !cityOrProvince) {
-      throw new Error('Vui lòng cung cấp đầy đủ thông tin địa chỉ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)');
+      return res.status(400).json({
+        error: 'Vui lòng cung cấp đầy đủ thông tin địa chỉ (số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố)',
+      });
     }
 
     const phoneRegex = /^[0-9]{10}$/;
     if (!sdt || !phoneRegex.test(sdt)) {
-      throw new Error('Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số.');
+      return res.status(400).json({ error: 'Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số.' });
     }
 
     if (!paymentMethod) {
-      throw new Error('Vui lòng cung cấp phương thức thanh toán');
+      return res.status(400).json({ error: 'Vui lòng cung cấp phương thức thanh toán' });
     }
 
     const validPaymentMethods = ['cod', 'vnpay', 'bank'];
     if (!validPaymentMethods.includes(paymentMethod)) {
-      throw new Error('Phương thức thanh toán không hợp lệ. Chỉ hỗ trợ "cod", "vnpay" hoặc "bank".');
+      return res.status(400).json({ error: 'Phương thức thanh toán không hợp lệ. Chỉ hỗ trợ "cod", "vnpay" hoặc "bank".' });
     }
 
-    const user = await User.findById(userId).session(session);
+    const user = await User.findById(userId);
     if (!user) {
-      throw new Error('Người dùng không tồn tại');
+      return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
-    const cart = await Cart.findOne({ user: userId })
-      .populate({
-        path: 'items.product',
-        select: 'name images option'
-      })
-      .session(session);
+    const cart = await Cart.findOne({ user: userId }).populate({
+      path: 'items.product',
+      select: 'name images option'
+    });
 
     if (!cart || cart.items.length === 0) {
-      throw new Error('Giỏ hàng trống');
+      return res.status(400).json({ error: 'Giỏ hàng trống' });
     }
 
-    // Filter valid and invalid items
-    const invalidItems = cart.items.filter(
-      item => !item.product || !item.product.option.find(opt => opt._id.toString() === item.optionId.toString())
-    );
-    const validItems = cart.items.filter(
-      item => item.product && item.product.option.find(opt => opt._id.toString() === item.optionId.toString())
-    );
+    const invalidItems = cart.items.filter(item => !item.product || !item.product.option.find(opt => opt._id.toString() === item.optionId.toString()));
+    const validItems = cart.items.filter(item => item.product && item.product.option.find(opt => opt._id.toString() === item.optionId.toString()));
 
     if (validItems.length === 0) {
-      throw new Error('Giỏ hàng không chứa sản phẩm hợp lệ nào để thanh toán');
+      return res.status(400).json({ error: 'Giỏ hàng không chứa sản phẩm hợp lệ nào để thanh toán' });
     }
 
     if (invalidItems.length > 0) {
       console.log('Invalid items removed from cart:', invalidItems);
       cart.items = validItems;
-      await cart.save({ session });
+      await cart.save();
     }
 
-    // Validate stock
     for (const item of validItems) {
       const product = item.product;
       const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
       if (option.stock < item.quantity) {
-        throw new Error(
-          `Biến thể ${option.value} của sản phẩm ${item.product.name || item.product._id} chỉ còn ${option.stock} trong kho, không đủ số lượng yêu cầu`
-        );
+        return res.status(400).json({
+          error: `Biến thể ${option.value} của sản phẩm ${item.product.name || item.product._id} chỉ còn ${option.stock} trong kho, không đủ số lượng yêu cầu`,
+        });
       }
     }
 
-    // Calculate subtotal
     let subtotal = validItems.reduce((acc, item) => {
       const product = item.product;
       const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
@@ -477,18 +466,48 @@ exports.checkout = async (req, res) => {
     let appliedCoupon = null;
 
     if (couponCode) {
-      // Gọi applyCoupon từ Coupon controller
-      const couponResult = await couponController.applyCoupon(
-        { body: { code: couponCode, orderValue: subtotal, userId } },
-        { session }
-      );
-
-      if (couponResult.error) {
-        throw new Error(couponResult.error);
+      console.log('Coupon code received:', couponCode);
+      const coupon = await Coupon.findOne({ code: { $regex: `^${couponCode}$`, $options: 'i' } });
+      if (!coupon) {
+        return res.status(400).json({ error: 'Mã giảm giá không tồn tại' });
       }
 
-      discount = couponResult.coupon.discountAmount;
-      appliedCoupon = couponResult.coupon;
+      if (!coupon.isActive) {
+        return res.status(400).json({ error: 'Mã giảm giá không còn hoạt động' });
+      }
+
+      if (coupon.expiryDate && new Date() > coupon.expiryDate) {
+        return res.status(400).json({ error: 'Mã giảm giá đã hết hạn' });
+      }
+
+      if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
+        return res.status(400).json({
+          error: `Đơn hàng phải có giá trị tối thiểu ${coupon.minOrderValue} để sử dụng mã này`,
+        });
+      }
+
+      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+        return res.status(400).json({ error: 'Mã giảm giá đã đạt giới hạn sử dụng' });
+      }
+
+      if (coupon.userId && !userId) {
+        return res.status(400).json({ error: 'Mã giảm giá này chỉ áp dụng cho người dùng cụ thể' });
+      }
+
+      if (coupon.userId && userId && coupon.userId.toString() !== userId) {
+        return res.status(403).json({ error: 'Bạn không có quyền sử dụng mã giảm giá này' });
+      }
+
+      if (coupon.discountType === 'percentage') {
+        discount = (subtotal * coupon.discountValue) / 100;
+      } else if (coupon.discountType === 'fixed') {
+        discount = coupon.discountValue;
+      }
+
+      discount = Math.min(discount, subtotal);
+      coupon.usedCount = (coupon.usedCount || 0) + 1;
+      await coupon.save();
+      appliedCoupon = coupon;
     }
 
     const total = subtotal - discount;
@@ -502,7 +521,6 @@ exports.checkout = async (req, res) => {
       cityOrProvince
     };
 
-    // Check if address already exists
     const isExistingAddress = (
       (user.temporaryAddress1.addressLine === addressLine &&
        user.temporaryAddress1.ward === ward &&
@@ -514,14 +532,13 @@ exports.checkout = async (req, res) => {
        user.temporaryAddress2.cityOrProvince === cityOrProvince)
     );
 
-    // Create order
-    const order = new Order({
+    const order = {
       user: userId,
       items: validItems.map(item => ({
         product: item.product._id,
         optionId: item.optionId,
         quantity: item.quantity,
-        images: item.product.images || []
+        images: item.product.images || [],
       })),
       subtotal,
       discount,
@@ -532,28 +549,26 @@ exports.checkout = async (req, res) => {
       note,
       coupon: appliedCoupon ? appliedCoupon._id : null,
       paymentStatus: 'pending',
-      shippingStatus: 'pending'
-    });
+      shippingStatus: 'pending',
+    };
 
-    await order.save({ session });
+    const newOrder = await Order.create(order);
 
-    // Update user addresses and order list
     if (!isExistingAddress) {
       user.temporaryAddress2 = { ...user.temporaryAddress1 };
       user.temporaryAddress1 = newAddress;
-      user.listOrder.push(order._id);
-      await user.save({ session });
+      user.listOrder.push(newOrder._id);
+      await user.save();
     } else {
-      user.listOrder.push(order._id);
-      await user.save({ session });
+      user.listOrder.push(newOrder._id);
+      await user.save();
     }
 
-    // Update product stock
     for (const item of validItems) {
-      const product = await Product.findById(item.product._id).session(session);
+      const product = await Product.findById(item.product._id);
       const option = product.option.find(opt => opt._id.toString() === item.optionId.toString());
       option.stock -= item.quantity;
-      await product.save({ session });
+      await product.save();
     }
 
     let paymentUrl = null;
@@ -561,7 +576,7 @@ exports.checkout = async (req, res) => {
       try {
         const paymentResponse = await VnpayController.createPayment({
           ...req,
-          body: { amount: total, orderId: order._id }
+          body: { amount: total, orderId: newOrder._id }
         });
         if (paymentResponse.status === 'success') {
           paymentUrl = paymentResponse.data.paymentUrl;
@@ -569,14 +584,18 @@ exports.checkout = async (req, res) => {
           throw new Error(paymentResponse.message || 'Lỗi khi tạo URL thanh toán VNPay');
         }
       } catch (error) {
-        throw new Error(`Lỗi khi tạo thanh toán VNPay: ${error.message}`);
+        console.error('Lỗi khi tạo thanh toán VNPay:', error.stack);
+        return res.status(500).json({ error: 'Lỗi khi tạo thanh toán VNPay', details: error.message });
       }
     }
 
-    // Send confirmation email
     try {
       const authHeader = req.headers.authorization;
       console.log('Authorization header:', authHeader);
+
+      if (!authHeader) {
+        console.warn('Không tìm thấy authorization header khi gửi email');
+      }
 
       const itemsHtml = validItems.map(item => {
         const product = item.product;
@@ -594,14 +613,22 @@ exports.checkout = async (req, res) => {
         `;
       }).join('');
 
-      const paymentMethodDisplay = paymentMethod === 'vnpay' ? 'VNPay' :
-                                  paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' :
+      const emailHeaders = {
+        'Content-Type': 'application/json'
+      };
+
+      if (authHeader) {
+        emailHeaders['Authorization'] = authHeader;
+      }
+
+      const paymentMethodDisplay = paymentMethod === 'vnpay' ? 'VNPay' : 
+                                  paymentMethod === 'cod' ? 'Thanh toán khi nhận hàng (COD)' : 
                                   'Chuyển khoản ngân hàng';
 
-      await axios.post('http://localhost:10000/api/email/sendEmail', {
+      const emailResponse = await axios.post('http://localhost:10000/api/email/sendEmail', {
         username: user.username,
         email: user.email,
-        subject: `Xác nhận đơn hàng #${order._id} từ Pure-Botanica 🌿`,
+        subject: `Xác nhận đơn hàng #${newOrder._id} từ Pure-Botanica 🌿`,
         html: `
           <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 0;">
             <div style="text-align: center; background-color: #357E38; padding: 20px; border-radius: 8px 8px 0 0;">
@@ -610,7 +637,7 @@ exports.checkout = async (req, res) => {
             <div style="background-color: #ffffff; padding: 30px 25px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
               <h3 style="color: #333; font-size: 18px; font-weight: 600; margin: 0 0 15px;">Xin chào ${user.username},</h3>
               <p style="color: #555; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-                Cảm ơn bạn đã mua sắm tại <strong>Pure-Botanica</strong>! Đơn hàng #${order._id} của bạn đã được đặt thành công. Dưới đây là chi tiết đơn hàng:
+                Cảm ơn bạn đã mua sắm tại <strong>Pure-Botanica</strong>! Đơn hàng #${newOrder._id} của bạn đã được đặt thành công. Dưới đây là chi tiết đơn hàng:
               </p>
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                 <thead>
@@ -659,7 +686,7 @@ exports.checkout = async (req, res) => {
                 </p>
               ` : ''}
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://purebotanica.online/orders/${order._id}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Theo dõi đơn hàng</a>
+                <a href="https://purebotanica.online/orders/${newOrder._id}" style="display: inline-block; background-color: #357E38; color: #ffffff; padding: 14px 40px; border-radius: 50px; text-decoration: none; font-size: 16px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Theo dõi đơn hàng</a>
               </div>
               <p style="color: #777; font-size: 13px; line-height: 1.5; margin: 0; text-align: center;">
                 Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a>.
@@ -682,34 +709,37 @@ exports.checkout = async (req, res) => {
               </p>
             </div>
           </div>
-        `
+        `,
       }, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(authHeader && { Authorization: authHeader })
-        }
+        headers: emailHeaders
       });
 
       console.log(`Đã gửi email xác nhận đơn hàng tới: ${user.email}`);
     } catch (emailError) {
       console.error(`Lỗi gửi email xác nhận đơn hàng cho ${user.email}:`, emailError.message);
+      if (emailError.response) {
+        console.error('Response status:', emailError.response.status);
+        console.error('Response data:', emailError.response.data);
+        console.error('Response headers:', emailError.response.headers);
+      } else if (emailError.request) {
+        console.error('Request made but no response received:', emailError.request);
+      } else {
+        console.error('Error setting up request:', emailError.message);
+      }
     }
 
-    // Clear cart
     cart.items = [];
-    await cart.save({ session });
+    await cart.save();
 
-    // Populate order for response
-    await order.populate([
+    await newOrder.populate([
       { path: 'items.product' },
       { path: 'user', select: 'username email' },
       { path: 'coupon' }
     ]);
 
-    await session.commitTransaction();
     res.json({
       message: 'Thanh toán thành công',
-      order,
+      order: newOrder,
       paymentCode,
       paymentUrl: paymentUrl || undefined,
       warning: invalidItems.length > 0
@@ -717,11 +747,8 @@ exports.checkout = async (req, res) => {
         : undefined,
     });
   } catch (error) {
-    await session.abortTransaction();
     console.error('Lỗi khi thanh toán:', error.stack);
     res.status(500).json({ error: 'Lỗi khi thanh toán', details: error.message });
-  } finally {
-    session.endSession();
   }
 };
 
