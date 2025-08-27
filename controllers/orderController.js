@@ -1,4 +1,5 @@
 const Order = require('../models/order');
+const Product = require('../models/product'); // Import Product model
 const Users = require('../models/user');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
@@ -33,6 +34,98 @@ transporter.verify((error, success) => {
 // Helper function to get translated fail reason
 const getTranslatedFailReason = (reason) => {
   return failReasonMapping[reason] || reason || 'Lý do không xác định';
+};
+
+// Helper function to restore stock for order items
+const restoreStock = async (order, status, session = null) => {
+  const stockRestored = [];
+  const errors = [];
+
+  try {
+    // Start a session if not provided
+    const localSession = session || await mongoose.startSession();
+    if (!session) localSession.startTransaction();
+
+    try {
+      // Fetch all products in one query
+      const productIds = order.items.map(item => item.product._id);
+      const products = await Product.find({ _id: { $in: productIds } }).session(localSession);
+
+      // Create a map for quick lookup
+      const productMap = new Map(products.map(p => [p._id.toString(), p]));
+
+      // Prepare bulk operations
+      const bulkOps = [];
+
+      for (const item of order.items) {
+        if (!item.product) {
+          errors.push(`Product not found for item in order ${order._id}`);
+          continue;
+        }
+
+        const product = productMap.get(item.product._id.toString());
+        if (!product) {
+          errors.push(`Product ${item.product._id} not found in database`);
+          continue;
+        }
+
+        const variant = product.option.find(opt => opt._id.toString() === item.optionId.toString());
+        if (!variant) {
+          errors.push(`Variant ${item.optionId} not found for product ${product._id}`);
+          continue;
+        }
+
+        // Check if stock was already restored for this variant
+        if (!order.stockRestored || !order.stockRestored.some(id => id.toString() === item.optionId.toString())) {
+          variant.stock = (variant.stock || 0) + item.quantity;
+          stockRestored.push({
+            productId: product._id,
+            optionId: item.optionId,
+            quantity: item.quantity,
+            variantValue: variant.value,
+          });
+
+          // Add to bulk operations
+          bulkOps.push({
+            updateOne: {
+              filter: { _id: product._id, 'option._id': item.optionId },
+              update: { $set: { 'option.$.stock': variant.stock } }
+            }
+          });
+
+          // Mark variant as restored
+          if (!order.stockRestored) order.stockRestored = [];
+          order.stockRestored.push(item.optionId);
+        }
+      }
+
+      // Execute bulk operations
+      if (bulkOps.length > 0) {
+        await Product.bulkWrite(bulkOps, { session: localSession });
+      }
+
+      // Save order with updated stockRestored
+      await order.save({ session: localSession });
+
+      // Commit transaction if we started it
+      if (!session) await localSession.commitTransaction();
+
+      // Log success
+      console.log(`✅ Restored stock for order ${order._id}:`, stockRestored);
+
+      return { stockRestored, errors };
+    } catch (error) {
+      // Abort transaction if we started it
+      if (!session) await localSession.abortTransaction();
+      throw error;
+    } finally {
+      // End session if we started it
+      if (!session) localSession.endSession();
+    }
+  } catch (error) {
+    console.error(`❌ Error restoring stock for order ${order._id}:`, error.message);
+    throw new Error(`Failed to restore stock: ${error.message}`);
+  }
 };
 
 // Helper function to send return status email
@@ -100,13 +193,12 @@ const sendReturnStatusEmail = async (order, returnStatus) => {
           <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
           <p style="margin: 0;">
             Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-            <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
+            <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
           </p>
         </div>
       </div>
     `;
 
-    // Attempt to send email with retry (up to 3 attempts)
     let attempts = 0;
     const maxAttempts = 3;
     while (attempts < maxAttempts) {
@@ -125,7 +217,6 @@ const sendReturnStatusEmail = async (order, returnStatus) => {
         if (attempts === maxAttempts) {
           throw emailError;
         }
-        // Wait 1 second before retrying
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
@@ -360,33 +451,36 @@ exports.updateOrderStatus = async (req, res) => {
 };
 
 exports.cancelOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { orderId } = req.params;
     const { cancelReason, cancelNote } = req.body;
 
     if (!orderId) {
-      return res.status(400).json({ error: 'Thiếu orderId trong yêu cầu' });
+      throw new Error('Thiếu orderId trong yêu cầu');
     }
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({ error: 'orderId không hợp lệ' });
+      throw new Error('orderId không hợp lệ');
     }
 
     if (!cancelReason) {
-      return res.status(400).json({ error: 'Vui lòng chọn lý do hủy đơn hàng' });
+      throw new Error('Vui lòng chọn lý do hủy đơn hàng');
     }
 
-    const order = await Order.findById(orderId).populate('user', 'username email');
+    const order = await Order.findById(orderId).populate('user', 'username email').session(session);
     if (!order) {
-      return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
+      throw new Error('Không tìm thấy đơn hàng');
     }
 
     if (req.user && order.user._id.toString() !== req.user.id.toString()) {
-      return res.status(403).json({ error: 'Bạn không có quyền hủy đơn hàng này' });
+      throw new Error('Bạn không có quyền hủy đơn hàng này');
     }
 
     if (order.shippingStatus !== 'pending') {
-      return res.status(400).json({ error: 'Chỉ có thể hủy đơn hàng khi đang chờ xử lý' });
+      throw new Error('Chỉ có thể hủy đơn hàng khi đang chờ xử lý');
     }
 
     const validReasons = [
@@ -398,7 +492,13 @@ exports.cancelOrder = async (req, res) => {
     ];
 
     if (!validReasons.includes(cancelReason)) {
-      return res.status(400).json({ error: 'Lý do hủy đơn không hợp lệ' });
+      throw new Error('Lý do hủy đơn không hợp lệ');
+    }
+
+    // Restore stock
+    const { stockRestored, errors } = await restoreStock(order, 'cancelled', session);
+    if (errors.length > 0) {
+      console.warn('Errors during stock restoration:', errors);
     }
 
     order.shippingStatus = 'cancelled';
@@ -408,8 +508,12 @@ exports.cancelOrder = async (req, res) => {
     order.cancelNote = cancelNote || null;
     order.cancelledBy = req.user.id;
 
-    await order.save();
+    await order.save({ session });
+
     await order.populate('items.product');
+
+    await session.commitTransaction();
+    session.endSession();
 
     try {
       await transporter.sendMail({
@@ -429,6 +533,7 @@ exports.cancelOrder = async (req, res) => {
               <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
                 <strong>Lý do hủy:</strong> ${cancelReason}<br>
                 ${cancelNote ? `<strong>Ghi chú:</strong> ${cancelNote}<br>` : ''}
+                <strong>Kho hàng:</strong> Đã hoàn lại số lượng sản phẩm về kho.<br>
                 Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email hoặc hotline.
               </p>
               <div style="text-align: center; margin: 25px 0;">
@@ -451,7 +556,7 @@ exports.cancelOrder = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
               </p>
             </div>
           </div>
@@ -469,11 +574,14 @@ exports.cancelOrder = async (req, res) => {
         cancelReason,
         cancelNote,
         cancelledAt: order.cancelledAt
-      }
+      },
+      stockRestored
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Lỗi khi hủy đơn hàng:', error);
-    res.status(500).json({ error: 'Lỗi khi hủy đơn hàng' });
+    res.status(500).json({ error: 'Lỗi khi hủy đơn hàng', details: error.message });
   }
 };
 
@@ -544,7 +652,7 @@ exports.requestOrderReturn = async (req, res) => {
     }
 
     order.returnStatus = 'requested';
-    order.returnRequestDate = now;
+    order.returnRequestDate = new Date();
     order.returnReason = returnReason;
     order.returnImages = returnImages;
     order.returnVideos = returnVideos;
@@ -565,7 +673,7 @@ exports.requestOrderReturn = async (req, res) => {
             <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 10px 10px;">
               <h3 style="color: #333; font-size: 20px; margin: 0 0 15px;">Xin chào ${order.user.username},</h3>
               <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
-                Yêu cầu hoàn hàng của bạn cho đơn hàng <strong>#${order._id}</strong> đã được gửi thành công vào ngày <strong>${now.toLocaleDateString('vi-VN')}</strong>.
+                Yêu cầu hoàn hàng của bạn cho đơn hàng <strong>#${order._id}</strong> đã được gửi thành công vào ngày <strong>${new Date().toLocaleDateString('vi-VN')}</strong>.
               </p>
               <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
                 <strong>Lý do hoàn hàng:</strong> ${returnReason}<br>
@@ -593,7 +701,7 @@ exports.requestOrderReturn = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
               </p>
             </div>
           </div>
@@ -612,6 +720,9 @@ exports.requestOrderReturn = async (req, res) => {
 };
 
 exports.confirmOrderReturn = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { orderId } = req.params;
     const { returnStatus } = req.body;
@@ -620,48 +731,52 @@ exports.confirmOrderReturn = async (req, res) => {
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       console.error(`❌ orderId không hợp lệ: ${orderId}`);
-      return res.status(400).json({ error: 'orderId không hợp lệ' });
+      throw new Error('orderId không hợp lệ');
     }
 
     if (!['approved', 'rejected'].includes(returnStatus)) {
       console.error(`❌ Trạng thái hoàn hàng không hợp lệ: ${returnStatus}`);
-      return res.status(400).json({ error: 'Trạng thái hoàn hàng không hợp lệ' });
+      throw new Error('Trạng thái hoàn hàng không hợp lệ');
     }
 
-    const order = await Order.findById(orderId).populate('user', 'username email');
+    const order = await Order.findById(orderId).populate('user', 'username email').session(session);
     if (!order) {
       console.error(`❌ Không tìm thấy đơn hàng với orderId: ${orderId}`);
-      return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
+      throw new Error('Không tìm thấy đơn hàng');
     }
 
     if (order.returnStatus !== 'requested') {
       console.error(`❌ Đơn hàng không ở trạng thái yêu cầu hoàn hàng. Trạng thái hiện tại: ${order.returnStatus}`);
-      return res.status(400).json({ error: 'Đơn hàng không ở trạng thái yêu cầu hoàn hàng' });
+      throw new Error('Đơn hàng không ở trạng thái yêu cầu hoàn hàng');
     }
 
-    // Kiểm tra email user trước khi cập nhật
     if (!order.user || !order.user.email) {
       console.error(`❌ Email người dùng không tồn tại: ${order.user}`);
-      return res.status(400).json({ error: 'Email người dùng không tồn tại' });
+      throw new Error('Email người dùng không tồn tại');
     }
 
     console.log(`📧 Email người dùng: ${order.user.email}`);
 
     order.returnStatus = returnStatus;
+    let stockRestored = [];
     if (returnStatus === 'approved') {
       order.shippingStatus = 'returned';
+      order.paymentStatus = 'cancelled'; // Update payment status for approved returns
+      // Restore stock
+      const restoreResult = await restoreStock(order, 'returned', session);
+      stockRestored = restoreResult.stockRestored;
     }
-    await order.save();
+    await order.save({ session });
     console.log(`✅ Đã cập nhật trạng thái đơn hàng: ${orderId}, returnStatus: ${returnStatus}, shippingStatus: ${order.shippingStatus}`);
 
     await order.populate('items.product');
 
-    // GỬI EMAIL TRỰC TIẾP (như các function khác)
+    await session.commitTransaction();
+    session.endSession();
+
     let emailStatus = 'Email sent successfully';
     try {
       console.log('📧 Bắt đầu gửi email xác nhận hoàn hàng...');
-      
-      // Re-verify transporter
       await new Promise((resolve, reject) => {
         transporter.verify((error, success) => {
           if (error) {
@@ -693,6 +808,7 @@ exports.confirmOrderReturn = async (req, res) => {
               ${returnStatus === 'approved' ? `
                 <strong>Quy trình hoàn hàng:</strong><br>
                 - Shipper sẽ đến lấy hàng trong vòng <strong>1-2 ngày làm việc</strong>.<br>
+                - Đã hoàn lại số lượng sản phẩm về kho.<br>
                 - Sau khi nhận được hàng, chúng tôi sẽ liên hệ với bạn để hoàn tất thủ tục hoàn tiền.<br>
                 Vui lòng chuẩn bị hàng hóa và liên hệ với chúng tôi nếu có bất kỳ câu hỏi nào.
               ` : `
@@ -720,40 +836,34 @@ exports.confirmOrderReturn = async (req, res) => {
             <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
             <p style="margin: 0;">
               Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-              <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
+              <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
             </p>
           </div>
         </div>
       `;
 
-      // Gửi email với retry mechanism
       let attempts = 0;
       const maxAttempts = 3;
       let emailSent = false;
-      
+
       while (attempts < maxAttempts && !emailSent) {
         try {
           console.log(`📧 Thử gửi email lần ${attempts + 1}/${maxAttempts} tới: ${order.user.email}`);
-          
           const emailResult = await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: order.user.email,
             subject: emailSubject,
             html: emailContent,
           });
-          
           console.log(`✅ Email gửi thành công tới: ${order.user.email}, Message ID: ${emailResult.messageId}`);
           emailSent = true;
           emailStatus = `Email sent successfully - Message ID: ${emailResult.messageId}`;
         } catch (emailError) {
           attempts++;
           console.warn(`⚠️ Thử gửi email lần ${attempts} thất bại: ${emailError.message}`);
-          
           if (attempts === maxAttempts) {
             throw emailError;
           }
-          
-          // Wait 2 seconds before retrying
           await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
@@ -766,9 +876,12 @@ exports.confirmOrderReturn = async (req, res) => {
     res.json({ 
       message: `Yêu cầu hoàn hàng đã được ${returnStatus === 'approved' ? 'chấp nhận' : 'từ chối'}`,
       order,
-      emailStatus
+      emailStatus,
+      stockRestored
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('❌ Lỗi khi xác nhận yêu cầu hoàn hàng:', error.message);
     console.error('🔍 Chi tiết lỗi:', error.stack);
     res.status(500).json({ error: 'Lỗi khi xác nhận yêu cầu hoàn hàng', details: error.message });
@@ -776,12 +889,15 @@ exports.confirmOrderReturn = async (req, res) => {
 };
 
 exports.updateOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { orderId } = req.params;
     const updateData = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({ error: 'orderId không hợp lệ' });
+      throw new Error('orderId không hợp lệ');
     }
 
     const allowedFields = [
@@ -803,48 +919,59 @@ exports.updateOrder = async (req, res) => {
     }
 
     if (Object.keys(updateFields).length === 0) {
-      return res.status(400).json({ error: 'Không có dữ liệu hợp lệ để cập nhật' });
+      throw new Error('Không có dữ liệu hợp lệ để cập nhật');
     }
 
-    const existingOrder = await Order.findById(orderId);
+    const existingOrder = await Order.findById(orderId).session(session);
     if (!existingOrder) {
-      return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
+      throw new Error('Không tìm thấy đơn hàng');
     }
 
     if (updateFields.shippingStatus) {
       const validStatuses = ['pending', 'in_transit', 'delivered', 'returned', 'cancelled', 'failed'];
       if (!validStatuses.includes(updateFields.shippingStatus)) {
-        return res.status(400).json({ error: 'Trạng thái vận chuyển không hợp lệ' });
+        throw new Error('Trạng thái vận chuyển không hợp lệ');
       }
     }
 
     if (updateFields.paymentStatus) {
       const validPaymentStatuses = ['pending', 'completed', 'failed', 'cancelled'];
       if (!validPaymentStatuses.includes(updateFields.paymentStatus)) {
-        return res.status(400).json({ error: 'Trạng thái thanh toán không hợp lệ' });
+        throw new Error('Trạng thái thanh toán không hợp lệ');
       }
     }
 
     if (updateFields.returnStatus) {
       const validReturnStatuses = ['none', 'requested', 'approved', 'rejected'];
       if (!validReturnStatuses.includes(updateFields.returnStatus)) {
-        return res.status(400).json({ error: 'Trạng thái hoàn hàng không hợp lệ' });
+        throw new Error('Trạng thái hoàn hàng không hợp lệ');
       }
+    }
+
+    let stockRestored = [];
+    if (['cancelled', 'failed', 'returned'].includes(updateFields.shippingStatus) && 
+        existingOrder.shippingStatus !== updateFields.shippingStatus) {
+      await existingOrder.populate('items.product');
+      const restoreResult = await restoreStock(existingOrder, updateFields.shippingStatus, session);
+      stockRestored = restoreResult.stockRestored;
     }
 
     const updatedOrder = await Order.findByIdAndUpdate(
       orderId, 
       updateFields, 
-      { new: true, runValidators: true }
+      { new: true, runValidators: true, session }
     );
 
     if (!updatedOrder) {
-      return res.status(404).json({ error: 'Không thể cập nhật đơn hàng' });
+      throw new Error('Không thể cập nhật đơn hàng');
     }
 
     const populatedOrder = await Order.findById(orderId)
       .populate('items.product')
       .populate('user', 'username email');
+
+    await session.commitTransaction();
+    session.endSession();
 
     if (updateFields.shippingStatus === 'failed') {
       try {
@@ -865,6 +992,7 @@ exports.updateOrder = async (req, res) => {
                 </p>
                 <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
                   <strong>Lý do:</strong> ${translatedFailReason}.<br>
+                  <strong>Kho hàng:</strong> Đã hoàn lại số lượng sản phẩm về kho.<br>
                   Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
                 </p>
                 <div style="text-align: center; margin: 25px 0;">
@@ -887,7 +1015,7 @@ exports.updateOrder = async (req, res) => {
                 <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
                 <p style="margin: 0;">
                   Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
+                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
                 </p>
               </div>
             </div>
@@ -901,9 +1029,12 @@ exports.updateOrder = async (req, res) => {
 
     res.json({ 
       message: 'Cập nhật đơn hàng thành công', 
-      order: populatedOrder 
+      order: populatedOrder,
+      stockRestored
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Lỗi khi cập nhật đơn hàng:', error.stack);
     res.status(500).json({ 
       error: 'Lỗi khi cập nhật đơn hàng', 
@@ -913,29 +1044,38 @@ exports.updateOrder = async (req, res) => {
 };
 
 exports.markOrderAsFailed = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { orderId } = req.params;
     const { failReason } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({ error: 'orderId không hợp lệ' });
+      throw new Error('orderId không hợp lệ');
     }
 
     if (!failReason) {
-      return res.status(400).json({ error: 'Vui lòng cung cấp lý do giao hàng thất bại' });
+      throw new Error('Vui lòng cung cấp lý do giao hàng thất bại');
     }
 
-    const order = await Order.findById(orderId).populate('user', 'username email');
+    const order = await Order.findById(orderId).populate('user', 'username email').session(session);
     if (!order) {
-      return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
+      throw new Error('Không tìm thấy đơn hàng');
     }
+
+    // Restore stock
+    const { stockRestored } = await restoreStock(order, 'failed', session);
 
     order.shippingStatus = 'failed';
     order.paymentStatus = 'failed';
     order.failReason = failReason;
-    await order.save();
+    await order.save({ session });
 
     await order.populate('items.product');
+
+    await session.commitTransaction();
+    session.endSession();
 
     try {
       const translatedFailReason = getTranslatedFailReason(failReason);
@@ -955,6 +1095,7 @@ exports.markOrderAsFailed = async (req, res) => {
               </p>
               <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
                 <strong>Lý do:</strong> ${translatedFailReason}.<br>
+                <strong>Kho hàng:</strong> Đã hoàn lại số lượng sản phẩm về kho.<br>
                 Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
               </p>
               <div style="text-align: center; margin: 25px 0;">
@@ -977,7 +1118,7 @@ exports.markOrderAsFailed = async (req, res) => {
               <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
               <p style="margin: 0;">
                 Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
+                <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
               </p>
             </div>
           </div>
@@ -988,26 +1129,34 @@ exports.markOrderAsFailed = async (req, res) => {
       console.error(`Lỗi gửi email thông báo giao hàng thất bại: ${emailError.message}`);
     }
 
-    res.json({ message: 'Đã đánh dấu đơn hàng giao thất bại', order });
+    res.json({ message: 'Đã đánh dấu đơn hàng giao thất bại', order, stockRestored });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Lỗi khi đánh dấu giao hàng thất bại:', error.message);
     res.status(500).json({ error: 'Lỗi khi đánh dấu giao hàng thất bại', details: error.message });
   }
 };
 
 exports.checkFailedDeliveries = async () => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const thresholdDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
     const failedOrders = await Order.find({
       shippingStatus: 'in_transit',
       updatedAt: { $lt: thresholdDate }
-    }).populate('user', 'username email');
+    }).populate('user', 'username email').session(session);
 
     for (const order of failedOrders) {
+      // Restore stock
+      await restoreStock(order, 'failed', session);
+
       order.shippingStatus = 'failed';
       order.paymentStatus = 'failed';
       order.failReason = 'timeout';
-      await order.save();
+      await order.save({ session });
 
       try {
         const translatedFailReason = getTranslatedFailReason(order.failReason);
@@ -1027,6 +1176,7 @@ exports.checkFailedDeliveries = async () => {
                 </p>
                 <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 15px;">
                   <strong>Lý do:</strong> ${translatedFailReason}.<br>
+                  <strong>Kho hàng:</strong> Đã hoàn lại số lượng sản phẩm về kho.<br>
                   Vui lòng liên hệ với chúng tôi qua email hoặc hotline để được hỗ trợ thêm.
                 </p>
                 <div style="text-align: center; margin: 25px 0;">
@@ -1049,7 +1199,7 @@ exports.checkFailedDeliveries = async () => {
                 <p style="margin: 0 0 5px;">© 2025 Pure-Botanica. All rights reserved.</p>
                 <p style="margin: 0;">
                   Liên hệ: <a href="mailto:purebotanicastore@gmail.com" style="color: #357E38; text-decoration: none;">purebotanicastore@gmail.com</a> | 
-                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.online</a>
+                  <a href="https://purebotanica.online" style="color: #357E38; text-decoration: none;">purebotanica.com</a>
                 </p>
               </div>
             </div>
@@ -1060,7 +1210,12 @@ exports.checkFailedDeliveries = async () => {
         console.error(`Lỗi gửi email thông báo giao hàng thất bại: ${emailError.message}`);
       }
     }
+
+    await session.commitTransaction();
+    session.endSession();
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Lỗi khi kiểm tra giao hàng thất bại:', error.message);
   }
 };

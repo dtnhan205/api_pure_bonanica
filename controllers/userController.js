@@ -567,7 +567,7 @@ const updateUser = async (req, res) => {
 
     // Kiểm tra quyền truy cập
     if (req.user._id.toString() !== userId && req.user.role !== 'admin') {
-      console.log("Access denied:", {a
+      console.log("Access denied:", {
         userId,
         requesterId: req.user._id.toString(),
         role: req.user.role,

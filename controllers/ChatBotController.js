@@ -18,12 +18,12 @@ const navigationMap = {
   home: {
     description: "Trang chủ hiển thị sản phẩm nổi bật và tin tức.",
     url: "https://purebotanica.online/user",
-    actions: ["Xem sản phẩm", "Xem tin tức"],
+    actions: ["Xem sản phẩm", "Xem tin tức", "Xem trang chủ"],
   },
   products: {
     description: "Trang danh sách sản phẩm, có thể lọc theo danh mục hoặc tìm kiếm.",
     url: "https://purebotanica.online/user/products",
-    actions: ["Tìm sản phẩm", "Lọc theo danh mục", "Xem chi tiết sản phẩm"],
+    actions: ["Tìm sản phẩm", "Lọc theo danh mục", "Xem sản phẩm"],
   },
   productDetail: {
     description: "Trang chi tiết sản phẩm, hiển thị giá, mô tả, và nút thêm vào giỏ hàng.",
@@ -54,6 +54,11 @@ const navigationMap = {
     description: "Trang tin tức hiển thị các bài viết mới nhất.",
     url: "https://purebotanica.online/user/new",
     actions: ["Xem tin tức", "Đọc bài viết"],
+  },
+  return: {
+    description: "Cách hoàn trả đơn hàng.",
+    url: "https://purebotanica.online/user/userinfo?section=orders",
+    actions: ["Hoàn đơn", "Yêu cầu hoàn hàng", "Trả hàng", "Hoàn tiền"],
   },
 };
 
@@ -212,7 +217,7 @@ function summarizeBrands(brands) {
 
 // Hàm tóm tắt tin tức
 function summarizeNews(news) {
-  if (news.length === 0) return 'Chưa có tin tức.';
+  if (news.length === 0) return 'Chưa có tin tức mới.';
   return news.map(item => 
     `Tiêu đề: ${item.title}\nLiên kết: ${item.slug ? `https://purebotanica.online/news/${item.slug}` : 'Không có liên kết'}`
   ).join('\n---\n');
@@ -319,6 +324,17 @@ const faqs = [
   },
 ];
 
+// Hàm kiểm tra FAQ với khớp gần đúng
+function findMatchingFAQ(message) {
+  const normalizedMessage = correctSpelling(message).toLowerCase();
+  return faqs.find(faq => {
+    const faqQuestion = faq.question.toLowerCase();
+    const similarity = stringSimilarity.compareTwoStrings(normalizedMessage, faqQuestion);
+    const containsKeywords = normalizedMessage.split(/\s+/).some(word => faqQuestion.includes(word));
+    return similarity > 0.8 || containsKeywords;
+  });
+}
+
 // Hàm xử lý gửi tin nhắn
 exports.sendMessage = async (req, res) => {
   try {
@@ -361,8 +377,8 @@ exports.sendMessage = async (req, res) => {
     let suggestedNews = [];
     let suggestedCategories = [];
 
-    // Kiểm tra FAQ
-    const faqMatch = faqs.find(faq => faq.question.toLowerCase() === correctSpelling(message).toLowerCase());
+    // Kiểm tra FAQ với khớp gần đúng
+    const faqMatch = findMatchingFAQ(message);
     if (faqMatch) {
       botResponseText = typeof faqMatch.answer === 'function' ? await faqMatch.answer() : faqMatch.answer;
       if (faqMatch.question.toLowerCase().includes('mã giảm giá') || faqMatch.question.toLowerCase().includes('coupon') || faqMatch.question.toLowerCase().includes('khuyến mãi')) {
@@ -390,7 +406,7 @@ exports.sendMessage = async (req, res) => {
       const couponKeywords = ['mã giảm giá', 'coupon', 'khuyến mãi'];
       const newsKeywords = ['tin tức', 'news', 'bài viết', 'gần đây'];
       const categoryKeywords = ['danh mục', 'category'];
-      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức', 'xem'];
+      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân'];
       const greetingKeywords = ['chào', 'hello', 'hi', 'xin chào'];
 
       hasProductQuery = productKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
@@ -404,27 +420,10 @@ exports.sendMessage = async (req, res) => {
       // Xử lý theo loại query
       if (isGreeting) {
         botResponseText = 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn. Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!';
-      } else if (hasNavigationQuery) {
-        const matchedPage = Object.keys(navigationMap).find(page => 
-          message.toLowerCase().includes(page) || 
-          navigationMap[page].actions.some(action => 
-            correctSpelling(message).toLowerCase().includes(action.toLowerCase()) ||
-            message.toLowerCase().includes(page.toLowerCase())
-          )
-        );
-        if (matchedPage) {
-          if (message.toLowerCase().includes('sản phẩm yêu thích') || message.toLowerCase().includes('wishlist')) {
-            botResponseText = `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url} để xem danh sách yêu thích.`;
-          } else {
-            botResponseText = `Truy cập ${navigationMap[matchedPage].url} để ${message.toLowerCase().replace('ở đâu', '').trim()}.`;
-          }
-        } else {
-          botResponseText = 'Không tìm thấy trang phù hợp. Vui lòng thử lại!';
-        }
       } else if (hasNewsQuery) {
         suggestedNews = (await getNews()).slice(0, 2);
         botResponseText = suggestedNews.length > 0
-          ? summarizeNews(suggestedNews)
+          ? `Tin tức mới:\n${summarizeNews(suggestedNews)}`
           : 'Chưa có tin tức mới.';
       } else if (hasProductQuery) {
         const products = await getActiveProducts();
@@ -445,11 +444,29 @@ exports.sendMessage = async (req, res) => {
         botResponseText = suggestedCategories.length > 0
           ? summarizeCategories(suggestedCategories)
           : 'Chưa có danh mục.';
+      } else if (hasNavigationQuery) {
+        const matchedPage = Object.keys(navigationMap).find(page => 
+          message.toLowerCase().includes(page) || 
+          navigationMap[page].actions.some(action => 
+            correctSpelling(message).toLowerCase().includes(action.toLowerCase())
+          )
+        );
+        if (matchedPage) {
+          if (message.toLowerCase().includes('sản phẩm yêu thích') || message.toLowerCase().includes('wishlist')) {
+            botResponseText = `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url} để xem danh sách yêu thích.`;
+          } else {
+            botResponseText = `Truy cập ${navigationMap[matchedPage].url} để ${message.toLowerCase().replace('ở đâu', '').trim()}.`;
+          }
+        } else {
+          botResponseText = 'Không tìm thấy trang phù hợp. Vui lòng thử lại!';
+        }
       } else {
         // Gọi Gemini API cho câu hỏi ngoài FAQ
         let context = 'Bạn là trợ lý chatbot của Pure Botanica, trả lời ngắn gọn bằng tiếng Việt, chỉ cung cấp thông tin cần thiết. Nếu có thể, trả lời tự nhiên và hữu ích. Nếu không biết, nói "Xin lỗi tôi không có đủ thông tin để trả lời câu hỏi này!".\n';
         context += 'Nếu gợi ý sản phẩm, chỉ trả về "Dưới đây là các sản phẩm gợi ý cho bạn:" trong message, chi tiết sản phẩm (tên, giá, hình ảnh đầu tiên, liên kết) nằm trong mảng products.\n';
         context += 'Nếu liên quan đến điều hướng web, sử dụng URL và mô tả từ navigationMap.\n';
+        context += 'Nếu liên quan đến mã giảm giá, chỉ trả về "Mã giảm giá:" trong message, chi tiết mã (mã, giảm giá, hạn sử dụng) nằm trong mảng coupons.\n';
+        context += 'Nếu liên quan đến tin tức, chỉ trả về "Tin tức mới:" trong message, chi tiết tin tức liên quan câu hỏi (tên, hình, slug) nằm trong mảng news.\n';
 
         const products = await getActiveProducts();
         context += `Sản phẩm mẫu: ${summarizeProducts(products.slice(0, 2))}\n`;

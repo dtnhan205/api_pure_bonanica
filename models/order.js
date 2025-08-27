@@ -73,7 +73,7 @@ const orderSchema = new mongoose.Schema({
   },
   shippingStatus: {
     type: String,
-    enum: ['pending', 'in_transit', 'delivered', 'returned', 'cancelled', 'failed'],
+    enum: ['pending', 'confirmed', 'in_transit', 'delivered', 'returned', 'cancelled', 'failed'],
     default: 'pending',
     required: true
   },
@@ -132,6 +132,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  confirmedAt: { // Thêm trường để lưu thời gian xác nhận
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -155,14 +159,19 @@ orderSchema.virtual('isFailed').get(function() {
   return this.shippingStatus === 'failed' && this.paymentStatus === 'failed';
 });
 
+// Add virtual for confirmed status
+orderSchema.virtual('isConfirmed').get(function() {
+  return this.shippingStatus === 'confirmed';
+});
+
 // Add method to check if order can be cancelled
 orderSchema.methods.canBeCancelled = function() {
-  return this.shippingStatus === 'pending' && this.paymentStatus === 'pending';
+  return ['pending', 'confirmed'].includes(this.shippingStatus) && this.paymentStatus === 'pending';
 };
 
 // Add method to check if order can be marked as failed
 orderSchema.methods.canBeMarkedAsFailed = function() {
-  return this.shippingStatus === 'in_transit';
+  return ['confirmed', 'in_transit'].includes(this.shippingStatus);
 };
 
 module.exports = mongoose.model('Order', orderSchema);
