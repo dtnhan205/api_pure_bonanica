@@ -23,8 +23,16 @@ const chatMessageSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        // Tùy chọn: Thêm trường imageMetadata nếu muốn lưu thông tin hình ảnh
+        imageMetadata: {
+          type: {
+            mimeType: String,
+            filename: String,
+          },
+          required: false,
+        },
       },
-      { maxlength: 200 },
+      { maxlength: 200 }, // Giới hạn số lượng tin nhắn trong mỗi session
     ],
   },
   { versionKey: false, timestamps: true }

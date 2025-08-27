@@ -4,21 +4,104 @@ const Joi = require('joi');
 const mongoose = require('mongoose');
 const fetch = require('node-fetch');
 const stringSimilarity = require('string-similarity');
+const multer = require('multer');
+const fs = require('fs').promises;
+const path = require('path'); // Đảm bảo dòng này có và đúng cú pháp
 
 const API_KEY = process.env.GEMINI_API_KEY;
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 const PRODUCTS_API_URL = 'https://api-zeal.onrender.com/api/products/active';
 const BRANDS_API_URL = 'https://api-zeal.onrender.com/api/brands';
 const COUPONS_API_URL = 'https://api-zeal.onrender.com/api/coupons';
 const NEWS_API_URL = 'https://api-zeal.onrender.com/api/news';
 const CATEGORIES_API_URL = 'https://api-zeal.onrender.com/api/categories';
 
+
+// Cấu hình multer để lưu trữ tạm thời
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 10 * 1024 * 1024 }, // Giới hạn 10MB
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Chỉ chấp nhận file JPG hoặc PNG!'));
+    }
+  },
+});
+
+// Schema xác thực cho phân tích hình ảnh
+const imageAnalysisSchema = Joi.object({
+  sessionId: Joi.string().required().messages({
+    'string.empty': 'Session ID không được để trống',
+    'any.required': 'Session ID là bắt buộc',
+  }),
+  image: Joi.any().optional().meta({ swaggerType: 'file' }).description('Hình ảnh da cần phân tích'),
+  message: Joi.string().optional().allow('').min(0).max(5000).messages({
+    'string.max': 'Tin nhắn không được vượt quá 5000 ký tự',
+  }),
+});
+
+// Hàm gửi hình ảnh đến Gemini API
+async function analyzeSkinImage(imageBuffer, userMessage) {
+  try {
+    const parts = [];
+    if (userMessage) {
+      parts.push({ text: userMessage });
+    }
+    if (imageBuffer) {
+      const base64Image = imageBuffer.toString('base64');
+      parts.push({
+        inlineData: {
+          mimeType: 'image/jpeg', // hoặc image/png tùy định dạng
+          data: base64Image,
+        },
+      });
+    }
+
+    const requestBody = {
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: 'Bạn là trợ lý chatbot của Pure Botanica. Nếu có hình ảnh, phân tích tình trạng da (da dầu, da khô, mụn, lão hóa, v.v.) và gợi ý sản phẩm phù hợp. Nếu có câu hỏi văn bản, trả lời ngắn gọn, tự nhiên bằng tiếng Việt, sử dụng thông tin từ Pure Botanica. Nếu không biết, trả lời: "Xin lỗi, tôi không có đủ thông tin để trả lời câu hỏi này!"' },
+            ...parts,
+          ],
+        },
+      ],
+    };
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Lỗi từ Gemini API: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+      throw new Error('Phản hồi từ Gemini API không hợp lệ');
+    }
+
+    return data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, '$1').trim();
+  } catch (error) {
+    console.error('Lỗi khi phân tích:', error);
+    return 'Xin lỗi, không thể xử lý yêu cầu. Vui lòng thử lại!';
+  }
+}
+
 // Định nghĩa navigationMap
 const navigationMap = {
   home: {
     description: "Trang chủ hiển thị sản phẩm nổi bật và tin tức.",
     url: "https://purebotanica.online/user",
-    actions: ["Xem sản phẩm", "Xem tin tức", "Xem trang chủ"],
+    actions: ["Xem sản phẩm", "Xem tin tức","Xem trang chủ"],
   },
   products: {
     description: "Trang danh sách sản phẩm, có thể lọc theo danh mục hoặc tìm kiếm.",
@@ -56,7 +139,7 @@ const navigationMap = {
     actions: ["Xem tin tức", "Đọc bài viết"],
   },
   return: {
-    description: "Cách hoàn trả đơn hàng.",
+    description: "Cách hoàn trả đơn hàng, bấm vào chi tiết đơn hàng và chọn yêu cầu hoàn hàng.",
     url: "https://purebotanica.online/user/userinfo?section=orders",
     actions: ["Hoàn đơn", "Yêu cầu hoàn hàng", "Trả hàng", "Hoàn tiền"],
   },
@@ -217,7 +300,7 @@ function summarizeBrands(brands) {
 
 // Hàm tóm tắt tin tức
 function summarizeNews(news) {
-  if (news.length === 0) return 'Chưa có tin tức mới.';
+  if (news.length === 0) return 'Chưa có tin tức.';
   return news.map(item => 
     `Tiêu đề: ${item.title}\nLiên kết: ${item.slug ? `https://purebotanica.online/news/${item.slug}` : 'Không có liên kết'}`
   ).join('\n---\n');
@@ -324,17 +407,6 @@ const faqs = [
   },
 ];
 
-// Hàm kiểm tra FAQ với khớp gần đúng
-function findMatchingFAQ(message) {
-  const normalizedMessage = correctSpelling(message).toLowerCase();
-  return faqs.find(faq => {
-    const faqQuestion = faq.question.toLowerCase();
-    const similarity = stringSimilarity.compareTwoStrings(normalizedMessage, faqQuestion);
-    const containsKeywords = normalizedMessage.split(/\s+/).some(word => faqQuestion.includes(word));
-    return similarity > 0.8 || containsKeywords;
-  });
-}
-
 // Hàm xử lý gửi tin nhắn
 exports.sendMessage = async (req, res) => {
   try {
@@ -377,8 +449,8 @@ exports.sendMessage = async (req, res) => {
     let suggestedNews = [];
     let suggestedCategories = [];
 
-    // Kiểm tra FAQ với khớp gần đúng
-    const faqMatch = findMatchingFAQ(message);
+    // Kiểm tra FAQ
+    const faqMatch = faqs.find(faq => faq.question.toLowerCase() === correctSpelling(message).toLowerCase());
     if (faqMatch) {
       botResponseText = typeof faqMatch.answer === 'function' ? await faqMatch.answer() : faqMatch.answer;
       if (faqMatch.question.toLowerCase().includes('mã giảm giá') || faqMatch.question.toLowerCase().includes('coupon') || faqMatch.question.toLowerCase().includes('khuyến mãi')) {
@@ -406,7 +478,7 @@ exports.sendMessage = async (req, res) => {
       const couponKeywords = ['mã giảm giá', 'coupon', 'khuyến mãi'];
       const newsKeywords = ['tin tức', 'news', 'bài viết', 'gần đây'];
       const categoryKeywords = ['danh mục', 'category'];
-      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân'];
+      const navigationKeywords = ['truy cập', 'đi đến', 'tìm trang', 'cách vào', 'làm sao vào', 'giỏ hàng', 'đăng nhập', 'đăng ký', 'wishlist', 'liên hệ', 'sản phẩm yêu thích', 'thanh toán', 'đơn hàng', 'thông tin cá nhân', 'tin tức', 'xem'];
       const greetingKeywords = ['chào', 'hello', 'hi', 'xin chào'];
 
       hasProductQuery = productKeywords.some(keyword => correctSpelling(message).toLowerCase().includes(keyword));
@@ -420,10 +492,27 @@ exports.sendMessage = async (req, res) => {
       // Xử lý theo loại query
       if (isGreeting) {
         botResponseText = 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn. Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!';
+      } else if (hasNavigationQuery) {
+        const matchedPage = Object.keys(navigationMap).find(page => 
+          message.toLowerCase().includes(page) || 
+          navigationMap[page].actions.some(action => 
+            correctSpelling(message).toLowerCase().includes(action.toLowerCase()) ||
+            message.toLowerCase().includes(page.toLowerCase())
+          )
+        );
+        if (matchedPage) {
+          if (message.toLowerCase().includes('sản phẩm yêu thích') || message.toLowerCase().includes('wishlist')) {
+            botResponseText = `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url} để xem danh sách yêu thích.`;
+          } else {
+            botResponseText = `Truy cập ${navigationMap[matchedPage].url} để ${message.toLowerCase().replace('ở đâu', '').trim()}.`;
+          }
+        } else {
+          botResponseText = 'Không tìm thấy trang phù hợp. Vui lòng thử lại!';
+        }
       } else if (hasNewsQuery) {
         suggestedNews = (await getNews()).slice(0, 2);
         botResponseText = suggestedNews.length > 0
-          ? `Tin tức mới:\n${summarizeNews(suggestedNews)}`
+          ? summarizeNews(suggestedNews)
           : 'Chưa có tin tức mới.';
       } else if (hasProductQuery) {
         const products = await getActiveProducts();
@@ -444,29 +533,14 @@ exports.sendMessage = async (req, res) => {
         botResponseText = suggestedCategories.length > 0
           ? summarizeCategories(suggestedCategories)
           : 'Chưa có danh mục.';
-      } else if (hasNavigationQuery) {
-        const matchedPage = Object.keys(navigationMap).find(page => 
-          message.toLowerCase().includes(page) || 
-          navigationMap[page].actions.some(action => 
-            correctSpelling(message).toLowerCase().includes(action.toLowerCase())
-          )
-        );
-        if (matchedPage) {
-          if (message.toLowerCase().includes('sản phẩm yêu thích') || message.toLowerCase().includes('wishlist')) {
-            botResponseText = `Bấm biểu tượng trái tim tại ${navigationMap.wishlist.url} để xem danh sách yêu thích.`;
-          } else {
-            botResponseText = `Truy cập ${navigationMap[matchedPage].url} để ${message.toLowerCase().replace('ở đâu', '').trim()}.`;
-          }
-        } else {
-          botResponseText = 'Không tìm thấy trang phù hợp. Vui lòng thử lại!';
-        }
       } else {
         // Gọi Gemini API cho câu hỏi ngoài FAQ
         let context = 'Bạn là trợ lý chatbot của Pure Botanica, trả lời ngắn gọn bằng tiếng Việt, chỉ cung cấp thông tin cần thiết. Nếu có thể, trả lời tự nhiên và hữu ích. Nếu không biết, nói "Xin lỗi tôi không có đủ thông tin để trả lời câu hỏi này!".\n';
         context += 'Nếu gợi ý sản phẩm, chỉ trả về "Dưới đây là các sản phẩm gợi ý cho bạn:" trong message, chi tiết sản phẩm (tên, giá, hình ảnh đầu tiên, liên kết) nằm trong mảng products.\n';
         context += 'Nếu liên quan đến điều hướng web, sử dụng URL và mô tả từ navigationMap.\n';
         context += 'Nếu liên quan đến mã giảm giá, chỉ trả về "Mã giảm giá:" trong message, chi tiết mã (mã, giảm giá, hạn sử dụng) nằm trong mảng coupons.\n';
-        context += 'Nếu liên quan đến tin tức, chỉ trả về "Tin tức mới:" trong message, chi tiết tin tức liên quan câu hỏi (tên, hình, slug) nằm trong mảng news.\n';
+        context += 'Nếu liên quan đến tin tức, chỉ trả về "tin tức dành cho bạn:" trong message, chi tiết tin tức liên quan câu hỏi (tên, hình, slug) nằm trong mảng news.\n';
+
 
         const products = await getActiveProducts();
         context += `Sản phẩm mẫu: ${summarizeProducts(products.slice(0, 2))}\n`;
@@ -589,6 +663,131 @@ exports.createOrGetSession = async (req, res) => {
     res.status(500).json({ error: 'Lỗi server' });
   }
 };
+
+// Endpoint phân tích hình ảnh
+exports.analyzeSkin = [
+  upload.single('image'),
+  async (req, res) => {
+    try {
+      // Xác thực dữ liệu
+      const { error, value } = imageAnalysisSchema.validate({
+        sessionId: req.body.sessionId,
+        image: req.file,
+        message: req.body.message,
+      });
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+
+      const { sessionId, message } = value;
+      if (!req.file && !message) {
+        return res.status(400).json({ error: 'Phải cung cấp ít nhất hình ảnh hoặc tin nhắn' });
+      }
+
+      // Tìm hoặc tạo session
+      let chatSession = await ChatMessage.findOne({ sessionId });
+      if (!chatSession) {
+        chatSession = new ChatMessage({ sessionId, messages: [] });
+      }
+
+      // Thêm tin nhắn người dùng
+      const userContent = message || 'Phân tích tình trạng da từ hình ảnh';
+      chatSession.messages.push({
+        role: 'user',
+        content: userContent,
+        timestamp: new Date(),
+        imageMetadata: req.file ? {
+          mimeType: req.file.mimetype,
+          filename: req.file.originalname,
+        } : undefined,
+      });
+
+      // Xử lý hình ảnh và/hoặc văn bản
+      let botResponseText = '';
+      let suggestedProducts = [];
+      if (req.file || message) {
+        const imageBuffer = req.file ? await fs.readFile(req.file.path) : null;
+        botResponseText = await analyzeSkinImage(imageBuffer, message);
+
+        // Xóa file tạm nếu có
+        if (req.file) {
+          await fs.unlink(req.file.path).catch(err => console.error('Lỗi xóa file tạm:', err));
+        }
+
+        // Gợi ý sản phẩm dựa trên phản hồi
+        const skinConditions = ['da dầu', 'da khô', 'mụn', 'lão hóa', 'nhạy cảm', 'dưỡng ẩm', 'kiềm dầu'];
+        const matchedCondition = skinConditions.find(condition =>
+          botResponseText.toLowerCase().includes(condition)
+        );
+
+        if (matchedCondition) {
+          const products = await getActiveProducts();
+          suggestedProducts = filterProducts(products, matchedCondition).slice(0, 2);
+        }
+      }
+
+      // Kiểm tra FAQ nếu chỉ có văn bản
+      if (!req.file && message) {
+        const faqMatch = faqs.find(faq => faq.question.toLowerCase() === correctSpelling(message).toLowerCase());
+        if (faqMatch) {
+          botResponseText = typeof faqMatch.answer === 'function' ? await faqMatch.answer() : faqMatch.answer;
+          if (faqMatch.question.toLowerCase().includes('sản phẩm') || faqMatch.question.toLowerCase().includes('dưỡng da')) {
+            const products = await getActiveProducts();
+            suggestedProducts = filterProducts(products, correctSpelling(faqMatch.question)).slice(0, 2);
+          }
+        }
+      }
+
+      // Cắt ngắn phản hồi nếu quá dài
+      if (botResponseText.length > 500) {
+        const lines = botResponseText.split('\n');
+        let truncated = '';
+        let charCount = 0;
+        for (const line of lines) {
+          if (charCount + line.length + 1 > 500) break;
+          truncated += line + '\n';
+          charCount += line.length + 1;
+        }
+        botResponseText = truncated.trim() + '...';
+      }
+
+      // Thêm phản hồi bot
+      chatSession.messages.push({
+        role: 'model',
+        content: botResponseText,
+        timestamp: new Date(),
+      });
+
+      if (chatSession.messages.length > 200) chatSession.messages.shift();
+      await chatSession.save().catch(err => {
+        console.error('Lỗi khi lưu chatSession:', err);
+        throw err;
+      });
+
+      // Chuẩn bị payload trả về
+      const responsePayload = { message: botResponseText };
+      if (suggestedProducts.length > 0) {
+        responsePayload.products = suggestedProducts.map(product => ({
+          name: product.name,
+          slug: product.slug || 'khong-co-slug',
+          price: product.option && product.option[0] ? product.option[0].price : null,
+          images: product.images || [],
+        }));
+      }
+
+      res.status(200).json(responsePayload);
+    } catch (error) {
+      console.error('Lỗi analyzeSkin:', error.message, error.stack);
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(err => console.error('Lỗi xóa file tạm:', err));
+      }
+      if (error.message.includes('request entity too large')) {
+        return res.status(413).json({ error: 'Hình ảnh quá lớn, tối đa 10MB' });
+      }
+      return res.status(500).json({ error: `Lỗi server: ${error.message}` });
+    }
+  },
+];
 
 // Hàm lấy lịch sử chat
 exports.getChatHistory = async (req, res) => {
