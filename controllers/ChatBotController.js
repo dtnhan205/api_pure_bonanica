@@ -401,7 +401,7 @@ async function analyzeSkinImage(imageBuffer, userMessage) {
     console.log('Products fetched in analyzeSkinImage:', products.length);
     console.log('Coupons fetched in analyzeSkinImage:', coupons);
 
-    const context = `Bạn là trợ lý chatbot của Pure Botanica. Nếu có hình ảnh, phân tích tình trạng da (da dầu, da khô, mụn, lão hóa, trắng da, nám, v.v.) và gợi ý sản phẩm phù hợp từ danh sách dưới đây. Nếu có câu hỏi văn bản, trả lời ngắn gọn, tự nhiên bằng tiếng Việt, sử dụng thông tin từ Pure Botanica. Nếu câu hỏi liên quan đến mã giảm giá, coupon, hoặc khuyến mãi, trả về danh sách mã giảm giá. Nếu câu hỏi liên quan đến trắng da, sáng da, hoặc nám, gợi ý sản phẩm có công dụng làm sáng da hoặc giảm nám (như Serum Sáng Da Mờ Nám Sơ-ri Vitamin C). Nếu là lời chào (chào, hi, hello, xin chào), trả lời: "Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn. Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!" Nếu không biết, trả lời: "Xin lỗi, tôi không có đủ thông tin để trả lời câu hỏi này!"
+    const context = `Bạn là trợ lý chatbot của Pure Botanica. Nếu có hình ảnh, phân tích tình trạng da (da dầu, da khô, mụn, lão hóa, trắng da, nám, v.v.) và gợi ý sản phẩm phù hợp từ danh sách dưới đây. Nếu có câu hỏi văn bản, trả lời ngắn gọn, tự nhiên bằng tiếng Việt, sử dụng thông tin từ Pure Botanica. Nếu câu hỏi liên quan đến mã giảm giá, coupon, hoặc khuyến mãi, trả về danh sách mã giảm giá. Nếu câu hỏi liên quan đến trắng da, sáng da, hoặc nám, gợi ý sản phẩm có công dụng làm sáng da hoặc giảm nám (như Serum Sáng Da Mờ Nám Sơ-ri Vitamin C). Nếu là lời chào (chào, hi, hello, xin chào), trả lời: "Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn!" Nếu không biết, trả lời: "Xin lỗi, tôi không có đủ thông tin để trả lời câu hỏi này!"
 
     Dữ liệu sản phẩm: ${JSON.stringify(products.map(p => ({
       name: p.name,
@@ -426,7 +426,7 @@ async function analyzeSkinImage(imageBuffer, userMessage) {
     const greetingKeywords = ['chào', 'hello', 'hi', 'xin chào'];
     if (userMessage && greetingKeywords.some(keyword => userMessage.toLowerCase().includes(keyword))) {
       return {
-        message: 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn. Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!',
+        message: 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn. Hỏi về sản phẩm!',
         conditions: [],
         products: [],
         coupons: []
@@ -660,7 +660,7 @@ async function analyzeSkinImage(imageBuffer, userMessage) {
 
     if (isGreeting) {
       return {
-        message: 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn. Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!',
+        message: 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn!',
         conditions: [],
         products: [],
         coupons: []
@@ -816,7 +816,7 @@ exports.analyzeSkin = [
       // Xử lý lời chào
       else if (isGreeting && !hasWhiteningQuery && !hasMelasmaQuery && !hasAcneQuery && !hasOilySkinQuery && !hasDrySkinQuery && !hasCouponQuery) {
         botResponse = {
-          message: 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn. Hỏi về sản phẩm, mã giảm giá hay cách dùng web nhé!',
+          message: 'Chào bạn! Mình là chatbot của Pure Botanica, sẵn sàng giúp bạn!',
           conditions: [],
           products: [],
           coupons: [],
