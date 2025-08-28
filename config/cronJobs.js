@@ -25,7 +25,7 @@ const checkAndCreateSpecialCoupons = async () => {
   }
 }; 
 
-cron.schedule('0 * * * *', () => {
+cron.schedule('* * * * *', () => {
   console.log('Checking for special day coupons at', new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
   checkAndCreateSpecialCoupons();
 }, {

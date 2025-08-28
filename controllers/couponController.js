@@ -402,7 +402,20 @@ exports.getAutoSetupConfig = async (req, res) => {
       usageLimit: null,
       specialDays: [
         { date: "2025-09-02", description: "Ngày Quốc Khánh" },
-        { date: "2026-01-01", description: "Năm Mới" }
+        { date: "2025-01-01", description: "Tết Dương Lịch" },
+        { date: "2025-01-29", description: "Tết Nguyên Đán" },
+        { date: "2025-03-31", description: "Giỗ Tổ Hùng Vương" },
+        { date: "2025-04-30", description: "Ngày Thống Nhất" },
+        { date: "2025-05-01", description: "Ngày Quốc tế Lao động" },
+        { date: "2025-10-20", description: "Ngày Phụ nữ Việt Nam" },
+        { date: "2025-12-24", description: "Giáng sinh" },
+        { date: "2026-01-01", description: "Năm Mới" },
+        { date: "2026-02-17", description: "Tết Nguyên Đán" },
+        { date: "2026-04-20", description: "Giỗ Tổ Hùng Vương" },
+        { date: "2026-04-30", description: "Ngày Thống Nhất" },
+        { date: "2026-05-01", description: "Ngày Quốc tế Lao động" },
+        { date: "2026-10-20", description: "Ngày Phụ nữ Việt Nam" },
+        { date: "2026-12-24", description: "Giáng sinh" }
       ],
     };
     console.log('Cấu hình gửi đi:', config);
